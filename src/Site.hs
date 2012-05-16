@@ -28,7 +28,6 @@ import           Text.XmlHtml hiding (render)
 ------------------------------------------------------------------------------
 import           Application
 
-
 ------------------------------------------------------------------------------
 -- | Renders the front page of the sample site.
 --
@@ -74,7 +73,6 @@ navigationSplice = do
       normalizeRequest request
         | (last request == '/') && (length request > 1) = init request
         | otherwise = request 
-
     
 ------------------------------------------------------------------------------
 -- | For your convenience, a splice which shows the start time.
@@ -105,8 +103,8 @@ echo = do
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
-routes = [ ("/",            index)
-         , ("/about/", aboutMe)
+routes = [ ("/", index)
+         , ("/about", aboutMe)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
@@ -121,6 +119,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     addRoutes routes
     return $ App h sTime
     where
-        commonSplices = bindSplices [("navigation", navigationSplice)] defaultHeistState
+        commonSplices = bindSplices [
+          ("navigation", navigationSplice)] defaultHeistState
 
 
