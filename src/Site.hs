@@ -54,14 +54,10 @@ siteStructure = [("/", "Home"), ("/about", "About me")]
 createList :: String -> [Node]
 createList request = map listItem siteStructure
   where
-    listItem item = Element "li" (itemClass $ fst item) [
+    listItem item = Element "li" [("class", "active") | request == fst item] [
         Element "a" [("href", T.pack $ fst item)] [
             TextNode $ T.pack (snd item) ]
         ]
-    itemClass :: String -> [(T.Text, T.Text)]
-    itemClass itemPath
-        | request == itemPath = [("class", "active")]
-        | otherwise = []
 
 navigationSplice :: Splice AppHandler
 navigationSplice = do
