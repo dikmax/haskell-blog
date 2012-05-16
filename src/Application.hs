@@ -7,15 +7,19 @@
 module Application where
 
 ------------------------------------------------------------------------------
+import Control.Monad.State
 import Data.Lens.Template
 import Data.Time.Clock
+import Database.HDBC.MySQL
 import Snap.Snaplet
 import Snap.Snaplet.Heist
+import Snap.Snaplet.Hdbc
 
 ------------------------------------------------------------------------------
 data App = App
     { _heist :: Snaplet (Heist App)
     , _startTime :: UTCTime
+    , _dbLens :: Snaplet (HdbcSnaplet Connection IO)       
     }
 
 makeLens ''App
@@ -23,7 +27,9 @@ makeLens ''App
 instance HasHeist App where
     heistLens = subSnaplet heist
 
-
+-- instance HasHdbc (Handler b App) Connection IO where
+--     getHdbcState = with dbLens get
+  
 ------------------------------------------------------------------------------
 type AppHandler = Handler App App
 

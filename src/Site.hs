@@ -19,9 +19,11 @@ import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time.Clock
+import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Heist
+import           Snap.Snaplet.Hdbc
 import           Snap.Util.FileServe
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
@@ -35,7 +37,9 @@ import           Application
 -- Otherwise, the way the route table is currently set up, this action
 -- would be given every request.
 index :: Handler App App ()
-index = ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
+index = do
+  -- query "SELECT * FROM posts" 
+  ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
   where
     indexSplices =
         [ ("start-time",   startTimeSplice)
@@ -110,10 +114,12 @@ routes = [ ("/", index)
 -- | The application initializer.
 app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
-    sTime <- liftIO getCurrentTime
+    sTime <- liftIO getCurrentTime -- TODO Remove sTime
     h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
+    let mysqlConnection = connectMySQL $ MySQLConnectInfo "127.0.0.1" "root" "" "hblog" 3306 "" Nothing
+    _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
     addRoutes routes
-    return $ App h sTime
+    return $ App h sTime _dblens'
     where
         commonSplices = bindSplices [
           ("navigation", navigationSplice)] defaultHeistState
