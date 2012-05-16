@@ -14,6 +14,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Control.Monad.State
 import           Data.ByteString (ByteString)
+import           Data.ByteString.Char8 (unpack)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -42,13 +43,45 @@ index = ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
         , ("current-time", currentTimeSplice)
         ]
 
+aboutMe :: Handler App App ()
+aboutMe = render "about"
 
+--
+-- Navigation
+-- 
+siteStructure :: [(String, String)]
+siteStructure = [("/", "Home"), ("/about", "About me")]
+
+createList :: String -> [Node]
+createList request = map listItem siteStructure
+  where
+    listItem item = Element "li" (itemClass $ fst item) [
+        Element "a" [("href", T.pack $ fst item)] [
+            TextNode $ T.pack (snd item) ]
+        ]
+    itemClass :: String -> [(T.Text, T.Text)]
+    itemClass itemPath
+        | request == itemPath = [("class", "active")]
+        | otherwise = []
+
+navigationSplice :: Splice AppHandler
+navigationSplice = do
+    request <- getsRequest rqContextPath
+    return [Element "div" [("class", "nav-collapse")] [
+        Element "ul" [("class", "nav")] (createList $ normalizeRequest $ unpack request)
+      ]]
+    where
+      normalizeRequest request
+        | (last request == '/') && (length request > 1) = init request
+        | otherwise = request 
+
+    
 ------------------------------------------------------------------------------
 -- | For your convenience, a splice which shows the start time.
 startTimeSplice :: Splice AppHandler
 startTimeSplice = do
     time <- lift $ gets _startTime
-    return $ [TextNode $ T.pack $ show $ time]
+    return [TextNode $ T.pack $ show time]
 
 
 ------------------------------------------------------------------------------
@@ -56,7 +89,7 @@ startTimeSplice = do
 currentTimeSplice :: Splice AppHandler
 currentTimeSplice = do
     time <- liftIO getCurrentTime
-    return $ [TextNode $ T.pack $ show $ time]
+    return [TextNode $ T.pack $ show time]
 
 
 ------------------------------------------------------------------------------
@@ -73,6 +106,7 @@ echo = do
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [ ("/",            index)
+         , ("/about/", aboutMe)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
@@ -83,8 +117,10 @@ routes = [ ("/",            index)
 app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     sTime <- liftIO getCurrentTime
-    h <- nestSnaplet "heist" heist $ heistInit "templates"
+    h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
     addRoutes routes
     return $ App h sTime
+    where
+        commonSplices = bindSplices [("navigation", navigationSplice)] defaultHeistState
 
 

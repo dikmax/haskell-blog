@@ -31,7 +31,8 @@ Executable haskell-blog
     snap-server == 0.8.*,
     text >= 0.11 && < 0.12,
     time >= 1.1 && < 1.5,
-    xmlhtml == 0.1.*
+    xmlhtml == 0.1.*,
+    lifted-base
 
   if flag(development)
     cpp-options: -DDEVELOPMENT
