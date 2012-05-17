@@ -14,7 +14,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Control.Monad.State
 import           Data.ByteString (ByteString)
-import           Data.ByteString.Char8 (unpack)
+import           Data.ByteString.Char8 (pack, unpack)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -52,8 +52,11 @@ latestPostsSplice posts =
    where
      mapPosts (Post id title text) = Element "div" [("class", "post")] [
          Element "h1" [("class", "post-title")] [TextNode $ T.pack title],
-         Element "div" [("class", "post-body")] [TextNode $ T.pack text]
+         Element "div" [("class", "post-body")] $
+           either (\a -> [TextNode $ T.pack a]) extractData $ parseHTML "post" $ pack text
        ]
+     extractData (HtmlDocument _ _ docContent) = docContent
+     extractData (XmlDocument _ _ docContent) = docContent
 
 aboutMe :: Handler App App ()
 aboutMe = render "about"
