@@ -29,6 +29,7 @@ import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
 ------------------------------------------------------------------------------
 import           Application
+import           Database
 
 ------------------------------------------------------------------------------
 -- | Renders the front page of the sample site.
@@ -38,13 +39,21 @@ import           Application
 -- would be given every request.
 index :: Handler App App ()
 index = do
-  -- query "SELECT * FROM posts" 
-  ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
-  where
-    indexSplices =
+  posts <- getLatestPosts
+  let indexSplices =
         [ ("start-time",   startTimeSplice)
-        , ("current-time", currentTimeSplice)
+        , ("posts", latestPostsSplice posts)
         ]
+  ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
+
+latestPostsSplice :: [Post] -> Splice AppHandler
+latestPostsSplice posts =
+   return [Element "div" [("class", "posts")] $ map mapPosts posts]
+   where
+     mapPosts (Post id title text) = Element "div" [("class", "post")] [
+         Element "h1" [("class", "post-title")] [TextNode $ T.pack title],
+         Element "div" [("class", "post-body")] [TextNode $ T.pack text]
+       ]
 
 aboutMe :: Handler App App ()
 aboutMe = render "about"
