@@ -39,15 +39,15 @@ import           Database
 -- would be given every request.
 index :: Handler App App ()
 index = do
-  posts <- getLatestPosts
   let indexSplices =
         [ ("start-time",   startTimeSplice)
-        , ("posts", latestPostsSplice posts)
+        , ("posts", latestPostsSplice)
         ]
   ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
 
-latestPostsSplice :: [Post] -> Splice AppHandler
-latestPostsSplice posts =
+latestPostsSplice :: Splice AppHandler
+latestPostsSplice = do
+   posts <- lift getLatestPosts
    return [Element "div" [("class", "posts")] $ map mapPosts posts]
    where
      mapPosts (Post id title text) = Element "div" [("class", "post")] [
