@@ -25,8 +25,10 @@ import           Snap.Snaplet
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Hdbc
 import           Snap.Util.FileServe
+import           Text.Pandoc
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
+import           Text.Blaze.Renderer.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
 import           Database
@@ -53,7 +55,8 @@ latestPostsSplice = do
      mapPosts (Post id title text) = Element "div" [("class", "post")] [
          Element "h1" [("class", "post-title")] [TextNode $ T.pack title],
          Element "div" [("class", "post-body")] $
-           either (\a -> [TextNode $ T.pack a]) extractData $ parseHTML "post" $ pack text
+           renderHtmlNodes $  
+             writeHtml defaultWriterOptions $ readMarkdown defaultParserState text
        ]
      extractData (HtmlDocument _ _ docContent) = docContent
      extractData (XmlDocument _ _ docContent) = docContent
@@ -101,7 +104,6 @@ currentTimeSplice = do
     time <- liftIO getCurrentTime
     return [TextNode $ T.pack $ show time]
 
-
 ------------------------------------------------------------------------------
 -- | Renders the echo page.
 echo :: Handler App App ()
@@ -130,10 +132,11 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
     let mysqlConnection = connectMySQL $ MySQLConnectInfo "127.0.0.1" "root" "" "hblog" 3306 "" Nothing
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
+    wrapHandlers (setEncoding *>)
     addRoutes routes
     return $ App h sTime _dblens'
     where
         commonSplices = bindSplices [
           ("navigation", navigationSplice)] defaultHeistState
-
+          
 

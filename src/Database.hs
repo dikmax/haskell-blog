@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Database
   (
-    Post(..), 
+    Post(..),
+    setEncoding, 
     getLatestPosts
   ) where 
 
@@ -24,6 +25,11 @@ noCacheQuery sql bind = withTransaction $ \conn -> do
   stmt <- HDBC.prepare conn sql
   liftIO $ HDBC.execute stmt bind
   liftIO $ HDBC.fetchAllRowsMap' stmt
+  
+setEncoding :: HasHdbc m c s => m ()
+setEncoding = do
+        query' "SET NAMES utf8" []
+        return ()
   
 getLatestPosts :: HasHdbc m c s => m [Post]
 getLatestPosts = do
