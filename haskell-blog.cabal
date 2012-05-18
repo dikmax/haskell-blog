@@ -24,6 +24,7 @@ Executable haskell-blog
     containers >= 0.4.2,
     data-lens >= 2.0.1 && < 2.11,
     data-lens-template >= 2.1 && < 2.2,
+    HDBC >= 2.3.1.1,
     HDBC-mysql >= 0.6.6,
     heist >= 0.8 && < 0.9,
     MonadCatchIO-transformers >= 0.2.1 && < 0.4,
@@ -34,6 +35,7 @@ Executable haskell-blog
     snaplet-hdbc == 0.8.*,
     text >= 0.11 && < 0.12,
     time >= 1.1 && < 1.5,
+    transformers >= 0.2.2,
     xmlhtml == 0.1.*,
     lifted-base,
     HDBC-mysql
