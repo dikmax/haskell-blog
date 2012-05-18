@@ -52,8 +52,12 @@ latestPostsSplice = do
    posts <- lift getLatestPosts
    return [Element "div" [("class", "posts")] $ map mapPosts posts]
    where
-     mapPosts (Post id title text) = Element "div" [("class", "post")] [
-         Element "h1" [("class", "post-title")] [TextNode $ T.pack title],
+     mapPosts (Post id title text) = 
+       Element "div" [("class", "post")] [
+         Element "h1" [("class", "post-title")] [
+           Element "a" [("href", T.pack $ "/post/" ++ show id)] [
+             TextNode $ T.pack title]
+           ],
          Element "div" [("class", "post-body")] $
            renderHtmlNodes $  
              writeHtml defaultWriterOptions $ readMarkdown defaultParserState text
