@@ -15,6 +15,7 @@ import           Control.Monad.Trans
 import           Control.Monad.State
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (pack, unpack)
+import           Data.Lens.Common (Lens)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -22,8 +23,12 @@ import           Data.Time.Clock
 import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
+import           Snap.Snaplet.Auth
+import           Snap.Snaplet.Auth.Backends.Hdbc
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Hdbc
+import           Snap.Snaplet.Session
+import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 import           Text.Pandoc
 import           Text.Templating.Heist
@@ -40,12 +45,10 @@ import           Database
 -- Otherwise, the way the route table is currently set up, this action
 -- would be given every request.
 index :: Handler App App ()
-index = do
-  let indexSplices =
-        [ ("start-time",   startTimeSplice)
-        , ("posts", latestPostsSplice)
-        ]
+index = 
   ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
+  where 
+    indexSplices = [("posts", latestPostsSplice)] 
 
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
@@ -113,21 +116,6 @@ navigationSplice = do
         | otherwise = request 
     
 ------------------------------------------------------------------------------
--- | For your convenience, a splice which shows the start time.
-startTimeSplice :: Splice AppHandler
-startTimeSplice = do
-    time <- lift $ gets _startTime
-    return [TextNode $ T.pack $ show time]
-
-
-------------------------------------------------------------------------------
--- | For your convenience, a splice which shows the current time.
-currentTimeSplice :: Splice AppHandler
-currentTimeSplice = do
-    time <- liftIO getCurrentTime
-    return [TextNode $ T.pack $ show time]
-
-------------------------------------------------------------------------------
 -- | Renders the echo page.
 echo :: Handler App App ()
 echo = do
@@ -139,8 +127,8 @@ echo = do
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
-routes :: [(ByteString, Handler App App ())]
-routes = [ ("/", index)
+routes :: Lens App (Snaplet SessionManager) -> [(ByteString, Handler App App ())]
+routes _sessLens = [ ("/", withSession _sessLens index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
          , ("/echo/:stuff", echo)
@@ -151,14 +139,24 @@ routes = [ ("/", index)
 ------------------------------------------------------------------------------
 -- | The application initializer.
 app :: SnapletInit App App
-app = makeSnaplet "app" "An snaplet example application." Nothing $ do
-    sTime <- liftIO getCurrentTime -- TODO Remove sTime
+app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
     h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
-    let mysqlConnection = connectMySQL $ MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
+    let 
+      mysqlConnection = connectMySQL $ 
+        MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
+    _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
+                     "config/site_key.txt" "_session" (Just 3600)
+    _authlens' <- nestSnaplet "auth" authLens $ initHdbcAuthManager
+                     defAuthSettings sessLens mysqlConnection defAuthTable defQueries
     wrapHandlers (setEncoding *>)
-    addRoutes routes
-    return $ App h sTime _dblens'
+    addRoutes $ routes sessLens 
+    return App {
+        _heist = h,
+        _dbLens = _dblens',
+        _sessLens = _sesslens',
+        _authLens = _authlens'
+      }
     where
         commonSplices = bindSplices [
           ("navigation", navigationSplice)] defaultHeistState
