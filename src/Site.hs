@@ -50,20 +50,38 @@ index = do
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
    posts <- lift getLatestPosts
-   return [Element "div" [("class", "posts")] $ map mapPosts posts]
-   where
-     mapPosts (Post id title text) = 
-       Element "div" [("class", "post")] [
-         Element "h1" [("class", "post-title")] [
-           Element "a" [("href", T.pack $ "/post/" ++ show id)] [
-             TextNode $ T.pack title]
-           ],
-         Element "div" [("class", "post-body")] $
-           renderHtmlNodes $  
-             writeHtml defaultWriterOptions $ readMarkdown defaultParserState text
-       ]
-     extractData (HtmlDocument _ _ docContent) = docContent
-     extractData (XmlDocument _ _ docContent) = docContent
+   return [Element "div" [("class", "posts")] $ map renderPost posts]
+
+renderPost (Post id title text) = 
+  Element "div" [("class", "post")] [
+    Element "h1" [("class", "post-title")] [
+      Element "a" [("href", T.pack $ "/post/" ++ show id)] [TextNode $ T.pack title]
+    ],
+    Element "div" [("class", "post-body")] $
+      renderHtmlNodes $  
+        writeHtml defaultWriterOptions $ readMarkdown defaultParserState text
+  ]
+
+--
+-- Show post Action
+--
+showPost :: Handler App App ()
+showPost = do
+    postId <- decodedParam "post"
+    let showPostSplices = [("post", postSplice $ unpack postId)]
+    heistLocal (bindSplices showPostSplices) $ render "post"    
+  where
+    decodedParam p = fromMaybe "" <$> getParam p
+    
+
+postSplice :: String -> Splice AppHandler
+postSplice postId = do
+  post <- lift $ getPost postId
+  return [renderPost post]
+        
+--
+-- About me action
+--
 
 aboutMe :: Handler App App ()
 aboutMe = render "about"
@@ -122,6 +140,7 @@ echo = do
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [ ("/", index)
+         , ("/post/:post", showPost)
          , ("/about", aboutMe)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)

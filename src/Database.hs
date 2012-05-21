@@ -3,7 +3,8 @@ module Database
   (
     Post(..),
     setEncoding, 
-    getLatestPosts
+    getLatestPosts,
+    getPost
   ) where 
 
 import Control.Monad.IO.Class
@@ -36,6 +37,11 @@ getLatestPosts = do
   rows <- noCacheQuery "SELECT * FROM posts" []
   return $ map rowToPost rows
 
+getPost :: HasHdbc m c s => String -> m Post
+getPost postId = do
+  rows <- noCacheQuery "SELECT * FROM posts WHERE id = ?" [toSql postId]
+  return $ rowToPost $ head rows  -- TODO check for empty result
+  
 rowToPost :: Row -> Post
 rowToPost rw = Post (fromSql $ rw ! "id") (fromSql $ rw ! "title") (fromSql $ rw ! "text")
 
