@@ -39,7 +39,8 @@ Executable haskell-blog
     transformers >= 0.2.2,
     xmlhtml == 0.1.*,
     lifted-base,
-    HDBC-mysql
+    HDBC-mysql,
+    snap
 
   if flag(development)
     cpp-options: -DDEVELOPMENT

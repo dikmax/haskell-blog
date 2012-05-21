@@ -127,8 +127,8 @@ echo = do
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
-routes :: Lens App (Snaplet SessionManager) -> [(ByteString, Handler App App ())]
-routes _sessLens = [ ("/", withSession _sessLens index)
+routes :: [(ByteString, Handler App App ())]
+routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
          , ("/echo/:stuff", echo)
@@ -146,11 +146,12 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
         MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
     _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
-                     "config/site_key.txt" "_session" (Just 3600)
+                     "config/site_key.txt" "_session" (Just 3600) -- TODO check cookie expiration
     _authlens' <- nestSnaplet "auth" authLens $ initHdbcAuthManager
                      defAuthSettings sessLens mysqlConnection defAuthTable defQueries
     wrapHandlers (setEncoding *>)
-    addRoutes $ routes sessLens 
+    wrapHandlers $ withSession sessLens
+    addRoutes routes
     return App {
         _heist = h,
         _dbLens = _dblens',
