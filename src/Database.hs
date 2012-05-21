@@ -12,8 +12,18 @@ import Data.Map ((!))
 import qualified  Database.HDBC as HDBC
 import Snap.Snaplet.Hdbc
 import Application()
+import Data.Time
 
-data Post = Post Int String String -- id, title, text
+data Post = Post {
+  postId :: Int,
+  postTitle :: String,
+  postText :: String,
+  postUrl :: String,
+  postDate :: UTCTime,
+  postPublished :: Bool,
+  postSpecial :: Bool,
+  postTags :: [String]
+  }         
 
 noCacheQuery
   :: HasHdbc m c s
@@ -39,9 +49,17 @@ getLatestPosts = do
 
 getPost :: HasHdbc m c s => String -> m Post
 getPost postId = do
-  rows <- noCacheQuery "SELECT * FROM posts WHERE id = ?" [toSql postId]
+  rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql postId]
   return $ rowToPost $ head rows  -- TODO check for empty result
   
 rowToPost :: Row -> Post
-rowToPost rw = Post (fromSql $ rw ! "id") (fromSql $ rw ! "title") (fromSql $ rw ! "text")
+rowToPost rw = Post {
+  postId = fromSql $ rw ! "id",
+  postTitle = fromSql $ rw ! "title",
+  postText = fromSql $ rw ! "text",
+  postDate = fromSql $ rw ! "date",
+  postUrl = fromSql $ rw ! "url",
+  postPublished = fromSql $ rw ! "published",
+  postSpecial = fromSql $ rw ! "special",
+  postTags = []} -- TODO reading tags
 

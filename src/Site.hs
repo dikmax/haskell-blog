@@ -52,14 +52,15 @@ latestPostsSplice = do
    posts <- lift getLatestPosts
    return [Element "div" [("class", "posts")] $ map renderPost posts]
 
-renderPost (Post id title text) = 
+renderPost :: Post -> Node 
+renderPost post = 
   Element "div" [("class", "post")] [
     Element "h1" [("class", "post-title")] [
-      Element "a" [("href", T.pack $ "/post/" ++ show id)] [TextNode $ T.pack title]
+      Element "a" [("href", T.pack $ "/post/" ++ postUrl post)] [TextNode $ T.pack $ postTitle post]
     ],
     Element "div" [("class", "post-body")] $
       renderHtmlNodes $  
-        writeHtml defaultWriterOptions $ readMarkdown defaultParserState text
+        writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ postText post
   ]
 
 --
@@ -67,16 +68,16 @@ renderPost (Post id title text) =
 --
 showPost :: Handler App App ()
 showPost = do
-    postId <- decodedParam "post"
-    let showPostSplices = [("post", postSplice $ unpack postId)]
+    postUrl <- decodedParam "post"
+    let showPostSplices = [("post", postSplice $ unpack postUrl)]
     heistLocal (bindSplices showPostSplices) $ render "post"    
   where
     decodedParam p = fromMaybe "" <$> getParam p
     
 
 postSplice :: String -> Splice AppHandler
-postSplice postId = do
-  post <- lift $ getPost postId
+postSplice postUrl = do
+  post <- lift $ getPost postUrl
   return [renderPost post]
         
 --
@@ -153,7 +154,7 @@ app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     sTime <- liftIO getCurrentTime -- TODO Remove sTime
     h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
-    let mysqlConnection = connectMySQL $ MySQLConnectInfo "127.0.0.1" "root" "" "hblog" 3306 "" Nothing
+    let mysqlConnection = connectMySQL $ MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
     wrapHandlers (setEncoding *>)
     addRoutes routes
