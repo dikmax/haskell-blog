@@ -7,6 +7,7 @@
     <apply template="topnav" />
 
     <div class="container">
+      <counter />
       <posts />
 	  <apply template="footer" />	
     </div> <!-- /container -->

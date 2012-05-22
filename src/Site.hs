@@ -45,15 +45,23 @@ import           Database
 -- Otherwise, the way the route table is currently set up, this action
 -- would be given every request.
 index :: Handler App App ()
-index = 
-  ifTop $ heistLocal (bindSplices indexSplices) $ render "index"
-  where 
-    indexSplices = [("posts", latestPostsSplice)] 
+index =  ifTop $ do 
+  counter <- with sessLens $ do
+    v <- getFromSession "counter"     
+    let newV = 1 + maybe 0 (read . T.unpack) v
+    setInSession "counter" $ T.pack $ show newV
+    return newV
+    
+  let indexSplices = [("posts", latestPostsSplice), ("counter", counterSplice counter)] 
+  heistLocal (bindSplices indexSplices) $ render "index"
 
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
    posts <- lift getLatestPosts
    return [Element "div" [("class", "posts")] $ map renderPost posts]
+   
+counterSplice :: Integer -> Splice AppHandler
+counterSplice counter = return [Element "div" [] [TextNode $ T.pack $ "Counter: " ++ show counter]]     
 
 renderPost :: Post -> Node 
 renderPost post = 
@@ -146,7 +154,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
         MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
     _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
-                     "config/site_key.txt" "_session" (Just 3600) -- TODO check cookie expiration
+                     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
     _authlens' <- nestSnaplet "auth" authLens $ initHdbcAuthManager
                      defAuthSettings sessLens mysqlConnection defAuthTable defQueries
     wrapHandlers (setEncoding *>)
