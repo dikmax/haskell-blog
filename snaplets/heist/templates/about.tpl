@@ -3,12 +3,13 @@
 	<apply template="head" />
 <body>
 	<apply template="topnav" />
-	<div class="container well">
-		Когда-нибудь здесь будет информация обо мне.
-		
-		<apply template="footer" />
-	</div>
-	
+	<div class="container">
+		<div class="well">
+			Когда-нибудь здесь будет информация обо мне.
+		</div>
+		<apply template="footer" />				
+	</div>	
+    	
 	<apply template="foot" />
 </body>
 </html>

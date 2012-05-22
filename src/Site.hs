@@ -98,6 +98,9 @@ postSplice postUrl = do
 aboutMe :: Handler App App ()
 aboutMe = render "about"
 
+vault :: Handler App App ()
+vault = render "vault"
+
 --
 -- Navigation
 -- 
@@ -139,6 +142,7 @@ routes :: [(ByteString, Handler App App ())]
 routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
+         , ("/vault", vault)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
