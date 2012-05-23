@@ -5,10 +5,10 @@
 	<apply template="topnav" />
 	<div class="container">
 		<div class="span4 offset4">
-			<form class="well form-horizontal">
+			<form class="well form-horizontal" method="post" action="/login">
 				<legend>Welcome to Vault.</legend>
-				<input type="text" style="width: 100%; position: relative; left: -4px;" placeholder="Email">
-				<input type="password" style="width: 100%; position: relative; left: -4px;"  placeholder="Password">
+				<input type="text" name="login" style="width: 100%; position: relative; left: -4px;" placeholder="Email">
+				<input type="password" name="password" style="width: 100%; position: relative; left: -4px;"  placeholder="Password">
 				<button type="submit" class="btn" style="width: 100%;">Sign in</button>
 			</form>
 		</div>

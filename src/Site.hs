@@ -98,9 +98,24 @@ postSplice postUrl = do
 aboutMe :: Handler App App ()
 aboutMe = render "about"
 
+--
+-- Vault action
+--
 vault :: Handler App App ()
 vault = render "vault"
 
+--
+-- Login action
+-- 
+login :: Handler App (AuthManager App) ()
+login =
+  loginUser "login" "password" Nothing failure success  
+  where
+    failure :: AuthFailure -> Handler b (AuthManager b) ()
+    failure authFailure = redirect "/vault"
+    success :: Handler b (AuthManager b) ()
+    success = redirect "/" 
+    decodedParam p = fromMaybe "" <$> getPostParam p
 --
 -- Navigation
 -- 
@@ -143,11 +158,17 @@ routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
          , ("/vault", vault)
+         , ("/login", with authLens login)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
          ]
 
+authTable :: AuthTable
+authTable = defAuthTable {
+    colLogin = "login"
+  }
+  
 ------------------------------------------------------------------------------
 -- | The application initializer.
 app :: SnapletInit App App
@@ -160,7 +181,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
     _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
                      "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
     _authlens' <- nestSnaplet "auth" authLens $ initHdbcAuthManager
-                     defAuthSettings sessLens mysqlConnection defAuthTable defQueries
+                     defAuthSettings sessLens mysqlConnection authTable defQueries
     wrapHandlers (setEncoding *>)
     wrapHandlers $ withSession sessLens
     addRoutes routes
