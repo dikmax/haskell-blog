@@ -23,8 +23,6 @@ import           Data.Time.Clock
 import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
-import           Snap.Snaplet.Auth
-import           Snap.Snaplet.Auth.Backends.Hdbc
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Session
@@ -37,6 +35,7 @@ import           Text.Blaze.Renderer.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
 import           Database
+import           Config
 
 ------------------------------------------------------------------------------
 -- | Renders the front page of the sample site.
@@ -102,20 +101,18 @@ aboutMe = render "about"
 -- Vault action
 --
 vault :: Handler App App ()
-vault = render "vault"
-
---
--- Login action
--- 
-login :: Handler App (AuthManager App) ()
-login =
-  loginUser "login" "password" Nothing failure success  
+vault = render "vault" 
+  
+processLogin :: AppHandler ()
+processLogin = do
+    login <- decodedParam "login"
+    password <- decodedParam "password"
+    if (login == adminLogin) && (password == adminPassword)
+      then render "about"
+      else heistLocal (bindString "error" "Неверные данные") $ render "vault"
   where
-    failure :: AuthFailure -> Handler b (AuthManager b) ()
-    failure authFailure = redirect "/vault"
-    success :: Handler b (AuthManager b) ()
-    success = redirect "/" 
     decodedParam p = fromMaybe "" <$> getPostParam p
+  
 --
 -- Navigation
 -- 
@@ -157,18 +154,13 @@ routes :: [(ByteString, Handler App App ())]
 routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
+         , ("/vault", method POST processLogin)
          , ("/vault", vault)
-         , ("/login", with authLens login)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
          ]
 
-authTable :: AuthTable
-authTable = defAuthTable {
-    colLogin = "login"
-  }
-  
 ------------------------------------------------------------------------------
 -- | The application initializer.
 app :: SnapletInit App App
@@ -180,16 +172,13 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
     _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
     _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
                      "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
-    _authlens' <- nestSnaplet "auth" authLens $ initHdbcAuthManager
-                     defAuthSettings sessLens mysqlConnection authTable defQueries
     wrapHandlers (setEncoding *>)
     wrapHandlers $ withSession sessLens
     addRoutes routes
     return App {
         _heist = h,
         _dbLens = _dblens',
-        _sessLens = _sesslens',
-        _authLens = _authlens'
+        _sessLens = _sesslens'
       }
     where
         commonSplices = bindSplices [

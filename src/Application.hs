@@ -14,7 +14,6 @@ import Data.Lens.Template
 import Data.Time.Clock
 import Database.HDBC.MySQL
 import Snap.Snaplet
-import Snap.Snaplet.Auth 
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Hdbc
 import Snap.Snaplet.Session 
@@ -23,7 +22,6 @@ import Text.Templating.Heist (Splice)
 ------------------------------------------------------------------------------
 data App = App
     { _heist :: Snaplet (Heist App)
-    , _authLens :: Snaplet (AuthManager App)
     , _sessLens :: Snaplet SessionManager    
     , _dbLens :: Snaplet (HdbcSnaplet Connection IO)       
     }
