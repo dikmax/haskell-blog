@@ -4,16 +4,15 @@
 <body>
 	<apply template="topnav" />
 	<div class="container">
-		<div class="span4 offset4">
-			<form class="well form-horizontal" method="post" action="">
-				<legend>Welcome to Vault.</legend>
-				<error></error>
-				<input type="text" name="login" style="width: 100%; position: relative; left: -4px;" placeholder="Email">
-				<input type="password" name="password" style="width: 100%; position: relative; left: -4px;"  placeholder="Password">
-				<button type="submit" class="btn" style="width: 100%;">Sign in</button>
-			</form>
-		</div>
-		<div class="clearfix"></div>
+	    <div class="well">
+	    	Welcome to vault!
+	    	<form method="post" action="/vault">
+				<input type="hidden" name="action" value="logout" />	    	 
+		    	<button class="btn btn-inverse" type="submit">
+				  Logout
+				</button>
+	    	</form>
+	    </div>
 		<apply template="footer" />
 	</div>
 	<apply template="foot" />

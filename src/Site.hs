@@ -100,16 +100,30 @@ aboutMe = render "about"
 --
 -- Vault action
 --
-vault :: Handler App App ()
-vault = render "vault" 
+vault :: AppHandler ()
+vault = do
+  isAdminLogin <- with sessLens $ getFromSession "isAdminLogin"
+  maybe (render "vaultlogin") (\_ -> render "vault") isAdminLogin 
   
-processLogin :: AppHandler ()
-processLogin = do
-    login <- decodedParam "login"
-    password <- decodedParam "password"
-    if (login == adminLogin) && (password == adminPassword)
-      then render "about"
-      else heistLocal (bindString "error" "Неверные данные") $ render "vault"
+loginLogout :: AppHandler ()
+loginLogout = do
+    action <- decodedParam "action"
+    case action of
+      "login" -> do
+        login <- decodedParam "login"
+        password <- decodedParam "password"
+        if (login == adminLogin) && (password == adminPassword)
+          then do
+            with sessLens $ do 
+              setInSession "isAdminLogin" "1"
+              commitSession
+            redirect "/vault"
+          else heistLocal (bindString "error" "Неверные данные") $ render "vaultlogin"
+      "logout" -> do
+        with sessLens $ do
+          deleteFromSession "isAdminLogin"
+          commitSession
+        redirect "/vault"
   where
     decodedParam p = fromMaybe "" <$> getPostParam p
   
@@ -154,7 +168,7 @@ routes :: [(ByteString, Handler App App ())]
 routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
-         , ("/vault", method POST processLogin)
+         , ("/vault", method POST loginLogout)
          , ("/vault", vault)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
