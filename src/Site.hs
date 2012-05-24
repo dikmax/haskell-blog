@@ -103,7 +103,10 @@ aboutMe = render "about"
 vault :: AppHandler ()
 vault = do
   isAdminLogin <- with sessLens $ getFromSession "isAdminLogin"
-  maybe (render "vaultlogin") (\_ -> render "vault") isAdminLogin 
+  maybe (render "vaultlogin") (\_ -> vaultMain) isAdminLogin 
+
+vaultMain :: AppHandler ()
+vaultMain = render "vault"
   
 loginLogout :: AppHandler ()
 loginLogout = do
