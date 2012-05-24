@@ -106,7 +106,19 @@ vault = do
   maybe (render "vaultlogin") (\_ -> vaultMain) isAdminLogin 
 
 vaultMain :: AppHandler ()
-vaultMain = render "vault"
+vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $ render "vault"
+
+vaultPostsListSplice :: Splice AppHandler
+vaultPostsListSplice = do
+   posts <- lift vaultGetPostsList
+   return $ map renderPost posts
+   where 
+     renderPost post = 
+       Element "tr" [] [
+         Element "td" [] [TextNode $ T.pack $ show $ postDate post],
+         Element "td" [] [TextNode $ if postPublished post then "+" else ""],
+         Element "td" [] [TextNode $ T.pack $ postTitle post]
+       ]
   
 loginLogout :: AppHandler ()
 loginLogout = do

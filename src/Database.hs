@@ -4,7 +4,9 @@ module Database
     Post(..),
     setEncoding, 
     getLatestPosts,
-    getPost
+    getPost,
+    
+    vaultGetPostsList
   ) where 
 
 import Control.Monad.IO.Class
@@ -19,7 +21,7 @@ data Post = Post {
   postTitle :: String,
   postText :: String,
   postUrl :: String,
-  postDate :: UTCTime,
+  postDate :: LocalTime,
   postPublished :: Bool,
   postSpecial :: Bool,
   postTags :: [String]
@@ -47,6 +49,7 @@ getLatestPosts = do
   rows <- noCacheQuery "SELECT * FROM posts" []
   return $ map rowToPost rows
 
+
 getPost :: HasHdbc m c s => String -> m Post
 getPost postId = do
   rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql postId]
@@ -63,3 +66,21 @@ rowToPost rw = Post {
   postSpecial = fromSql $ rw ! "special",
   postTags = []} -- TODO reading tags
 
+--
+-- Vault functions
+--
+
+vaultGetPostsList :: HasHdbc m c s => m [Post]
+vaultGetPostsList = do
+  rows <- noCacheQuery "SELECT id, title, date, published FROM posts" []
+  return $ map vaultMap rows
+  where
+    vaultMap rw = Post {
+      postId = fromSql $ rw ! "id",
+      postTitle = fromSql $ rw ! "title",
+      postText = "",
+      postDate = fromSql $ rw ! "date",
+      postUrl = "",
+      postPublished = fromSql $ rw ! "published",
+      postSpecial = False,
+      postTags = []} 
