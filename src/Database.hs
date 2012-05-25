@@ -56,15 +56,16 @@ getPost postId = do
   return $ rowToPost $ head rows  -- TODO check for empty result
   
 rowToPost :: Row -> Post
-rowToPost rw = Post {
-  postId = fromSql $ rw ! "id",
-  postTitle = fromSql $ rw ! "title",
-  postText = fromSql $ rw ! "text",
-  postDate = fromSql $ rw ! "date",
-  postUrl = fromSql $ rw ! "url",
-  postPublished = fromSql $ rw ! "published",
-  postSpecial = fromSql $ rw ! "special",
-  postTags = []} -- TODO reading tags
+rowToPost rw = Post 
+  { postId = fromSql $ rw ! "id"
+  , postTitle = fromSql $ rw ! "title"
+  , postText = fromSql $ rw ! "text"
+  , postDate = fromSql $ rw ! "date"
+  , postUrl = fromSql $ rw ! "url"
+  , postPublished = fromSql $ rw ! "published"
+  , postSpecial = fromSql $ rw ! "special"
+  , postTags = [] -- TODO reading tags
+  } 
 
 --
 -- Vault functions
@@ -73,14 +74,4 @@ rowToPost rw = Post {
 vaultGetPostsList :: HasHdbc m c s => m [Post]
 vaultGetPostsList = do
   rows <- noCacheQuery "SELECT id, title, date, published FROM posts" []
-  return $ map vaultMap rows
-  where
-    vaultMap rw = Post {
-      postId = fromSql $ rw ! "id",
-      postTitle = fromSql $ rw ! "title",
-      postText = "",
-      postDate = fromSql $ rw ! "date",
-      postUrl = "",
-      postPublished = fromSql $ rw ! "published",
-      postSpecial = False,
-      postTags = []} 
+  return $ map rowToPost rows

@@ -4,7 +4,7 @@
 <body>
 	<apply template="vaulttopnav" />
 	<div class="container">
-	    <a class="btn" href="#">Новая запись</a>
+	    <a class="btn" href="/vault/edit">Новая запись</a>
 	    <table class="table table-striped">
 	    	<colgroup>
 	    		<col width="100" />

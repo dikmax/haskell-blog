@@ -119,6 +119,9 @@ vaultPostsListSplice = do
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
          Element "td" [] [TextNode $ T.pack $ postTitle post]
        ]
+
+vaultEdit :: AppHandler ()
+vaultEdit = render "vaultedit"
   
 loginLogout :: AppHandler ()
 loginLogout = do
@@ -185,6 +188,8 @@ routes = [ ("/", index)
          , ("/about", aboutMe)
          , ("/vault", method POST loginLogout)
          , ("/vault", vault)
+         , ("/vault/edit", vaultEdit)
+         , ("/vault/edit/:id", vaultEdit)
          , ("/echo/:stuff", echo)
          , ("", with heist heistServe)
          , ("", serveDirectory "static")
