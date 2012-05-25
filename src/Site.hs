@@ -123,37 +123,43 @@ vaultPostsListSplice = do
 vaultEdit :: AppHandler ()
 vaultEdit = heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ render "vaultedit"
 
+-- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
 vaultPostForm post =
   return 
     [
-      Element "form" [("class", "form-horizontal")] [
+      Element "form" [("class", "form-horizontal"), ("method", "post")] [
+        Element "input" [("type", "hidden"), ("name", "action"), ("value", "save")] [],
         Element "fieldset" [] [
           Element "legend" [] [TextNode "Редактирование записи"],
-          textField "Заголовок" "title" $ postTitle post,
-          textField "Url" "url" $ postUrl post,
-          textField "Дата" "date" $ show $ postDate post,
-          checkboxField "Опубликовано" "published" $ postPublished post,
-          checkboxField "Специальный" "special" $ postSpecial post,
-          textAreaField "Текст" "text" $ postText post
+          inputText "Заголовок" "title" $ postTitle post,
+          inputText "Url" "url" $ postUrl post,
+          inputText "Дата" "date" $ show $ postDate post,
+          inputCheckbox "Опубликовано" "published" $ postPublished post,
+          inputCheckbox "Специальный" "special" $ postSpecial post,
+          textarea "Текст" "text" $ postText post,
+          Element "div" [("class", "form-actions")] [
+            Element "button" [("type", "submit"), ("class", "btn btn-primary")] [TextNode "Сохранить"],
+            Element "button" [("class", "btn")] [TextNode "Отмена"]
+          ]
         ]
       ]
     ]
   where
-    textField :: T.Text -> String -> String -> Node
-    textField fieldLabel name value = field fieldLabel name [
+    inputText :: T.Text -> String -> String -> Node
+    inputText fieldLabel name value = field fieldLabel name [
         Element "input" [("type", "text"), ("name", T.pack name), 
           ("class", "input-xxlarge"), ("id", T.pack $ "post-" ++ name), ("value", T.pack value)] []
       ]
-    checkboxField :: T.Text -> String -> Bool -> Node
-    checkboxField fieldLabel name value = field fieldLabel name [
+    inputCheckbox :: T.Text -> String -> Bool -> Node
+    inputCheckbox fieldLabel name value = field fieldLabel name [
         Element "input" 
           ([("type", "checkbox"), ("name", T.pack name), 
             ("id", T.pack $ "post-" ++ name)] ++ [("checked", "checked") | value])  
           []
       ]
-    textAreaField :: T.Text -> String -> String -> Node
-    textAreaField fieldLabel name value = field fieldLabel name [
+    textarea :: T.Text -> String -> String -> Node
+    textarea fieldLabel name value = field fieldLabel name [
         Element "textarea" [("name", T.pack name),  ("id", T.pack $ "post-" ++ name),
           ("class", "input-xxlarge"), ("rows", "20")] [TextNode $ T.pack value]
       ]
@@ -166,8 +172,8 @@ vaultPostForm post =
         Element "div" [("class", "controls")] fieldControl
       ]
   
-loginLogout :: AppHandler ()
-loginLogout = do
+vaultAction :: AppHandler ()
+vaultAction = do
     action <- decodedParam "action"
     case action of
       "login" -> do
@@ -180,13 +186,23 @@ loginLogout = do
               commitSession
             redirect "/vault"
           else heistLocal (bindString "error" "Неверные данные") $ render "vaultlogin"
+          
       "logout" -> do
         with sessLens $ do
           deleteFromSession "isAdminLogin"
           commitSession
         redirect "/vault"
+        
+      "save" -> vaultSaveAction
+            
+      _ -> redirect "/vault"
   where
     decodedParam p = fromMaybe "" <$> getPostParam p
+
+vaultSaveAction :: AppHandler ()
+vaultSaveAction = do
+  
+  render "vault"
   
 --
 -- Navigation
@@ -229,7 +245,7 @@ routes :: [(ByteString, Handler App App ())]
 routes = [ ("/", index)
          , ("/post/:post", showPost)
          , ("/about", aboutMe)
-         , ("/vault", method POST loginLogout)
+         , ("/vault", method POST vaultAction)
          , ("/vault", vault)
          , ("/vault/edit", vaultEdit)
          , ("/vault/edit/:id", vaultEdit)
