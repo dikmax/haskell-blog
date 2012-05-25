@@ -119,9 +119,52 @@ vaultPostsListSplice = do
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
          Element "td" [] [TextNode $ T.pack $ postTitle post]
        ]
-
+  
 vaultEdit :: AppHandler ()
-vaultEdit = render "vaultedit"
+vaultEdit = heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ render "vaultedit"
+
+vaultPostForm :: Post -> Splice AppHandler
+vaultPostForm post =
+  return 
+    [
+      Element "form" [("class", "form-horizontal")] [
+        Element "fieldset" [] [
+          Element "legend" [] [TextNode "Редактирование записи"],
+          textField "Заголовок" "title" $ postTitle post,
+          textField "Url" "url" $ postUrl post,
+          textField "Дата" "date" $ show $ postDate post,
+          checkboxField "Опубликовано" "published" $ postPublished post,
+          checkboxField "Специальный" "special" $ postSpecial post,
+          textAreaField "Текст" "text" $ postText post
+        ]
+      ]
+    ]
+  where
+    textField :: T.Text -> String -> String -> Node
+    textField fieldLabel name value = field fieldLabel name [
+        Element "input" [("type", "text"), ("name", T.pack name), 
+          ("class", "input-xxlarge"), ("id", T.pack $ "post-" ++ name), ("value", T.pack value)] []
+      ]
+    checkboxField :: T.Text -> String -> Bool -> Node
+    checkboxField fieldLabel name value = field fieldLabel name [
+        Element "input" 
+          ([("type", "checkbox"), ("name", T.pack name), 
+            ("id", T.pack $ "post-" ++ name)] ++ [("checked", "checked") | value])  
+          []
+      ]
+    textAreaField :: T.Text -> String -> String -> Node
+    textAreaField fieldLabel name value = field fieldLabel name [
+        Element "textarea" [("name", T.pack name),  ("id", T.pack $ "post-" ++ name),
+          ("class", "input-xxlarge"), ("rows", "20")] [TextNode $ T.pack value]
+      ]
+    field :: T.Text -> String -> [Node] -> Node
+    field fieldLabel fieldName fieldControl =
+      Element "div" [("class", "control-group")] [
+        Element "label" [("class", "control-label"), ("for", T.pack $ "post-" ++ fieldName)] [
+          TextNode fieldLabel
+        ],
+        Element "div" [("class", "controls")] fieldControl
+      ]
   
 loginLogout :: AppHandler ()
 loginLogout = do

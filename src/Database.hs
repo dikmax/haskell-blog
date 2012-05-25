@@ -6,7 +6,8 @@ module Database
     getLatestPosts,
     getPost,
     
-    vaultGetPostsList
+    vaultGetPostsList,
+    newPost
   ) where 
 
 import Control.Monad.IO.Class
@@ -65,7 +66,22 @@ rowToPost rw = Post
   , postPublished = fromSql $ rw ! "published"
   , postSpecial = fromSql $ rw ! "special"
   , postTags = [] -- TODO reading tags
-  } 
+  }
+  
+newPost :: Post
+newPost = Post
+  { postId = 0
+  , postTitle = ""
+  , postText = ""
+  , postDate = LocalTime
+    { localDay = fromGregorian 2012 01 01
+    , localTimeOfDay = TimeOfDay 0 0 0
+    }  
+  , postUrl = ""
+  , postPublished = False
+  , postSpecial = False
+  , postTags = []
+  }   
 
 --
 -- Vault functions
