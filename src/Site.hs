@@ -19,7 +19,7 @@ import           Data.Lens.Common (Lens)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import           Data.Time.Clock
+import           Data.Time
 import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
@@ -121,7 +121,33 @@ vaultPostsListSplice = do
        ]
   
 vaultEdit :: AppHandler ()
-vaultEdit = heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ render "vaultedit"
+vaultEdit = do
+  request <- getRequest
+  case rqMethod request of
+    POST -> vaultSave
+    _ -> heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ render "vaultedit"
+
+-- TODO there should be a way to simplify this function
+vaultSave :: AppHandler ()
+vaultSave = do
+  title <- decodedParam "title"
+  text <- decodedParam "text"
+  url <- decodedParam "url"
+  date <- decodedParam "date"
+  published <- decodedParam "published"
+  special <- decodedParam "special"  
+  let post = Post { postId = 0
+    , postTitle = unpack title
+    , postText = unpack text
+    , postDate = read $ unpack date -- TODO check for format errors
+    , postUrl = unpack url
+    , postPublished = published /= ""
+    , postSpecial = special /= ""
+    , postTags = [] -- TODO tags
+    }
+  heistLocal (bindSplice "vault-form" $ vaultPostForm post) $ render "vaultedit"
+  where
+    decodedParam p = fromMaybe "" <$> getPostParam p
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
@@ -129,7 +155,6 @@ vaultPostForm post =
   return 
     [
       Element "form" [("class", "form-horizontal"), ("method", "post")] [
-        Element "input" [("type", "hidden"), ("name", "action"), ("value", "save")] [],
         Element "fieldset" [] [
           Element "legend" [] [TextNode "Редактирование записи"],
           inputText "Заголовок" "title" $ postTitle post,
@@ -192,18 +217,11 @@ vaultAction = do
           deleteFromSession "isAdminLogin"
           commitSession
         redirect "/vault"
-        
-      "save" -> vaultSaveAction
-            
+                    
       _ -> redirect "/vault"
   where
     decodedParam p = fromMaybe "" <$> getPostParam p
 
-vaultSaveAction :: AppHandler ()
-vaultSaveAction = do
-  
-  render "vault"
-  
 --
 -- Navigation
 -- 

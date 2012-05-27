@@ -12,20 +12,21 @@ module Database
 
 import Control.Monad.IO.Class
 import Data.Map ((!))
+import Data.Time
 import qualified  Database.HDBC as HDBC
 import Snap.Snaplet.Hdbc
-import Application()
-import Data.Time
 
-data Post = Post {
-  postId :: Int,
-  postTitle :: String,
-  postText :: String,
-  postUrl :: String,
-  postDate :: LocalTime,
-  postPublished :: Bool,
-  postSpecial :: Bool,
-  postTags :: [String]
+import Application()
+
+data Post = Post 
+  { postId :: Int
+  , postTitle :: String
+  , postText :: String
+  , postUrl :: String
+  , postDate :: LocalTime
+  , postPublished :: Bool
+  , postSpecial :: Bool
+  , postTags :: [String]
   }         
 
 noCacheQuery
