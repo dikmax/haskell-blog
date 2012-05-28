@@ -6,14 +6,15 @@
 <meta name="author" content="">
 
 <!-- Le styles -->
-<link href="/css/bootstrap.css" rel="stylesheet">
+<link href="/css/bootstrap.css" rel="stylesheet" />
 <style type="text/css">
 body {
 	padding-top: 60px;
 	padding-bottom: 40px;
 }
 </style>
-<link href="/css/bootstrap-responsive.css" rel="stylesheet">
+<link href="/css/bootstrap-responsive.css" rel="stylesheet" />
+<link href="/css/style.css" rel="stylesheet" />
 
 <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>

@@ -40,6 +40,10 @@ import           Application
 import           Database
 import           Config
 
+-- Utility functions
+decodedParam p = fromMaybe "" <$> getParam p
+decodedPostParam p = fromMaybe "" <$> getPostParam p
+
 ------------------------------------------------------------------------------
 index :: Handler App App ()
 index =  ifTop $ do 
@@ -84,12 +88,10 @@ renderPost post =
 showPost :: Handler App App ()
 showPost = do
     postUrl <- decodedParam "post"
-    let showPostSplices = [("post", postSplice $ unpack postUrl)]
+    let showPostSplices = [("post", postSplice postUrl)]
     heistLocal (bindSplices showPostSplices) $ render "post"    
-  where
-    decodedParam p = fromMaybe "" <$> getParam p
 
-postSplice :: String -> Splice AppHandler
+postSplice :: ByteString -> Splice AppHandler
 postSplice postUrl = do
   post <- lift $ getPost postUrl
   return [renderPost post]
@@ -119,7 +121,7 @@ vaultPostsListSplice = do
    return $ map renderPost posts
    where 
      renderPost post = 
-       Element "tr" [] [
+       Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
          Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post]
@@ -128,53 +130,61 @@ vaultPostsListSplice = do
 vaultEdit :: AppHandler ()
 vaultEdit = do
   request <- getRequest
+  id <- decodedParam "id"
+  post <- getPost id
   case rqMethod request of
     POST -> vaultSave
-    _ -> heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ 
+    _ -> heistLocal (bindSplice "vault-form" $ vaultPostForm post) $ 
       render "vaultedit"
+  where
+    getPost :: HasHdbc m c s => ByteString -> m Post
+    getPost "" = return newPost
+    getPost id = getPostById id
+    
 
 -- TODO there should be a way to simplify this function
 vaultSave :: AppHandler ()
 vaultSave = do
-  title <- decodedParam "title"
-  text <- decodedParam "text"
-  url <- decodedParam "url"
-  date <- decodedParam "date"
-  published <- decodedParam "published"
-  special <- decodedParam "special"  
+  id <- decodedPostParam "id"
+  title <- decodedPostParam "title"
+  text <- decodedPostParam "text"
+  url <- decodedPostParam "url"
+  date <- decodedPostParam "date"
+  published <- decodedPostParam "published"
+  special <- decodedPostParam "special"  
   let 
     post = Post 
-      { postId = 0
+      { postId = read $ unpack id -- TODO validate
       , postTitle = title
       , postText = B.concat . BL.toChunks $ replace "\r\n" newLine text
       , postDate = read $ unpack date -- TODO check for format errors
-      , postUrl = url
+      , postUrl = url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
       , postTags = [] -- TODO tags
       }
-  newPost <- savePost post
-  heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ 
-    render "vaultedit"
+  savePost post
+  redirect "/vault"
   where
     newLine :: ByteString
     newLine = "\n"
-    decodedParam p = fromMaybe "" <$> getPostParam p
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
-vaultPostForm post =
+vaultPostForm (Post id title text url date published special tags) =
   return 
     [
       Element "form" [("class", "form-horizontal"), ("method", "post")] [
+        Element "input" [("type", "hidden"), ("name", "id"), 
+          ("value", T.pack $ show id)] [],
         Element "fieldset" [] [
           Element "legend" [] [TextNode "Редактирование записи"],
-          inputText "Заголовок" "title" $ postTitle post,
-          inputText "Url" "url" $ postUrl post,
-          inputText "Дата" "date" $ pack $ show $ postDate post,
-          inputCheckbox "Опубликовано" "published" $ postPublished post,
-          inputCheckbox "Специальный" "special" $ postSpecial post,
-          textarea "Текст" "text" $ postText post,
+          inputText "Заголовок" "title" title,
+          inputText "Url" "url" url,
+          inputText "Дата" "date" $ pack $ show date,
+          inputCheckbox "Опубликовано" "published" published,
+          inputCheckbox "Специальный" "special" special,
+          textarea "Текст" "text" text,
           Element "div" [("class", "form-actions")] [
             Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
               [TextNode "Сохранить"],
@@ -202,7 +212,7 @@ vaultPostForm post =
     textarea fieldLabel name value = field fieldLabel name [
         Element "textarea" [("name", T.pack name),  
           ("id", T.pack $ "post-" ++ name),
-          ("class", "input-xxlarge"), ("rows", "20")] [TextNode $ T.decodeUtf8 value]
+          ("class", "input-xxlarge monospace"), ("rows", "20")] [TextNode $ T.decodeUtf8 value]
       ]
     field :: T.Text -> String -> [Node] -> Node
     field fieldLabel fieldName fieldControl =
@@ -216,11 +226,11 @@ vaultPostForm post =
 
 vaultAction :: AppHandler ()
 vaultAction = do
-  action <- decodedParam "action"
+  action <- decodedPostParam "action"
   case action of
     "login" -> do
-      login <- decodedParam "login"
-      password <- decodedParam "password"
+      login <- decodedPostParam "login"
+      password <- decodedPostParam "password"
       if (login == adminLogin) && (password == adminPassword)
         then do
           with sessLens $ do 
@@ -236,8 +246,6 @@ vaultAction = do
       redirect "/vault"
 
     _ -> redirect "/vault"
-  where
-    decodedParam p = fromMaybe "" <$> getPostParam p
 
 --
 -- Navigation
@@ -265,16 +273,6 @@ navigationSplice = do
       | otherwise = request 
 
 ------------------------------------------------------------------------------
--- | Renders the echo page.
-echo :: Handler App App ()
-echo = do
-    message <- decodedParam "stuff"
-    heistLocal (bindString "message" (T.decodeUtf8 message)) $ render "echo"
-  where
-    decodedParam p = fromMaybe "" <$> getParam p
-
-
-------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = 
@@ -285,7 +283,6 @@ routes =
   , ("/vault", vault)
   , ("/vault/edit", vaultEdit)
   , ("/vault/edit/:id", vaultEdit)
-  , ("/echo/:stuff", echo)
   , ("", with heist heistServe)
   , ("", serveDirectory "static")
   ]

@@ -5,7 +5,7 @@
 	<apply template="vaulttopnav" />
 	<div class="container">
 	    <a class="btn" href="/vault/edit">Новая запись</a>
-	    <table class="table table-striped">
+	    <table class="table table-striped vault-posts-list">
 	    	<colgroup>
 	    		<col width="100" />
 	    		<col width="30" />

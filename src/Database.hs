@@ -4,6 +4,7 @@ module Database
   , setEncoding
   , getLatestPosts
   , getPost
+  , getPostById
   , savePost
   
   , vaultGetPostsList
@@ -54,11 +55,16 @@ getLatestPosts = do
   return $ map rowToPost rows
 
 
-getPost :: HasHdbc m c s => String -> m Post
-getPost postId = do
-  rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql postId]
+getPost :: HasHdbc m c s => ByteString -> m Post
+getPost url = do
+  rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql url]
   return $ rowToPost $ head rows  -- TODO check for empty result
 
+getPostById :: HasHdbc m c s => ByteString -> m Post
+getPostById id = do
+  rows <- noCacheQuery "SELECT * FROM posts WHERE id = ?" [toSql id]
+  return $ rowToPost $ head rows  -- TODO check for empty result
+  
 savePost :: HasHdbc m c s => Post -> m Post
 savePost post@(Post id title text url date published special tags)
   | id == 0 = do
@@ -97,7 +103,7 @@ newPost = Post
   { postId = 0
   , postTitle = ""
   , postText = ""
-  , postDate = LocalTime
+  , postDate = LocalTime -- TODO current time
     { localDay = fromGregorian 2012 01 01
     , localTimeOfDay = TimeOfDay 0 0 0
     }  
