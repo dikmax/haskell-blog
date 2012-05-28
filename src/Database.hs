@@ -2,10 +2,11 @@
 module Database
   ( Post(..)
   , setEncoding
+  , deletePost
   , getLatestPosts
   , getPost
   , getPostById
-  , savePost
+  , savePost  
   
   , vaultGetPostsList
   , newPost    
@@ -31,18 +32,6 @@ data Post = Post
   , postSpecial :: Bool
   , postTags :: [ByteString]
   }         
-
-noCacheQuery
-  :: HasHdbc m c s
-  => String      -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
-  -> [SqlValue]  -- ^ Values for each placeholder according to its position in
-                 --   the SQL statement.
-  -> m [Row]     -- ^ A 'Map' of attribute name to attribute value for each
-                 --   row. Can be the empty list.
-noCacheQuery sql bind = withTransaction $ \conn -> do
-  stmt <- HDBC.prepare conn sql
-  liftIO $ HDBC.execute stmt bind
-  liftIO $ HDBC.fetchAllRowsMap' stmt
   
 setEncoding :: HasHdbc m c s => m ()
 setEncoding = do
@@ -51,18 +40,18 @@ setEncoding = do
   
 getLatestPosts :: HasHdbc m c s => m [Post]
 getLatestPosts = do
-  rows <- noCacheQuery "SELECT * FROM posts" []
+  rows <- query "SELECT * FROM posts" []
   return $ map rowToPost rows
 
 
 getPost :: HasHdbc m c s => ByteString -> m Post
 getPost url = do
-  rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql url]
+  rows <- query "SELECT * FROM posts WHERE url = ?" [toSql url]
   return $ rowToPost $ head rows  -- TODO check for empty result
 
 getPostById :: HasHdbc m c s => ByteString -> m Post
 getPostById id = do
-  rows <- noCacheQuery "SELECT * FROM posts WHERE id = ?" [toSql id]
+  rows <- query "SELECT * FROM posts WHERE id = ?" [toSql id]
   return $ rowToPost $ head rows  -- TODO check for empty result
   
 savePost :: HasHdbc m c s => Post -> m Post
@@ -74,7 +63,7 @@ savePost post@(Post id title text url date published special tags)
           toSql title, toSql text, toSql date, toSql url, 
           toSql published, toSql special, SqlString ""
         ]
-      rows <- noCacheQuery "SELECT LAST_INSERT_ID() as id" []
+      rows <- query "SELECT LAST_INSERT_ID() as id" []
       return post { postId = fromSql $ head rows ! "id" }
   | otherwise = do
       query' ("UPDATE posts " ++ 
@@ -85,6 +74,11 @@ savePost post@(Post id title text url date published special tags)
           toSql published, toSql special, SqlString "", toSql id
         ]
       return post  
+
+deletePost :: HasHdbc m c s => ByteString -> m ()
+deletePost id = do
+  query' "DELETE FROM posts WHERE id = ?" [toSql id]
+  return ()
   
 rowToPost :: Row -> Post
 rowToPost rw = Post 
@@ -119,5 +113,5 @@ newPost = Post
 
 vaultGetPostsList :: HasHdbc m c s => m [Post]
 vaultGetPostsList = do
-  rows <- noCacheQuery "SELECT id, title, date, published FROM posts" []
+  rows <- query "SELECT id, title, date, published FROM posts" []
   return $ map rowToPost rows

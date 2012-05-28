@@ -124,7 +124,10 @@ vaultPostsListSplice = do
        Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
-         Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post]
+         Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post],
+         Element "td" [("class", "actions")] [
+           Element "span" [("class", "action-delete")] []
+         ]
        ]
 
 vaultEdit :: AppHandler ()
@@ -141,7 +144,6 @@ vaultEdit = do
     getPost "" = return newPost
     getPost id = getPostById id
     
-
 -- TODO there should be a way to simplify this function
 vaultSave :: AppHandler ()
 vaultSave = do
@@ -247,6 +249,12 @@ vaultAction = do
 
     _ -> redirect "/vault"
 
+vaultDelete :: AppHandler ()
+vaultDelete = do
+  id <- decodedParam "id"
+  deletePost id
+  redirect "/vault"
+  
 --
 -- Navigation
 -- 
@@ -283,6 +291,7 @@ routes =
   , ("/vault", vault)
   , ("/vault/edit", vaultEdit)
   , ("/vault/edit/:id", vaultEdit)
+  , ("/vault/delete/:id", vaultDelete)
   , ("", with heist heistServe)
   , ("", serveDirectory "static")
   ]

@@ -1,3 +1,12 @@
 .monospace {
 	font-family: 'Ubuntu Mono', monospace;
 }
+
+.actions span {
+	width: 32px;
+	height: 32px;
+	display: block;
+}
+.actions span.action-delete {
+	background: url(/img/32x32/cross.png) no-repeat 0 0;
+}

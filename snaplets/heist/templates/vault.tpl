@@ -10,12 +10,14 @@
 	    		<col width="100" />
 	    		<col width="30" />
 	    		<col />
+	    		<col width="50" />
 	    	</colgroup>
 	    	<thead>
 	    		<tr>
 	    			<th>Дата</th>
 	    			<th>&nbsp;</th>
 	    			<th>Заголовок</th>
+	    			<th>&nbsp;</th>
 	    		</tr>
 	    	</thead>
 	    	<tbody>
