@@ -15,6 +15,9 @@ import           Control.Monad.Trans
 import           Control.Monad.State
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (pack, unpack, append)
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as BL
+import           Data.ByteString.Search (replace)
 import           Data.Lens.Common (Lens)
 import           Data.Maybe
 import qualified Data.Text as T
@@ -143,7 +146,7 @@ vaultSave = do
     post = Post 
       { postId = 0
       , postTitle = title
-      , postText = text
+      , postText = B.concat . BL.toChunks $ replace "\r\n" newLine text
       , postDate = read $ unpack date -- TODO check for format errors
       , postUrl = url
       , postPublished = published /= ""
@@ -154,6 +157,8 @@ vaultSave = do
   heistLocal (bindSplice "vault-form" $ vaultPostForm newPost) $ 
     render "vaultedit"
   where
+    newLine :: ByteString
+    newLine = "\n"
     decodedParam p = fromMaybe "" <$> getPostParam p
 
 -- TODO digestive functors
