@@ -1,16 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Database
-  (
-    Post(..),
-    setEncoding, 
-    getLatestPosts,
-    getPost,
-    
-    vaultGetPostsList,
-    newPost
+  ( Post(..)
+  , setEncoding
+  , getLatestPosts
+  , getPost
+  , savePost
+  
+  , vaultGetPostsList
+  , newPost    
   ) where 
 
 import Control.Monad.IO.Class
+import Data.ByteString (ByteString)
+import Data.ByteString.Char8 (pack, unpack)
 import Data.Map ((!))
 import Data.Time
 import qualified  Database.HDBC as HDBC
@@ -20,13 +22,13 @@ import Application()
 
 data Post = Post 
   { postId :: Int
-  , postTitle :: String
-  , postText :: String
-  , postUrl :: String
+  , postTitle :: ByteString
+  , postText :: ByteString
+  , postUrl :: ByteString
   , postDate :: LocalTime
   , postPublished :: Bool
   , postSpecial :: Bool
-  , postTags :: [String]
+  , postTags :: [ByteString]
   }         
 
 noCacheQuery
@@ -56,6 +58,27 @@ getPost :: HasHdbc m c s => String -> m Post
 getPost postId = do
   rows <- noCacheQuery "SELECT * FROM posts WHERE url = ?" [toSql postId]
   return $ rowToPost $ head rows  -- TODO check for empty result
+
+savePost :: HasHdbc m c s => Post -> m Post
+savePost post@(Post id title text url date published special tags)
+  | id == 0 = do
+      query' ("INSERT INTO posts " ++ 
+        "(title, text, date, url, published, special, tags) " ++ 
+        "VALUES (?, ?, ?, ?, ?, ?, ?)") [
+          toSql title, toSql text, toSql date, toSql url, 
+          toSql published, toSql special, SqlString ""
+        ]
+      rows <- noCacheQuery "SELECT LAST_INSERT_ID() as id" []
+      return post { postId = fromSql $ head rows ! "id" }
+  | otherwise = do
+      query' ("UPDATE posts " ++ 
+        "SET title = ?, text = ?, date = ?, url = ?, " ++
+        "published = ?, special = ?, tags = ? " ++ 
+        "WHERE id = ?") [
+          toSql title, toSql text, toSql date, toSql url, 
+          toSql published, toSql special, SqlString "", toSql id
+        ]
+      return post  
   
 rowToPost :: Row -> Post
 rowToPost rw = Post 
