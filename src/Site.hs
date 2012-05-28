@@ -254,6 +254,11 @@ vaultDelete = do
   id <- decodedParam "id"
   deletePost id
   redirect "/vault"
+
+vaultAllowed :: AppHandler () -> AppHandler ()
+vaultAllowed action = do 
+  isAdminLogin <- with sessLens $ getFromSession "isAdminLogin"
+  maybe (redirect "/vault") (\_ -> action) isAdminLogin
   
 --
 -- Navigation
@@ -289,9 +294,9 @@ routes =
   , ("/about", aboutMe)
   , ("/vault", method POST vaultAction)
   , ("/vault", vault)
-  , ("/vault/edit", vaultEdit)
-  , ("/vault/edit/:id", vaultEdit)
-  , ("/vault/delete/:id", vaultDelete)
+  , ("/vault/edit", vaultAllowed vaultEdit)
+  , ("/vault/edit/:id", vaultAllowed vaultEdit)
+  , ("/vault/delete/:id", vaultAllowed vaultDelete)
   , ("", with heist heistServe)
   , ("", serveDirectory "static")
   ]
