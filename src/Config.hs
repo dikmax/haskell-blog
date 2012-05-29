@@ -9,3 +9,5 @@ adminLogin = "admin"
 
 adminPassword :: ByteString
 adminPassword = "admin"
+
+domain = "http://localhost:8000"

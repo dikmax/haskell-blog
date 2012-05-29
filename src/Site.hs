@@ -1,10 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-------------------------------------------------------------------------------
--- | This module is where all the routes and handlers are defined for your
---   site. The 'app' function is the initializer that combines everything
---   together and is exported by this module.
---
 module Site
   ( app
   ) where
@@ -37,8 +32,9 @@ import           Text.XmlHtml hiding (render)
 import           Text.Blaze.Renderer.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
-import           Database
 import           Config
+import           Database
+import           Site.Rss
 
 -- Utility functions
 decodedParam p = fromMaybe "" <$> getParam p
@@ -292,6 +288,7 @@ routes =
   [ ("/", index)
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
+  , ("/rss", rss)
   , ("/vault", method POST vaultAction)
   , ("/vault", vault)
   , ("/vault/edit", vaultAllowed vaultEdit)

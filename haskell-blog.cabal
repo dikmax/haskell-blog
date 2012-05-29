@@ -39,7 +39,8 @@ Executable haskell-blog
     time >= 1.1 && < 1.5,
     transformers >= 0.2.2,
     xmlhtml == 0.1.*,
-    lifted-base
+    lifted-base,
+    blaze-builder
 
   if flag(development)
     cpp-options: -DDEVELOPMENT
