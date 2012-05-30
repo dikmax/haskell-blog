@@ -48,34 +48,47 @@ index =  ifTop $
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
   posts <- lift getLatestPosts
-  return [Element "div" [("class", "posts")] $ map renderPost posts]
+  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
 
-renderPost :: Post -> Node 
-renderPost post = 
-  Element "div" [("class", "post")] [
+renderPostInList :: Post -> Node 
+renderPostInList post = 
+  Element "div" [("class", "post well")] [
     Element "h1" [("class", "post-title")] [
       Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
         [TextNode $ T.decodeUtf8 $ postTitle post]
     ],
-    Element "div" [("class", "post-body")] $
-      renderHtmlNodes $  
-        writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ 
-          T.unpack $ T.decodeUtf8 $ postText post
+    renderPostBody post
   ]
+
+renderSinglePost :: Post -> Node 
+renderSinglePost post = 
+  Element "div" [("class", "post")] [
+    Element "h1" [("class", "post-title")] 
+      [TextNode $ T.decodeUtf8 $ postTitle post],
+    renderPostBody post
+  ]
+  
+renderPostBody :: Post -> Node
+renderPostBody post =
+  Element "div" [("class", "post-body")] $
+    renderHtmlNodes $  
+      writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ 
+        T.unpack $ T.decodeUtf8 $ postText post
+
 
 --
 -- Show post Action
 --
 showPost :: Handler App App ()
 showPost = do
-    postUrl' <- decodedParam "post"
-    let showPostSplices = [("post", postSplice postUrl')]
+    url <- decodedParam "post"
+    let showPostSplices = [("post", postSplice url)]
     heistLocal (bindSplices showPostSplices) $ render "post"    
 
 postSplice :: ByteString -> Splice AppHandler
-postSplice postUrl' = do
-  post <- lift $ getPost postUrl'
-  return [renderPost post]
+postSplice url = do
+  post <- lift $ getPost url
+  return [renderSinglePost post]
         
 --
 -- About me action
