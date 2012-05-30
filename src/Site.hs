@@ -7,18 +7,16 @@ module Site
 ------------------------------------------------------------------------------
 import           Control.Applicative
 import           Control.Monad.Trans
-import           Control.Monad.State
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (pack, unpack, append)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Search (replace)
-import           Data.Lens.Common (Lens)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import           Data.Time
 import           Database.HDBC.MySQL
+import           Prelude hiding (id)
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Heist
@@ -37,7 +35,9 @@ import           Database
 import           Site.Rss
 
 -- Utility functions
+decodedParam :: MonadSnap f => ByteString -> f ByteString
 decodedParam p = fromMaybe "" <$> getParam p
+decodedPostParam :: MonadSnap f => ByteString -> f ByteString
 decodedPostParam p = fromMaybe "" <$> getPostParam p
 
 ------------------------------------------------------------------------------
@@ -83,13 +83,13 @@ renderPost post =
 --
 showPost :: Handler App App ()
 showPost = do
-    postUrl <- decodedParam "post"
-    let showPostSplices = [("post", postSplice postUrl)]
+    postUrl' <- decodedParam "post"
+    let showPostSplices = [("post", postSplice postUrl')]
     heistLocal (bindSplices showPostSplices) $ render "post"    
 
 postSplice :: ByteString -> Splice AppHandler
-postSplice postUrl = do
-  post <- lift $ getPost postUrl
+postSplice postUrl' = do
+  post <- lift $ getPost postUrl'
   return [renderPost post]
         
 --
@@ -114,9 +114,9 @@ vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $
 vaultPostsListSplice :: Splice AppHandler
 vaultPostsListSplice = do
    posts <- lift vaultGetPostsList
-   return $ map renderPost posts
+   return $ map renderPost' posts
    where 
-     renderPost post = 
+     renderPost' post = 
        Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
@@ -130,15 +130,15 @@ vaultEdit :: AppHandler ()
 vaultEdit = do
   request <- getRequest
   id <- decodedParam "id"
-  post <- getPost id
+  post <- getPost' id
   case rqMethod request of
     POST -> vaultSave
     _ -> heistLocal (bindSplice "vault-form" $ vaultPostForm post) $ 
       render "vaultedit"
   where
-    getPost :: HasHdbc m c s => ByteString -> m Post
-    getPost "" = return newPost
-    getPost id = getPostById id
+    getPost' :: HasHdbc m c s => ByteString -> m Post
+    getPost' "" = return newPost
+    getPost' id = getPostById id
     
 -- TODO there should be a way to simplify this function
 vaultSave :: AppHandler ()
@@ -169,7 +169,7 @@ vaultSave = do
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
-vaultPostForm (Post id title text url date published special tags) =
+vaultPostForm (Post id title text url date published special _) =
   return 
     [
       Element "form" [("class", "form-horizontal"), ("method", "post")] [

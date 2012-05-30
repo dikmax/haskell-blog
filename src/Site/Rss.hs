@@ -4,6 +4,7 @@ module Site.Rss
   ( rss
   ) where
 
+import Prelude hiding (id)
 import Blaze.ByteString.Builder (toLazyByteString)
 import Data.Text (append, pack, unpack)
 import Data.Text.Encoding (decodeUtf8)
@@ -43,7 +44,7 @@ rssDocument posts = XmlDocument UTF8 Nothing
   ]
   where
     renderPost :: Post -> Node
-    renderPost (Post id title text url date published special tags) = 
+    renderPost (Post _ title text url _ _ _ _) = 
       Element "item" [] 
         [ Element "title" [] [TextNode $ decodeUtf8 title]
         , Element "link" [] [TextNode $ 

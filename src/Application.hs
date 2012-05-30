@@ -11,13 +11,11 @@ module Application where
 ------------------------------------------------------------------------------
 import Control.Monad.State
 import Data.Lens.Template
-import Data.Time.Clock
 import Database.HDBC.MySQL
 import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Hdbc
 import Snap.Snaplet.Session 
-import Text.Templating.Heist (Splice)
 
 ------------------------------------------------------------------------------
 data App = App
