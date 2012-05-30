@@ -12,13 +12,11 @@ module Database
   , newPost    
   ) where 
 
-import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack, unpack)
 import Data.Map ((!))
 import Data.Time
-import qualified  Database.HDBC as HDBC
 import Snap.Snaplet.Hdbc
+import Prelude hiding (id)
 
 import Application()
 
@@ -55,7 +53,7 @@ getPostById id = do
   return $ rowToPost $ head rows  -- TODO check for empty result
   
 savePost :: HasHdbc m c s => Post -> m Post
-savePost post@(Post id title text url date published special tags)
+savePost post@(Post id title text url date published special _)
   | id == 0 = do
       query' ("INSERT INTO posts " ++ 
         "(title, text, date, url, published, special, tags) " ++ 
