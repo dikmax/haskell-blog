@@ -33,12 +33,16 @@ data Post = Post
   
 setEncoding :: HasHdbc m c s => m ()
 setEncoding = do
-        query' "SET NAMES utf8" []
-        return ()
+  query' "SET NAMES utf8" []
+  return ()
   
 getLatestPosts :: HasHdbc m c s => m [Post]
 getLatestPosts = do
-  rows <- query "SELECT * FROM posts" []
+  rows <- query 
+    ("SELECT * " ++
+    "FROM posts " ++ 
+    "WHERE published = 1 AND special = 0 " ++
+    "ORDER BY date DESC") []
   return $ map rowToPost rows
 
 
@@ -111,5 +115,8 @@ newPost = Post
 
 vaultGetPostsList :: HasHdbc m c s => m [Post]
 vaultGetPostsList = do
-  rows <- query "SELECT id, title, date, published FROM posts" []
+  rows <- query 
+    ("SELECT id, title, date, published " ++
+     "FROM posts " ++ 
+     "ORDER BY date DESC") []
   return $ map rowToPost rows
