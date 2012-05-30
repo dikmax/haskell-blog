@@ -94,8 +94,13 @@ postSplice url = do
 -- About me action
 --
 
-aboutMe :: Handler App App ()
-aboutMe = render "about"
+aboutMe :: AppHandler ()
+aboutMe = heistLocal (bindSplice "about" aboutSplice) $ render "about"
+  
+aboutSplice :: Splice AppHandler
+aboutSplice = do
+  post <- lift $ getPost "about"
+  return [renderPostBody post]
 
 --
 -- Vault action
@@ -208,7 +213,8 @@ vaultPostForm (Post id title text url date published special _) =
     textarea fieldLabel name value = field fieldLabel name [
         Element "textarea" [("name", T.pack name),  
           ("id", T.pack $ "post-" ++ name),
-          ("class", "input-xxlarge monospace"), ("rows", "20")] [TextNode $ T.decodeUtf8 value]
+          ("class", "input-xxlarge monospace"), ("rows", "20")] 
+          [TextNode $ T.decodeUtf8 value]
       ]
     field :: T.Text -> String -> [Node] -> Node
     field fieldLabel fieldName fieldControl =
@@ -233,7 +239,8 @@ vaultAction = do
             setInSession "isAdminLogin" "1"
             commitSession
           redirect "/vault"
-        else heistLocal (bindString "error" "Неверные данные") $ render "vaultlogin"
+        else heistLocal (bindString "error" "Неверные данные") $ 
+          render "vaultlogin"
 
     "logout" -> do
       with sessLens $ do
@@ -272,7 +279,8 @@ navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqContextPath
   return [Element "div" [("class", "nav-collapse")] [
-      Element "ul" [("class", "nav")] (createList $ normalizeRequest $ unpack request)
+      Element "ul" [("class", "nav")] $
+        createList $ normalizeRequest $ unpack request
     ]]
   where
     normalizeRequest request
