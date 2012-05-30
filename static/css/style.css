@@ -1,3 +1,8 @@
+.post-date {
+	font-size: 90%;
+	font-style: italic;
+}
+
 .monospace {
 	font-family: 'Ubuntu Mono', monospace;
 }

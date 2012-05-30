@@ -15,6 +15,7 @@ import           Data.ByteString.Search (replace)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Data.Time
 import           Database.HDBC.MySQL
 import           Prelude hiding (id)
 import           Snap.Core
@@ -24,6 +25,7 @@ import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
+import           System.Locale
 import           Text.Pandoc
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
@@ -40,6 +42,33 @@ decodedParam p = fromMaybe "" <$> getParam p
 decodedPostParam :: MonadSnap f => ByteString -> f ByteString
 decodedPostParam p = fromMaybe "" <$> getPostParam p
 
+timeLocale :: TimeLocale
+timeLocale = defaultTimeLocale 
+  { wDays =
+    [ ("Воскресенье", "вс")
+    , ("Понедельник", "пн")
+    , ("Вторник", "вт")
+    , ("Среда", "ср")
+    , ("Четверг", "чт")
+    , ("Пятница", "пт")
+    , ("Суббота", "сб")
+    ]
+  , months = 
+    [ ("января", "янв")
+    , ("февраля", "фев")
+    , ("марта", "мар")
+    , ("апреля", "апр")
+    , ("мая", "май")
+    , ("июня", "июн")
+    , ("июля", "июл")
+    , ("августа", "авг")
+    , ("сентября", "сен")
+    , ("октября", "окт")
+    , ("ноября", "ноя")
+    , ("декабря", "дек")
+    ]  
+  }
+  
 ------------------------------------------------------------------------------
 index :: Handler App App ()
 index =  ifTop $ 
@@ -53,6 +82,9 @@ latestPostsSplice = do
 renderPostInList :: Post -> Node 
 renderPostInList post = 
   Element "div" [("class", "post well")] [
+    Element "p" [("class", "post-date")] 
+      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
+        postDate post],
     Element "h1" [("class", "post-title")] [
       Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
         [TextNode $ T.decodeUtf8 $ postTitle post]
@@ -63,6 +95,9 @@ renderPostInList post =
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
   Element "div" [("class", "post")] [
+    Element "p" [("class", "post-date")] 
+      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
+        postDate post],
     Element "h1" [("class", "post-title")] 
       [TextNode $ T.decodeUtf8 $ postTitle post],
     renderPostBody post
@@ -117,9 +152,9 @@ vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $
 vaultPostsListSplice :: Splice AppHandler
 vaultPostsListSplice = do
    posts <- lift vaultGetPostsList
-   return $ map renderPost' posts
+   return $ map renderPost posts
    where 
-     renderPost' post = 
+     renderPost post = 
        Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
@@ -265,7 +300,7 @@ vaultAllowed action = do
 -- Navigation
 -- 
 siteStructure :: [(String, String)]
-siteStructure = [("/", "Home"), ("/about", "About me")]
+siteStructure = [("/", "Главная"), ("/about", "Обо мне")]
 
 createList :: String -> [Node]
 createList request = map listItem siteStructure
