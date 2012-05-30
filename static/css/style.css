@@ -10,3 +10,12 @@
 .actions span.action-delete {
 	background: url(/img/32x32/cross.png) no-repeat 0 0;
 }
+
+@media (min-width: 768px) {
+	.figure {
+		text-align: center;
+	}
+	img {
+		max-width: 684px;
+	}
+}
