@@ -15,6 +15,7 @@ import           Data.ByteString.Search (replace)
 import           Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Data.Time
 import           Database.HDBC.MySQL
 import           Prelude hiding (id)
 import           Snap.Core
@@ -24,6 +25,7 @@ import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
+import           System.Locale
 import           Text.Pandoc
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
@@ -40,6 +42,33 @@ decodedParam p = fromMaybe "" <$> getParam p
 decodedPostParam :: MonadSnap f => ByteString -> f ByteString
 decodedPostParam p = fromMaybe "" <$> getPostParam p
 
+timeLocale :: TimeLocale
+timeLocale = defaultTimeLocale 
+  { wDays =
+    [ ("Воскресенье", "вс")
+    , ("Понедельник", "пн")
+    , ("Вторник", "вт")
+    , ("Среда", "ср")
+    , ("Четверг", "чт")
+    , ("Пятница", "пт")
+    , ("Суббота", "сб")
+    ]
+  , months = 
+    [ ("января", "янв")
+    , ("февраля", "фев")
+    , ("марта", "мар")
+    , ("апреля", "апр")
+    , ("мая", "май")
+    , ("июня", "июн")
+    , ("июля", "июл")
+    , ("августа", "авг")
+    , ("сентября", "сен")
+    , ("октября", "окт")
+    , ("ноября", "ноя")
+    , ("декабря", "дек")
+    ]  
+  }
+  
 ------------------------------------------------------------------------------
 index :: Handler App App ()
 index =  ifTop $ 
@@ -48,41 +77,64 @@ index =  ifTop $
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
   posts <- lift getLatestPosts
-  return [Element "div" [("class", "posts")] $ map renderPost posts]
+  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
 
-renderPost :: Post -> Node 
-renderPost post = 
-  Element "div" [("class", "post")] [
+renderPostInList :: Post -> Node 
+renderPostInList post = 
+  Element "div" [("class", "post well")] [
+    Element "p" [("class", "post-date")] 
+      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
+        postDate post],
     Element "h1" [("class", "post-title")] [
       Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
         [TextNode $ T.decodeUtf8 $ postTitle post]
     ],
-    Element "div" [("class", "post-body")] $
-      renderHtmlNodes $  
-        writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ 
-          T.unpack $ T.decodeUtf8 $ postText post
+    renderPostBody post
   ]
+
+renderSinglePost :: Post -> Node 
+renderSinglePost post = 
+  Element "div" [("class", "post")] [
+    Element "p" [("class", "post-date")] 
+      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
+        postDate post],
+    Element "h1" [("class", "post-title")] 
+      [TextNode $ T.decodeUtf8 $ postTitle post],
+    renderPostBody post
+  ]
+  
+renderPostBody :: Post -> Node
+renderPostBody post =
+  Element "div" [("class", "post-body")] $
+    renderHtmlNodes $  
+      writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ 
+        T.unpack $ T.decodeUtf8 $ postText post
+
 
 --
 -- Show post Action
 --
 showPost :: Handler App App ()
 showPost = do
-    postUrl' <- decodedParam "post"
-    let showPostSplices = [("post", postSplice postUrl')]
-    heistLocal (bindSplices showPostSplices) $ render "post"    
+    url <- decodedParam "post"
+    post <- getPost url
+    maybe error404 
+      (\p -> heistLocal (bindSplice "post" $ postSplice p) $ render "post") post
 
-postSplice :: ByteString -> Splice AppHandler
-postSplice postUrl' = do
-  post <- lift $ getPost postUrl'
-  return [renderPost post]
+postSplice :: Post -> Splice AppHandler
+postSplice post = return [renderSinglePost post] 
         
 --
 -- About me action
 --
 
-aboutMe :: Handler App App ()
-aboutMe = render "about"
+aboutMe :: AppHandler ()
+aboutMe = heistLocal (bindSplice "about" aboutSplice) $ render "about"
+  
+aboutSplice :: Splice AppHandler
+aboutSplice = do
+  post <- lift $ getPost "about"
+  return $ maybe [] (\p -> [renderPostBody p]) post
 
 --
 -- Vault action
@@ -99,9 +151,9 @@ vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $
 vaultPostsListSplice :: Splice AppHandler
 vaultPostsListSplice = do
    posts <- lift vaultGetPostsList
-   return $ map renderPost' posts
+   return $ map renderPost posts
    where 
-     renderPost' post = 
+     renderPost post = 
        Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
@@ -195,7 +247,8 @@ vaultPostForm (Post id title text url date published special _) =
     textarea fieldLabel name value = field fieldLabel name [
         Element "textarea" [("name", T.pack name),  
           ("id", T.pack $ "post-" ++ name),
-          ("class", "input-xxlarge monospace"), ("rows", "20")] [TextNode $ T.decodeUtf8 value]
+          ("class", "input-xxlarge monospace"), ("rows", "20")] 
+          [TextNode $ T.decodeUtf8 value]
       ]
     field :: T.Text -> String -> [Node] -> Node
     field fieldLabel fieldName fieldControl =
@@ -220,7 +273,8 @@ vaultAction = do
             setInSession "isAdminLogin" "1"
             commitSession
           redirect "/vault"
-        else heistLocal (bindString "error" "Неверные данные") $ render "vaultlogin"
+        else heistLocal (bindString "error" "Неверные данные") $ 
+          render "vaultlogin"
 
     "logout" -> do
       with sessLens $ do
@@ -245,7 +299,7 @@ vaultAllowed action = do
 -- Navigation
 -- 
 siteStructure :: [(String, String)]
-siteStructure = [("/", "Home"), ("/about", "About me")]
+siteStructure = [("/", "Главная"), ("/about", "Обо мне")]
 
 createList :: String -> [Node]
 createList request = map listItem siteStructure
@@ -259,12 +313,18 @@ navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqContextPath
   return [Element "div" [("class", "nav-collapse")] [
-      Element "ul" [("class", "nav")] (createList $ normalizeRequest $ unpack request)
+      Element "ul" [("class", "nav")] $
+        createList $ normalizeRequest $ unpack request
     ]]
   where
     normalizeRequest request
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
+
+error404 :: AppHandler ()
+error404 = do
+  modifyResponse $ setResponseStatus 404 "Not Found"
+  render "404"
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -281,6 +341,7 @@ routes =
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
   , ("", with heist heistServe)
   , ("", serveDirectory "static")
+  , ("", error404)
   ]
 
 ------------------------------------------------------------------------------

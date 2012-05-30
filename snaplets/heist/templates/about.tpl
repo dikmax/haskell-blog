@@ -5,7 +5,7 @@
 	<apply template="topnav" />
 	<div class="container">
 		<div class="well">
-			Когда-нибудь здесь будет информация обо мне.
+			<about />
 		</div>
 		<apply template="footer" />				
 	</div>	

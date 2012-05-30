@@ -7,7 +7,9 @@
     <apply template="topnav" />
 
     <div class="container">
-      <posts />
+      <div class="well">
+	      404. Ничего не найдено или плохо искалось. Или даже не искалось вовсе.
+      </div>    
 	  <apply template="footer" />	
     </div> <!-- /container -->
 

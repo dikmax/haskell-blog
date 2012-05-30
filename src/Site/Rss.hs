@@ -5,10 +5,14 @@ module Site.Rss
   ) where
 
 import Prelude hiding (id)
+
 import Blaze.ByteString.Builder (toLazyByteString)
 import Data.Text (append, pack, unpack)
 import Data.Text.Encoding (decodeUtf8)
+import Data.Time.Format (formatTime)
+import Data.Time.LocalTime (ZonedTime(..), minutesToTimeZone)
 import Snap.Core (writeLBS)
+import System.Locale (rfc822DateFormat, defaultTimeLocale)
 import Text.Pandoc 
   ( defaultParserState
   , defaultWriterOptions
@@ -44,11 +48,15 @@ rssDocument posts = XmlDocument UTF8 Nothing
   ]
   where
     renderPost :: Post -> Node
-    renderPost (Post _ title text url _ _ _ _) = 
+    renderPost (Post id title text url date _ _ _) = 
       Element "item" [] 
         [ Element "title" [] [TextNode $ decodeUtf8 title]
         , Element "link" [] [TextNode $ 
             pack domain `append` "/post/" `append` decodeUtf8 url]
+        , Element "guid" [] [TextNode $ pack $ show id]
+        , Element "pubDate" [] [TextNode $ pack $ 
+            formatTime defaultTimeLocale rfc822DateFormat $
+            ZonedTime date $ minutesToTimeZone 180]
         , Element "description" [] [TextNode $ pack $ 
             writeHtmlString defaultWriterOptions $ 
             readMarkdown defaultParserState $ 
