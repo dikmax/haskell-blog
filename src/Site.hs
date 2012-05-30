@@ -42,28 +42,13 @@ decodedPostParam p = fromMaybe "" <$> getPostParam p
 
 ------------------------------------------------------------------------------
 index :: Handler App App ()
-index =  ifTop $ do 
-  counter <- with sessLens $ do
-    v <- getFromSession "counter"     
-    let newV = 1 + maybe 0 (read . T.unpack) v
-    setInSession "counter" $ T.pack $ show newV
-    return newV
-
-  let 
-    indexSplices = 
-      [ ("posts", latestPostsSplice)
-      , ("counter", counterSplice counter)
-      ]
-  heistLocal (bindSplices indexSplices) $ render "index"
+index =  ifTop $ 
+  heistLocal (bindSplice "posts" latestPostsSplice) $ render "index"
 
 latestPostsSplice :: Splice AppHandler
 latestPostsSplice = do
   posts <- lift getLatestPosts
   return [Element "div" [("class", "posts")] $ map renderPost posts]
-
-counterSplice :: Integer -> Splice AppHandler
-counterSplice counter = return [Element "div" [] 
-  [TextNode $ T.pack $ "Counter: " ++ show counter]]     
 
 renderPost :: Post -> Node 
 renderPost post = 
