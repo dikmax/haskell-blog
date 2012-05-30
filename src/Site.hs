@@ -27,6 +27,7 @@ import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 import           System.Locale
 import           Text.Pandoc
+import           Text.Pandoc.Highlighting
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
 import           Text.Blaze.Renderer.XmlHtml
@@ -107,10 +108,19 @@ renderPostBody :: Post -> Node
 renderPostBody post =
   Element "div" [("class", "post-body")] $
     renderHtmlNodes $  
-      writeHtml defaultWriterOptions $ readMarkdown defaultParserState $ 
+      writeHtml writerOptions $ readMarkdown parserState $ 
         T.unpack $ T.decodeUtf8 $ postText post
 
-
+parserState :: ParserState
+parserState = defaultParserState 
+  { stateSmart = True
+  }
+  
+writerOptions :: WriterOptions
+writerOptions = defaultWriterOptions
+  { writerHighlight = True,
+    writerHighlightStyle = kate
+  }
 --
 -- Show post Action
 --

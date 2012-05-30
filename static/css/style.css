@@ -17,6 +17,42 @@
 	background: url(/img/32x32/cross.png) no-repeat 0 0;
 }
 
+li pre.sourceCode { font-size: 80%; padding: 16px 16px 16px 32px; margin-top: 29px;}
+pre.sourceCode {
+    background: #222;
+    color: #ffbf00;
+    width: 87%;
+    margin: 0px auto 29px auto;
+    padding: 16px;
+
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;	
+}
+pre.sourceCode span.Normal { }
+pre.sourceCode span.Keyword, pre.sourceCode span.kw { font-weight: bold; } 
+pre.sourceCode span.DataType, pre.sourceCode span.dt { color: #ff0; }
+pre.sourceCode span.DecVal, pre.sourceCode span.de { color: #4f4; }
+pre.sourceCode span.BaseN { color: #4f4; }
+pre.sourceCode span.Float, pre.sourceCode span.fl { color: #4f4; }
+pre.sourceCode span.Char, pre.sourceCode span.ch { color: #4f4; }
+pre.sourceCode span.String, pre.sourceCode span.st { color: #4f4; }
+pre.sourceCode span.Comment, pre.sourceCode span.co { color: #999; font-style: italic; }
+pre.sourceCode span.Others { }
+pre.sourceCode span.Alert { color: #4f4; font-weight: bold; }
+pre.sourceCode span.Function, pre.sourceCode span.fu { color: #C4E7FF; }
+pre.sourceCode span.RegionMarker { }
+pre.sourceCode span.Error, pre.sourceCode span.er { color: #f44; font-weight: bold; }
+
+pre.sourceCode span.ModuleName, pre.sourceCode span.mo { color: #f44; } 
+pre.sourceCode span.Keyword, pre.sourceCode span.kw { color: #C4E7FF; }
+pre.sourceCode span.FunctionDefinition { color: #C4E7FF; }
+pre.sourceCode span.Class { color: #C4E7FF; font-weight: bold; }
+pre.sourceCode span.Constructor { font-weight: bold; }
+pre.sourceCode span.DataConstructor { color: #C4E7FF; }
+pre.sourceCode span.TypeConstructor { font-weight: bold; }
+pre.sourceCode span.InfixOperator { color: #aaa; }
+
 @media (min-width: 768px) {
 	.figure {
 		text-align: center;
