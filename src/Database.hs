@@ -46,10 +46,12 @@ getLatestPosts = do
   return $ map rowToPost rows
 
 
-getPost :: HasHdbc m c s => ByteString -> m Post
+getPost :: HasHdbc m c s => ByteString -> m (Maybe Post)
 getPost url = do
   rows <- query "SELECT * FROM posts WHERE url = ?" [toSql url]
-  return $ rowToPost $ head rows  -- TODO check for empty result
+  case rows of
+    [] -> return Nothing
+    _ -> return $ Just $ rowToPost $ head rows
 
 getPostById :: HasHdbc m c s => ByteString -> m Post
 getPostById id = do

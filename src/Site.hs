@@ -117,13 +117,12 @@ renderPostBody post =
 showPost :: Handler App App ()
 showPost = do
     url <- decodedParam "post"
-    let showPostSplices = [("post", postSplice url)]
-    heistLocal (bindSplices showPostSplices) $ render "post"    
+    post <- getPost url
+    maybe error404 
+      (\p -> heistLocal (bindSplice "post" $ postSplice p) $ render "post") post
 
-postSplice :: ByteString -> Splice AppHandler
-postSplice url = do
-  post <- lift $ getPost url
-  return [renderSinglePost post]
+postSplice :: Post -> Splice AppHandler
+postSplice post = return [renderSinglePost post] 
         
 --
 -- About me action
@@ -135,7 +134,7 @@ aboutMe = heistLocal (bindSplice "about" aboutSplice) $ render "about"
 aboutSplice :: Splice AppHandler
 aboutSplice = do
   post <- lift $ getPost "about"
-  return [renderPostBody post]
+  return $ maybe [] (\p -> [renderPostBody p]) post
 
 --
 -- Vault action
@@ -322,6 +321,11 @@ navigationSplice = do
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
 
+error404 :: AppHandler ()
+error404 = do
+  modifyResponse $ setResponseStatus 404 "Not Found"
+  render "404"
+
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
@@ -337,6 +341,7 @@ routes =
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
   , ("", with heist heistServe)
   , ("", serveDirectory "static")
+  , ("", error404)
   ]
 
 ------------------------------------------------------------------------------
