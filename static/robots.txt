@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /vault
+
+User-agent: Yandex
+Host: dikmax.name
