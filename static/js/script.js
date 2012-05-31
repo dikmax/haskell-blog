@@ -10,4 +10,10 @@ $(function () {
 		}
 		return false;
 	});
+
+	$('.vault-posts-list span.action-view').click(function () {
+		var url = $(this).parents('tr').attr('data-url');
+		document.location = '/post/' + url; 
+		return false;
+	});
 });

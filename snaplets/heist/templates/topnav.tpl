@@ -7,7 +7,8 @@
         <span class="icon-bar"></span>
       </a>
       <a class="brand" href="/">[dikmax's blog]</a>
-	  <navigation />            
+	  <navigation />
+	  <a class="pull-right" href="/rss"><span class="icon icon-feed"></span></a>            
     </div>
   </div>
 </div>

@@ -11,10 +11,24 @@
 .actions span {
 	width: 32px;
 	height: 32px;
-	display: block;
+	display: inline-block;
 }
+
 .actions span.action-delete {
 	background: url(/img/32x32/cross.png) no-repeat 0 0;
+}
+
+.actions span.action-view {
+	background: url(/img/32x32/page_go.png) no-repeat 0 0;
+}
+
+span.icon {
+	width: 32px;
+	height: 32px;	
+}
+
+span.icon.icon-feed {
+	background: url(/img/32x32/feed.png) no-repeat 0 0;
 }
 
 li pre.sourceCode { font-size: 80%; padding: 16px 16px 16px 32px; margin-top: 29px;}

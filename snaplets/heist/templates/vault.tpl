@@ -10,7 +10,7 @@
 	    		<col width="100" />
 	    		<col width="30" />
 	    		<col />
-	    		<col width="50" />
+	    		<col width="80" />
 	    	</colgroup>
 	    	<thead>
 	    		<tr>
