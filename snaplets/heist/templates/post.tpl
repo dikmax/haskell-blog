@@ -11,7 +11,7 @@
       
       <div id="disqus_thread"></div>
       <script type="text/javascript">
-        var disqus_shortname = 'dikmax'; // required: replace example with your forum shortname
+        var disqus_shortname = 'dikmax';
 
         (function() {
           var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
