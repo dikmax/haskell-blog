@@ -349,7 +349,6 @@ routes =
   , ("/vault/edit", vaultAllowed vaultEdit)
   , ("/vault/edit/:id", vaultAllowed vaultEdit)
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
-  , ("", with heist heistServe)
   , ("", serveDirectory "static")
   , ("", error404)
   ]
