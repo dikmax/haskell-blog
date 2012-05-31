@@ -90,7 +90,12 @@ renderPostInList post =
       Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
         [TextNode $ T.decodeUtf8 $ postTitle post]
     ],
-    renderPostBody post
+    renderPostBody post,
+    Element "p" [("class", "post-comments")] [
+      Element "a" [("href", T.decodeUtf8 $ "/post/" `append` 
+        postUrl post `append` "#disqus_thread" )] 
+        [TextNode "Считаем комментарии..."]
+    ]
   ]
 
 renderSinglePost :: Post -> Node 
@@ -349,7 +354,6 @@ routes =
   , ("/vault/edit", vaultAllowed vaultEdit)
   , ("/vault/edit/:id", vaultAllowed vaultEdit)
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
-  , ("", with heist heistServe)
   , ("", serveDirectory "static")
   , ("", error404)
   ]
