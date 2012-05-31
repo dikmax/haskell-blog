@@ -169,11 +169,13 @@ vaultPostsListSplice = do
    return $ map renderPost posts
    where 
      renderPost post = 
-       Element "tr" [("data-rowid", T.pack $ show $ postId post)] [
+       Element "tr" [("data-rowid", T.pack $ show $ postId post),
+         ("data-url", T.decodeUtf8 $ postUrl post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
          Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post],
          Element "td" [("class", "actions")] [
+           Element "span" [("class", "action-view")] [],
            Element "span" [("class", "action-delete")] []
          ]
        ]

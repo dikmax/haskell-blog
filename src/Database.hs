@@ -118,7 +118,7 @@ newPost = Post
 vaultGetPostsList :: HasHdbc m c s => m [Post]
 vaultGetPostsList = do
   rows <- query 
-    ("SELECT id, title, date, published " ++
+    ("SELECT id, title, date, url, published " ++
      "FROM posts " ++ 
      "ORDER BY date DESC") []
   return $ map rowToPost rows
