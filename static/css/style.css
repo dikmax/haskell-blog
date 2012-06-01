@@ -77,3 +77,9 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 		max-width: 684px;
 	}
 }
+
+@media (max-width: 979px) {
+	span.icon.icon-feed {
+		display: none;
+	}
+}
