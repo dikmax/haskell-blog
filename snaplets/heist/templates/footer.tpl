@@ -1,5 +1,3 @@
- <hr>
-
- <footer>
-   <p>&copy; Maxim Dikun 2012</p>
+ <footer class="blurpanel">
+   &copy; Maxim Dikun 2012
  </footer>

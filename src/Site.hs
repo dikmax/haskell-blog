@@ -82,7 +82,7 @@ latestPostsSplice = do
 
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "div" [("class", "post well")] [
+  Element "div" [("class", "post blurpanel")] [
     Element "p" [("class", "post-date")] 
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
