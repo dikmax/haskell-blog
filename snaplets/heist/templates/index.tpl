@@ -3,7 +3,6 @@
   <apply template="head" />
 
   <body>
-
     <apply template="topnav" />
 
     <div class="container">

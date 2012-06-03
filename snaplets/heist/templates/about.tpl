@@ -4,7 +4,7 @@
 <body>
 	<apply template="topnav" />
 	<div class="container">
-		<div class="well">
+		<div class="blurpanel">
 			<about />
 		</div>
 		<apply template="footer" />				

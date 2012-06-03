@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/js/mobile.js"></script>
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
