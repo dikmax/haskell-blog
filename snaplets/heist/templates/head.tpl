@@ -7,14 +7,14 @@
 
 <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss" />
 
-<link href="/css/bootstrap.css" rel="stylesheet" />
+<link href="/css/bootstrap.min.css" rel="stylesheet" />
 <style type="text/css">
 body {
 	padding-top: 60px;
 	padding-bottom: 40px;
 }
 </style>
-<link href="/css/bootstrap-responsive.css" rel="stylesheet" />
+<link href="/css/bootstrap-responsive.min.css" rel="stylesheet" />
 <link href="/css/style.css" rel="stylesheet" />
 
 <!--[if lt IE 9]>
