@@ -51,6 +51,7 @@ query' sql bind = withHdbc $ \conn -> do
   stmt <- HDBC.prepare conn sql
   count <- liftIO $ HDBC.execute stmt bind
   liftIO $ HDBC.finish stmt
+  liftIO $ HDBC.commit conn
   return count    
     
 setEncoding :: HasHdbc m c s => m ()
