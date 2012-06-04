@@ -4,8 +4,8 @@
 <body>
 	<apply template="topnav" />
 	<div class="container">
-		<div class="well">
-			Когда-нибудь здесь будет информация обо мне.
+		<div class="blurpanel">
+			<about />
 		</div>
 		<apply template="footer" />				
 	</div>	

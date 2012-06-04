@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/js/mobile.js"></script>
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
@@ -7,7 +8,8 @@
         <span class="icon-bar"></span>
       </a>
       <a class="brand" href="/">[dikmax's blog]</a>
-	  <navigation />            
+	  <navigation />
+	  <a class="pull-right" href="/rss"><span class="icon icon-feed"></span></a>            
     </div>
   </div>
 </div>
