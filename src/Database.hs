@@ -12,11 +12,12 @@ module Database
   , newPost    
   ) where 
 
+import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Map ((!))
 import Data.Time
-import Snap.Snaplet.Hdbc
-import Prelude hiding (id)
+import qualified  Database.HDBC as HDBC
+import Snap.Snaplet.Hdbc hiding (query, query')
 
 import Application()
 
@@ -30,7 +31,28 @@ data Post = Post
   , postSpecial :: Bool
   , postTags :: [ByteString]
   }         
+
+query
+  :: HasHdbc m c s
+  => String      -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
+  -> [SqlValue]  -- ^ Values for each placeholder according to its position in
+                 --   the SQL statement.
+  -> m [Row]     -- ^ A 'Map' of attribute name to attribute value for each
+                 --   row. Can be the empty list.
+query sql bind = do
+  stmt <- prepare sql
+  liftIO $ HDBC.execute stmt bind
+  rows <- liftIO $ HDBC.fetchAllRowsMap' stmt
+  liftIO $ HDBC.finish stmt
+  return rows
   
+query' :: HasHdbc m c s => String -> [SqlValue] -> m Integer
+query' sql bind = withHdbc $ \conn -> do
+  stmt <- HDBC.prepare conn sql
+  count <- liftIO $ HDBC.execute stmt bind
+  liftIO $ HDBC.finish stmt
+  return count    
+    
 setEncoding :: HasHdbc m c s => m ()
 setEncoding = do
   query' "SET NAMES utf8" []
@@ -54,13 +76,13 @@ getPost url = do
     _ -> return $ Just $ rowToPost $ head rows
 
 getPostById :: HasHdbc m c s => ByteString -> m Post
-getPostById id = do
-  rows <- query "SELECT * FROM posts WHERE id = ?" [toSql id]
+getPostById pId = do
+  rows <- query "SELECT * FROM posts WHERE id = ?" [toSql pId]
   return $ rowToPost $ head rows  -- TODO check for empty result
   
 savePost :: HasHdbc m c s => Post -> m Post
-savePost post@(Post id title text url date published special _)
-  | id == 0 = do
+savePost post@(Post pId title text url date published special _)
+  | pId == 0 = do
       query' ("INSERT INTO posts " ++ 
         "(title, text, date, url, published, special, tags) " ++ 
         "VALUES (?, ?, ?, ?, ?, ?, ?)") [
@@ -75,13 +97,13 @@ savePost post@(Post id title text url date published special _)
         "published = ?, special = ?, tags = ? " ++ 
         "WHERE id = ?") [
           toSql title, toSql text, toSql date, toSql url, 
-          toSql published, toSql special, SqlString "", toSql id
+          toSql published, toSql special, SqlString "", toSql pId
         ]
       return post  
 
 deletePost :: HasHdbc m c s => ByteString -> m ()
-deletePost id = do
-  query' "DELETE FROM posts WHERE id = ?" [toSql id]
+deletePost pId = do
+  query' "DELETE FROM posts WHERE id = ?" [toSql pId]
   return ()
   
 rowToPost :: Row -> Post
