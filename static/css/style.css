@@ -8,6 +8,10 @@ body {
 	margin: 0;
 }
 
+.figure {
+	text-align: center;
+}
+
 .monospace {
 	font-family: 'Ubuntu Mono', monospace;
 }
@@ -80,9 +84,6 @@ pre.sourceCode span.TypeConstructor { font-weight: bold; }
 pre.sourceCode span.InfixOperator { color: #aaa; }
 
 @media (min-width: 768px) {
-	.figure {
-		text-align: center;
-	}
 	img {
 		max-width: 684px;
 	}
