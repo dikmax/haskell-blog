@@ -30,7 +30,6 @@ import           Text.Pandoc
 import           Text.Pandoc.Highlighting
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
-import           Text.Blaze.Renderer.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
 import           Config
@@ -108,17 +107,24 @@ renderSinglePost post =
       [TextNode $ T.decodeUtf8 $ postTitle post],
     renderPostBody post
   ]
-  
+
+-- TODO create my own writer (instead of writeHml) with blackjack and hookers  
 renderPostBody :: Post -> Node
 renderPostBody post =
   Element "div" [("class", "post-body")] $
-    renderHtmlNodes $  
-      writeHtml writerOptions $ readMarkdown parserState $ 
-        T.unpack $ T.decodeUtf8 $ postText post
+    either (\a -> [TextNode $ T.pack a]) extractData $ parseHTML "post" $ T.encodeUtf8 $ T.pack $ 
+    writeHtmlString writerOptions $ readMarkdown parserState $ 
+      T.unpack $ T.decodeUtf8 $ postText post
+  where
+    extractData (HtmlDocument _ _ content) = content
+    extractData (XmlDocument _ _ content) = content       
 
+--transformPost :: Pandoc -> Pandoc
+--transformPost = t
 parserState :: ParserState
 parserState = defaultParserState 
   { stateSmart = True
+  , stateParseRaw = True
   }
   
 writerOptions :: WriterOptions
