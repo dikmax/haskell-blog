@@ -71,13 +71,45 @@ timeLocale = defaultTimeLocale
   
 ------------------------------------------------------------------------------
 index :: Handler App App ()
-index =  ifTop $ 
-  heistLocal (bindSplice "posts" latestPostsSplice) $ render "index"
+index =  ifTop $ do
+  page <- decodedParam "page"
+  let 
+    pageNum = case reads $ unpack page of
+      [(x, "")] -> x
+      _ -> 1
+    indexSplices = 
+      [ ("posts", postsSplice pageNum) 
+      , ("pagination", paginationSplice pageNum)
+      ]
+  heistLocal (bindSplices indexSplices) $ render "index"
 
-latestPostsSplice :: Splice AppHandler
-latestPostsSplice = do
-  posts <- lift getLatestPosts
+postsSplice :: Int -> Splice AppHandler
+postsSplice page = do
+  posts <- lift $ getPosts ((page - 1) * postsPerPage) postsPerPage
   return [Element "div" [("class", "posts")] $ map renderPostInList posts]
+
+paginationSplice :: Int -> Splice AppHandler
+paginationSplice page = do
+  postsCount <- lift getPostsCount
+  let
+    prevDisabled = page * postsPerPage >= postsCount  
+    prevLink = "/page/" ++ show (page + 1)
+    nextDisabled = page <= 1
+    nextLink = if page == 2 then "/" else "/page/" ++ show (page - 1)
+    prevElement = if prevDisabled
+      then []
+      else [Element "li" [("class", "previous")]
+        [ Element "a" [("href", T.pack prevLink)] [TextNode "← Старше"] ] ]
+    nextElement = if nextDisabled
+      then []
+      else [Element "li" [("class", "next")]
+        [ Element "a" [("href", T.pack nextLink)] [TextNode "Новее →"] ] ]
+  return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
+    
+-- latestPostsSplice :: Splice AppHandler
+-- latestPostsSplice = do
+--  posts <- lift getLatestPosts
+--  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
 
 renderPostInList :: Post -> Node 
 renderPostInList post = 
@@ -354,6 +386,7 @@ error404 = do
 routes :: [(ByteString, Handler App App ())]
 routes = 
   [ ("/", index)
+  , ("/page/:page", index)
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
   , ("/rss", rss)

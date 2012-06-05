@@ -4,6 +4,8 @@ module Database
   , setEncoding
   , deletePost
   , getLatestPosts
+  , getPosts
+  , getPostsCount
   , getPost
   , getPostById
   , savePost  
@@ -58,7 +60,17 @@ setEncoding :: HasHdbc m c s => m ()
 setEncoding = do
   query' "SET NAMES utf8" []
   return ()
-  
+
+getPosts :: HasHdbc m c s => Int -> Int -> m [Post]
+getPosts offset count = do
+  rows <- query 
+    ("SELECT * " ++
+    "FROM posts " ++ 
+    "WHERE published = 1 AND special = 0 " ++
+    "ORDER BY date DESC " ++
+    "LIMIT ?, ?") [toSql offset, toSql count]
+  return $ map rowToPost rows
+     
 getLatestPosts :: HasHdbc m c s => m [Post]
 getLatestPosts = do
   rows <- query 
@@ -68,7 +80,13 @@ getLatestPosts = do
     "ORDER BY date DESC") []
   return $ map rowToPost rows
 
-
+getPostsCount :: HasHdbc m c s => m (Int)
+getPostsCount = do
+  rows <- query ("SELECT count(*) AS count " ++
+    "FROM posts " ++ 
+    "WHERE published = 1 AND special = 0") []
+  return $ fromSql $ head rows ! "count"
+  
 getPost :: HasHdbc m c s => ByteString -> m (Maybe Post)
 getPost url = do
   rows <- query "SELECT * FROM posts WHERE url = ?" [toSql url]
@@ -132,7 +150,7 @@ newPost = Post
   , postPublished = False
   , postSpecial = False
   , postTags = []
-  }   
+  }
 
 --
 -- Vault functions

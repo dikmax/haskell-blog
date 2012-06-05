@@ -12,3 +12,6 @@ adminPassword = "admin"
 
 domain :: String
 domain = "http://localhost:8000"
+
+postsPerPage :: Int
+postsPerPage = 5
