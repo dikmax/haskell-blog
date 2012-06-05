@@ -7,12 +7,12 @@
 
     <div class="container">
       <posts />
+      <pagination />
 	  <apply template="footer" />	
     </div> <!-- /container -->
 
     <apply template="foot" />
 	<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
     var disqus_shortname = 'dikmax';
 
     /* * * DON'T EDIT BELOW THIS LINE * * */
