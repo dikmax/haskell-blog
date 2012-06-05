@@ -103,14 +103,9 @@ paginationSplice page = do
     nextElement = if nextDisabled
       then []
       else [Element "li" [("class", "next")]
-        [ Element "a" [("href", T.pack nextLink)] [TextNode "Новее →"] ] ]
+        [ Element "a" [("href", T.pack nextLink)] [TextNode "Моложе →"] ] ]
   return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
     
--- latestPostsSplice :: Splice AppHandler
--- latestPostsSplice = do
---  posts <- lift getLatestPosts
---  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
-
 renderPostInList :: Post -> Node 
 renderPostInList post = 
   Element "div" [("class", "post blurpanel")] [
