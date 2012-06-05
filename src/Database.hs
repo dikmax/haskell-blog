@@ -3,7 +3,6 @@ module Database
   ( Post(..)
   , setEncoding
   , deletePost
-  , getLatestPosts
   , getPosts
   , getPostsCount
   , getPost
@@ -71,16 +70,7 @@ getPosts offset count = do
     "LIMIT ?, ?") [toSql offset, toSql count]
   return $ map rowToPost rows
      
-getLatestPosts :: HasHdbc m c s => m [Post]
-getLatestPosts = do
-  rows <- query 
-    ("SELECT * " ++
-    "FROM posts " ++ 
-    "WHERE published = 1 AND special = 0 " ++
-    "ORDER BY date DESC") []
-  return $ map rowToPost rows
-
-getPostsCount :: HasHdbc m c s => m (Int)
+getPostsCount :: HasHdbc m c s => m Int
 getPostsCount = do
   rows <- query ("SELECT count(*) AS count " ++
     "FROM posts " ++ 

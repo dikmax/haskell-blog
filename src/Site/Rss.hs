@@ -28,11 +28,11 @@ import Text.XmlHtml
 
 import Application (AppHandler)
 import Config (domain)
-import Database (Post(..), getLatestPosts)
+import Database (Post(..), getPosts)
 
 rss :: AppHandler ()
-rss = do 
-  posts <- getLatestPosts
+rss = do
+  posts <- getPosts 0 10
   writeLBS $ toLazyByteString $ render $ rssDocument posts
 
 rssDocument :: [Post] -> Document
