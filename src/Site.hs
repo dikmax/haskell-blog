@@ -35,6 +35,7 @@ import           Application
 import           Config
 import           Database
 import           Site.Rss
+import           Types
 
 -- Utility functions
 decodedParam :: MonadSnap f => ByteString -> f ByteString
@@ -139,12 +140,19 @@ renderSinglePost post =
 renderPostBody :: Post -> Node
 renderPostBody post =
   Element "div" [("class", "post-body")] $
-    either (\a -> [TextNode $ T.pack a]) extractData $ parseHTML "post" $ T.encodeUtf8 $ T.pack $ 
-    writeHtmlString writerOptions $ readMarkdown parserState $ 
-      T.unpack $ T.decodeUtf8 $ postText post
+    either (\ a -> [TextNode $ T.pack a]) extractData
+  (parseHTML "post" $
+     T.encodeUtf8 $
+       T.pack $
+         writeHtmlString writerOptions $
+           readMarkdown parserState $ T.unpack $ T.decodeUtf8 $ postText post)
+  ++ renderTags (postTags post)
   where
     extractData (HtmlDocument _ _ content) = content
     extractData (XmlDocument _ _ content) = content       
+
+renderTags :: [ByteString] -> [Node]
+renderTags _ = []
 
 --transformPost :: Pandoc -> Pandoc
 --transformPost = t
@@ -236,7 +244,8 @@ vaultSave = do
   url <- decodedPostParam "url"
   date <- decodedPostParam "date"
   published <- decodedPostParam "published"
-  special <- decodedPostParam "special"  
+  special <- decodedPostParam "special"
+  tags <- decodedPostParam "tags"  
   let 
     post = Post 
       { postId = read $ unpack id -- TODO validate
@@ -246,7 +255,7 @@ vaultSave = do
       , postUrl = url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
-      , postTags = [] -- TODO tags
+      , postTags = stringToTags tags
       }
   savePost post
   redirect "/vault"
@@ -256,7 +265,7 @@ vaultSave = do
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
-vaultPostForm (Post id title text url date published special _) =
+vaultPostForm (Post id title text url date published special tags) =
   return 
     [
       Element "form" [("class", "form-horizontal"), ("method", "post")] [
@@ -270,6 +279,7 @@ vaultPostForm (Post id title text url date published special _) =
           inputCheckbox "Опубликовано" "published" published,
           inputCheckbox "Специальный" "special" special,
           textarea "Текст" "text" text,
+          inputText "Теги" "tags" $ tagsToString tags, 
           Element "div" [("class", "form-actions")] [
             Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
               [TextNode "Сохранить"],

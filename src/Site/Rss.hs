@@ -28,7 +28,8 @@ import Text.XmlHtml
 
 import Application (AppHandler)
 import Config (domain)
-import Database (Post(..), getPosts)
+import Database (getPosts)
+import Types (Post(..))
 
 rss :: AppHandler ()
 rss = do
