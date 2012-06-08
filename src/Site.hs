@@ -35,6 +35,7 @@ import           Application
 import           Config
 import           Database
 import           Site.Rss
+import           Types
 
 -- Utility functions
 decodedParam :: MonadSnap f => ByteString -> f ByteString
@@ -73,29 +74,31 @@ timeLocale = defaultTimeLocale
 index :: Handler App App ()
 index =  ifTop $ do
   page <- decodedParam "page"
+  tag <- getParam "tag"
   let 
     pageNum = case reads $ unpack page of
       [(x, "")] -> x
       _ -> 1
     indexSplices = 
-      [ ("posts", postsSplice pageNum) 
-      , ("pagination", paginationSplice pageNum)
+      [ ("posts", postsSplice pageNum tag) 
+      , ("pagination", paginationSplice pageNum tag)
       ]
   heistLocal (bindSplices indexSplices) $ render "index"
 
-postsSplice :: Int -> Splice AppHandler
-postsSplice page = do
-  posts <- lift $ getPosts ((page - 1) * postsPerPage) postsPerPage
+postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
+postsSplice page tag = do
+  posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
   return [Element "div" [("class", "posts")] $ map renderPostInList posts]
 
-paginationSplice :: Int -> Splice AppHandler
-paginationSplice page = do
-  postsCount <- lift getPostsCount
+paginationSplice :: Int -> Maybe ByteString -> Splice AppHandler
+paginationSplice page tag = do
+  postsCount <- lift $ getPostsCount tag
   let
     prevDisabled = page * postsPerPage >= postsCount  
-    prevLink = "/page/" ++ show (page + 1)
+    prevLink = maybe "" (\t -> "/tag/" ++ unpack t) tag ++ "/page/" ++ show (page + 1)
     nextDisabled = page <= 1
-    nextLink = if page == 2 then "/" else "/page/" ++ show (page - 1)
+    nextLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
+      if page == 2 then "" else "/page/" ++ show (page - 1)
     prevElement = if prevDisabled
       then []
       else [Element "li" [("class", "previous")]
@@ -139,12 +142,26 @@ renderSinglePost post =
 renderPostBody :: Post -> Node
 renderPostBody post =
   Element "div" [("class", "post-body")] $
-    either (\a -> [TextNode $ T.pack a]) extractData $ parseHTML "post" $ T.encodeUtf8 $ T.pack $ 
-    writeHtmlString writerOptions $ readMarkdown parserState $ 
-      T.unpack $ T.decodeUtf8 $ postText post
+    either (\ a -> [TextNode $ T.pack a]) extractData
+  (parseHTML "post" $
+     T.encodeUtf8 $
+       T.pack $
+         writeHtmlString writerOptions $
+           readMarkdown parserState $ T.unpack $ T.decodeUtf8 $ postText post)
+  ++ renderTags (postTags post)
   where
     extractData (HtmlDocument _ _ content) = content
     extractData (XmlDocument _ _ content) = content       
+
+renderTags :: [ByteString] -> [Node]
+renderTags [] = []
+renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
+  where
+    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
+      [TextNode $ T.decodeUtf8 t]]
+    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
+      [TextNode $ T.decodeUtf8 t], TextNode ", "] ++ renderTags' ts
+    renderTags' _ = []
 
 --transformPost :: Pandoc -> Pandoc
 --transformPost = t
@@ -236,7 +253,8 @@ vaultSave = do
   url <- decodedPostParam "url"
   date <- decodedPostParam "date"
   published <- decodedPostParam "published"
-  special <- decodedPostParam "special"  
+  special <- decodedPostParam "special"
+  tags <- decodedPostParam "tags"  
   let 
     post = Post 
       { postId = read $ unpack id -- TODO validate
@@ -246,7 +264,7 @@ vaultSave = do
       , postUrl = url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
-      , postTags = [] -- TODO tags
+      , postTags = stringToTags tags
       }
   savePost post
   redirect "/vault"
@@ -256,7 +274,7 @@ vaultSave = do
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
-vaultPostForm (Post id title text url date published special _) =
+vaultPostForm (Post id title text url date published special tags) =
   return 
     [
       Element "form" [("class", "form-horizontal"), ("method", "post")] [
@@ -270,6 +288,7 @@ vaultPostForm (Post id title text url date published special _) =
           inputCheckbox "Опубликовано" "published" published,
           inputCheckbox "Специальный" "special" special,
           textarea "Текст" "text" text,
+          inputText "Теги" "tags" $ tagsToString tags, 
           Element "div" [("class", "form-actions")] [
             Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
               [TextNode "Сохранить"],
@@ -382,6 +401,8 @@ routes :: [(ByteString, Handler App App ())]
 routes = 
   [ ("/", index)
   , ("/page/:page", index)
+  , ("/tag/:tag", index)
+  , ("/tag/:tag/page/:page", index)
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
   , ("/rss", rss)
