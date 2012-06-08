@@ -8,6 +8,13 @@ body {
 	margin: 0;
 }
 
+.post-tags {
+	padding-left: 20px;
+	padding-bottom: 4px;
+	background: url(/img/16x16/tag_yellow.png) no-repeat 0 0;
+	line-height: 16px;
+}
+
 .figure {
 	text-align: center;
 }

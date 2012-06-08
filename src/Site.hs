@@ -152,7 +152,14 @@ renderPostBody post =
     extractData (XmlDocument _ _ content) = content       
 
 renderTags :: [ByteString] -> [Node]
-renderTags _ = []
+renderTags [] = []
+renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
+  where
+    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
+      [TextNode $ T.decodeUtf8 t]]
+    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
+      [TextNode $ T.decodeUtf8 t], TextNode ", "] ++ renderTags' ts
+    renderTags' _ = []
 
 --transformPost :: Pandoc -> Pandoc
 --transformPost = t
