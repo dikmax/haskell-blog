@@ -74,29 +74,31 @@ timeLocale = defaultTimeLocale
 index :: Handler App App ()
 index =  ifTop $ do
   page <- decodedParam "page"
+  tag <- getParam "tag"
   let 
     pageNum = case reads $ unpack page of
       [(x, "")] -> x
       _ -> 1
     indexSplices = 
-      [ ("posts", postsSplice pageNum) 
-      , ("pagination", paginationSplice pageNum)
+      [ ("posts", postsSplice pageNum tag) 
+      , ("pagination", paginationSplice pageNum tag)
       ]
   heistLocal (bindSplices indexSplices) $ render "index"
 
-postsSplice :: Int -> Splice AppHandler
-postsSplice page = do
-  posts <- lift $ getPosts ((page - 1) * postsPerPage) postsPerPage
+postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
+postsSplice page tag = do
+  posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
   return [Element "div" [("class", "posts")] $ map renderPostInList posts]
 
-paginationSplice :: Int -> Splice AppHandler
-paginationSplice page = do
-  postsCount <- lift getPostsCount
+paginationSplice :: Int -> Maybe ByteString -> Splice AppHandler
+paginationSplice page tag = do
+  postsCount <- lift $ getPostsCount tag
   let
     prevDisabled = page * postsPerPage >= postsCount  
-    prevLink = "/page/" ++ show (page + 1)
+    prevLink = maybe "" (\t -> "/tag/" ++ unpack t) tag ++ "/page/" ++ show (page + 1)
     nextDisabled = page <= 1
-    nextLink = if page == 2 then "/" else "/page/" ++ show (page - 1)
+    nextLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
+      if page == 2 then "" else "/page/" ++ show (page - 1)
     prevElement = if prevDisabled
       then []
       else [Element "li" [("class", "previous")]
@@ -399,6 +401,8 @@ routes :: [(ByteString, Handler App App ())]
 routes = 
   [ ("/", index)
   , ("/page/:page", index)
+  , ("/tag/:tag", index)
+  , ("/tag/:tag/page/:page", index)
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
   , ("/rss", rss)

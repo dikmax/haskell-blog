@@ -54,8 +54,8 @@ setEncoding = do
   query' "SET NAMES utf8" []
   return ()
 
-getPosts :: HasHdbc m c s => Int -> Int -> m [Post]
-getPosts offset count = do
+getPosts :: HasHdbc m c s => Maybe ByteString -> Int -> Int -> m [Post]
+getPosts Nothing offset count = do
   rows <- query 
     ("SELECT * " ++
     "FROM posts " ++ 
@@ -63,12 +63,29 @@ getPosts offset count = do
     "ORDER BY date DESC " ++
     "LIMIT ?, ?") [toSql offset, toSql count]
   return $ map rowToPost rows
+getPosts (Just tag) offset count = do
+  rows <- query 
+    ("SELECT p.* " ++
+    "FROM posts p " ++ 
+    "INNER JOIN posts_has_tags pt ON pt.posts_id = p.id " ++
+    "INNER JOIN tags t ON t.id = pt.tags_id "++
+    "WHERE p.published = 1 AND p.special = 0 AND t.tag = ? " ++
+    "ORDER BY date DESC " ++
+    "LIMIT ?, ?") [toSql tag, toSql offset, toSql count]
+  return $ map rowToPost rows
      
-getPostsCount :: HasHdbc m c s => m Int
-getPostsCount = do
+getPostsCount :: HasHdbc m c s => Maybe ByteString -> m Int
+getPostsCount Nothing = do
   rows <- query ("SELECT count(*) AS count " ++
     "FROM posts " ++ 
     "WHERE published = 1 AND special = 0") []
+  return $ fromSql $ head rows ! "count"
+getPostsCount (Just tag) = do
+  rows <- query ("SELECT count(*) AS count " ++
+    "FROM posts p " ++ 
+    "INNER JOIN posts_has_tags pt ON pt.posts_id = p.id " ++
+    "INNER JOIN tags t ON t.id = pt.tags_id "++
+    "WHERE p.published = 1 AND p.special = 0 AND t.tag = ?") [toSql tag]
   return $ fromSql $ head rows ! "count"
   
 getPost :: HasHdbc m c s => ByteString -> m (Maybe Post)

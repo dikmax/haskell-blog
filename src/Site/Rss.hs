@@ -33,7 +33,7 @@ import Types (Post(..))
 
 rss :: AppHandler ()
 rss = do
-  posts <- getPosts 0 10
+  posts <- getPosts Nothing 0 10
   writeLBS $ toLazyByteString $ render $ rssDocument posts
 
 rssDocument :: [Post] -> Document
