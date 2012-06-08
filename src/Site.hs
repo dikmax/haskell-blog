@@ -95,10 +95,10 @@ paginationSplice page tag = do
   postsCount <- lift $ getPostsCount tag
   let
     prevDisabled = page * postsPerPage >= postsCount  
-    prevLink = maybe "" (\t -> "/tag/" ++ unpack t) tag ++ "/page/" ++ show (page + 1)
+    prevLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ "page/" ++ show (page + 1)
     nextDisabled = page <= 1
     nextLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
-      if page == 2 then "" else "/page/" ++ show (page - 1)
+      if page == 2 then "" else "page/" ++ show (page - 1)
     prevElement = if prevDisabled
       then []
       else [Element "li" [("class", "previous")]
