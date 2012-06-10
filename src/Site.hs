@@ -239,7 +239,7 @@ vaultEdit = do
       render "vaultedit"
   where
     getPost' :: HasHdbc m c s => ByteString -> m Post
-    getPost' "" = return newPost
+    getPost' "" = liftIO newPost
     getPost' id = getPostById id
     
 -- TODO there should be a way to simplify this function
