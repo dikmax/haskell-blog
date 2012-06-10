@@ -4,9 +4,18 @@
 <body>
 	<apply template="vaulttopnav" />
 	<div class="container">
-		<a class="btn" href="/vault">Все записи</a>
-		<vault-form />
-		<apply template="footer" />
+		<div class="row">
+			<div class="span6">
+				<a class="btn" href="/vault">Все записи</a>
+				<vault-form />
+			</div>
+			<div class="span6">
+			  <div class="blurpanel">
+			  	<div class="render-area"></div>
+			  </div>
+			</div>
+		</div>
+ 		<apply template="footer" />
 	</div>
 	<apply template="foot" />
 </body>

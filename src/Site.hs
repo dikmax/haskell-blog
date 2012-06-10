@@ -5,6 +5,7 @@ module Site
   ) where
 
 ------------------------------------------------------------------------------
+import           Blaze.ByteString.Builder (toByteString)
 import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
@@ -272,7 +273,7 @@ vaultPostForm :: Post -> Splice AppHandler
 vaultPostForm (Post id title text url date published special tags) =
   return 
     [
-      Element "form" [("class", "form-horizontal"), ("method", "post")] [
+      Element "form" [("class", "form-horizontal post-form"), ("method", "post")] [
         Element "input" [("type", "hidden"), ("name", "id"), 
           ("value", T.pack $ show id)] [],
         Element "fieldset" [] [
@@ -287,7 +288,8 @@ vaultPostForm (Post id title text url date published special tags) =
           Element "div" [("class", "form-actions")] [
             Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
               [TextNode "Сохранить"],
-            Element "button" [("class", "btn")] [TextNode "Отмена"]
+            Element "button" [("class", "btn")] [TextNode "Отмена"],
+            Element "button" [("class", "btn btn-refresh")] [TextNode "Обновить"]
           ]
         ]
       ]
@@ -296,7 +298,7 @@ vaultPostForm (Post id title text url date published special tags) =
     inputText :: Text -> Text -> Text -> Node
     inputText fieldLabel name value = field fieldLabel name [
         Element "input" [("type", "text"), ("name", name), 
-          ("class", "input-xxlarge"), ("id", "post-" `T.append` name), 
+          ("class", "input-fullwidth"), ("id", "post-" `T.append` name), 
           ("value", value)] []
       ]
     inputCheckbox :: Text -> Text -> Bool -> Node
@@ -311,7 +313,7 @@ vaultPostForm (Post id title text url date published special tags) =
     textarea fieldLabel name value = field fieldLabel name [
         Element "textarea" [("name", name),  
           ("id", "post-" `T.append` name),
-          ("class", "input-xxlarge monospace"), ("rows", "20")] 
+          ("class", "input-fullwidth monospace"), ("rows", "20")] 
           [TextNode value]
       ]
     field :: Text -> Text -> [Node] -> Node
@@ -324,6 +326,28 @@ vaultPostForm (Post id title text url date published special tags) =
         Element "div" [("class", "controls")] fieldControl
       ]
 
+vaultRenderPost :: AppHandler ()
+vaultRenderPost = do
+  title <- decodedPostParam "title"
+  text <- decodedPostParam "text"
+  url <- decodedPostParam "url"
+  date <- decodedPostParam "date"
+  published <- decodedPostParam "published"
+  special <- decodedPostParam "special"
+  tags <- decodedPostParam "tags"  
+  let 
+    post = Post 
+      { postId = 0
+      , postTitle = T.decodeUtf8 title
+      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
+      , postDate = read $ unpack date -- TODO check for format errors
+      , postUrl = T.decodeUtf8 url -- TODO check for duplicate
+      , postPublished = published /= ""
+      , postSpecial = special /= ""
+      , postTags = stringToTags $ T.decodeUtf8 tags
+      }  
+  writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost post]
+  
 vaultAction :: AppHandler ()
 vaultAction = do
   action <- decodedPostParam "action"
@@ -406,6 +430,7 @@ routes =
   , ("/vault/edit", vaultAllowed vaultEdit)
   , ("/vault/edit/:id", vaultAllowed vaultEdit)
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
+  , ("/vault/renderpost", vaultAllowed vaultRenderPost)
   , ("", serveDirectory "static")
   , ("", error404)
   ]
