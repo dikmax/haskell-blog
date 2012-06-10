@@ -198,20 +198,24 @@ rowToPost rw = Post
   , postTags = stringToTags $ fromSql $ rw ! "tags"
   }
   
-newPost :: Post
-newPost = Post
-  { postId = 0
-  , postTitle = ""
-  , postText = ""
-  , postDate = LocalTime -- TODO current time
-    { localDay = fromGregorian 2012 01 01
-    , localTimeOfDay = TimeOfDay 0 0 0
-    }  
-  , postUrl = ""
-  , postPublished = False
-  , postSpecial = False
-  , postTags = []
-  }
+newPost :: IO Post
+newPost = do
+  currentTime <- getCurrentTime
+  let time = utcToLocalTime (minutesToTimeZone 180) currentTime
+  return Post
+    { postId = 0
+    , postTitle = ""
+    , postText = ""
+    , postDate = time {
+        localTimeOfDay = (localTimeOfDay time) {
+          todSec = fromInteger $ round $ todSec $ localTimeOfDay time
+        } 
+      }
+    , postUrl = ""
+    , postPublished = False
+    , postSpecial = False
+    , postTags = []
+    }
 
 --
 -- Vault functions
