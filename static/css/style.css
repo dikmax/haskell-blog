@@ -19,6 +19,14 @@ body {
 	text-align: center;
 }
 
+.controls {
+	margin-right: 18px;
+}
+
+.input-fullwidth {
+	width: 100%;
+}
+
 .monospace {
 	font-family: 'Ubuntu Mono', monospace;
 }
