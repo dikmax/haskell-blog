@@ -18,8 +18,9 @@ module Database
 import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C
-import Data.Char (isSpace)
 import Data.Map ((!))
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time
 import qualified  Database.HDBC as HDBC
 import Snap.Snaplet.Hdbc hiding (query, query')
@@ -125,7 +126,7 @@ savePost post@(Post pId title text url date published special tags)
       updateTags pId tags
       return post  
 
-updateTags :: HasHdbc m c s => Int -> [ByteString] -> m ()
+updateTags :: HasHdbc m c s => Int -> [Text] -> m ()
 updateTags pId tags = do
   -- TODO one transaction
   query' ("DELETE FROM posts_has_tags " ++ 
@@ -150,7 +151,7 @@ updateTags pId tags = do
           "WHERE tag IN (" ++ C.unpack (questions $ length tags) ++ ")") $ map toSql tags
       | otherwise = return []
     
-    insertNew :: HasHdbc m c s => [ByteString] -> m [Int]
+    insertNew :: HasHdbc m c s => [Text] -> m [Int]
     insertNew (t : ts) = do 
       query' "INSERT INTO tags (`tag`) VALUES (?)" [toSql t]
       rows <- query "SELECT LAST_INSERT_ID() as id" []
@@ -167,11 +168,11 @@ updateTags pId tags = do
           concatMap linkPair linksList
       | otherwise = return 0      
   
-splitTagsList :: [ByteString] -> [Row] -> ([ByteString], [ByteString])
+splitTagsList :: [Text] -> [Row] -> ([Text], [Text])
 splitTagsList tags tagRows = specify predicate tags
   where
     rows = map transformRow tagRows
-    transformRow :: Row -> ByteString
+    transformRow :: Row -> Text
     transformRow row = fromSql $ row ! "tag"
     predicate tag = tag `elem` rows
 
@@ -228,17 +229,10 @@ vaultGetPostsList = do
 -- Utility functions
 --
 
-tagsToString :: [ByteString] -> ByteString
-tagsToString = C.intercalate ", "
+tagsToString :: [Text] -> Text
+tagsToString = T.intercalate ", "
 
-stringToTags :: ByteString -> [ByteString]
+stringToTags :: Text -> [Text]
 stringToTags str =
-  let tags = map trim $ C.split ',' str in
-    filter (\t -> C.length t /= 0) tags 
-
-trim :: ByteString -> ByteString
-trim = C.pack . trim' . C.unpack 
-
-trim' :: String -> String
-trim' = f . f
-  where f = reverse . dropWhile isSpace                                
+  let tags = map T.strip $ T.split (== ',') str in
+    filter (\t -> T.length t /= 0) tags 

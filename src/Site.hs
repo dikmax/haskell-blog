@@ -8,11 +8,9 @@ module Site
 import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
-import           Data.ByteString.Char8 (pack, unpack, append)
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as BL
-import           Data.ByteString.Search (replace)
+import           Data.ByteString.Char8 (unpack)
 import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
@@ -116,13 +114,13 @@ renderPostInList post =
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
     Element "h1" [("class", "post-title")] [
-      Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
-        [TextNode $ T.decodeUtf8 $ postTitle post]
+      Element "a" [("href", "/post/" `T.append` postUrl post)] 
+        [TextNode $ postTitle post]
     ],
     renderPostBody post,
     Element "p" [("class", "post-comments")] [
-      Element "a" [("href", T.decodeUtf8 $ "/post/" `append` 
-        postUrl post `append` "#disqus_thread" )] 
+      Element "a" [("href", "/post/" `T.append` 
+        postUrl post `T.append` "#disqus_thread" )] 
         [TextNode "Считаем комментарии..."]
     ]
   ]
@@ -134,7 +132,7 @@ renderSinglePost post =
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
     Element "h1" [("class", "post-title")] 
-      [TextNode $ T.decodeUtf8 $ postTitle post],
+      [TextNode $ postTitle post],
     renderPostBody post
   ]
 
@@ -147,20 +145,20 @@ renderPostBody post =
      T.encodeUtf8 $
        T.pack $
          writeHtmlString writerOptions $
-           readMarkdown parserState $ T.unpack $ T.decodeUtf8 $ postText post)
+           readMarkdown parserState $ T.unpack $ postText post)
   ++ renderTags (postTags post)
   where
     extractData (HtmlDocument _ _ content) = content
     extractData (XmlDocument _ _ content) = content       
 
-renderTags :: [ByteString] -> [Node]
+renderTags :: [Text] -> [Node]
 renderTags [] = []
 renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
   where
-    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
-      [TextNode $ T.decodeUtf8 t]]
-    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
-      [TextNode $ T.decodeUtf8 t], TextNode ", "] ++ renderTags' ts
+    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` t)]
+      [TextNode t]]
+    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` t)]
+      [TextNode t], TextNode ", "] ++ renderTags' ts
     renderTags' _ = []
 
 --transformPost :: Pandoc -> Pandoc
@@ -220,10 +218,10 @@ vaultPostsListSplice = do
    where 
      renderPost post = 
        Element "tr" [("data-rowid", T.pack $ show $ postId post),
-         ("data-url", T.decodeUtf8 $ postUrl post)] [
+         ("data-url", postUrl post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
-         Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post],
+         Element "td" [] [TextNode $ postTitle post],
          Element "td" [("class", "actions")] [
            Element "span" [("class", "action-view")] [],
            Element "span" [("class", "action-delete")] []
@@ -258,19 +256,16 @@ vaultSave = do
   let 
     post = Post 
       { postId = read $ unpack id -- TODO validate
-      , postTitle = title
-      , postText = B.concat . BL.toChunks $ replace "\r\n" newLine text
+      , postTitle = T.decodeUtf8 title
+      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
       , postDate = read $ unpack date -- TODO check for format errors
-      , postUrl = url -- TODO check for duplicate
+      , postUrl = T.decodeUtf8 url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
-      , postTags = stringToTags tags
+      , postTags = stringToTags $ T.decodeUtf8 tags
       }
   savePost post
   redirect "/vault"
-  where
-    newLine :: ByteString
-    newLine = "\n"
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
@@ -284,7 +279,7 @@ vaultPostForm (Post id title text url date published special tags) =
           Element "legend" [] [TextNode "Редактирование записи"],
           inputText "Заголовок" "title" title,
           inputText "Url" "url" url,
-          inputText "Дата" "date" $ pack $ show date,
+          inputText "Дата" "date" $ T.pack $ show date,
           inputCheckbox "Опубликовано" "published" published,
           inputCheckbox "Специальный" "special" special,
           textarea "Текст" "text" text,
@@ -298,32 +293,32 @@ vaultPostForm (Post id title text url date published special tags) =
       ]
     ]
   where
-    inputText :: T.Text -> String -> ByteString -> Node
+    inputText :: Text -> Text -> Text -> Node
     inputText fieldLabel name value = field fieldLabel name [
-        Element "input" [("type", "text"), ("name", T.pack name), 
-          ("class", "input-xxlarge"), ("id", T.pack $ "post-" ++ name), 
-          ("value", T.decodeUtf8 value)] []
+        Element "input" [("type", "text"), ("name", name), 
+          ("class", "input-xxlarge"), ("id", "post-" `T.append` name), 
+          ("value", value)] []
       ]
-    inputCheckbox :: T.Text -> String -> Bool -> Node
+    inputCheckbox :: Text -> Text -> Bool -> Node
     inputCheckbox fieldLabel name value = field fieldLabel name [
         Element "input" 
-          ([("type", "checkbox"), ("name", T.pack name), 
-            ("id", T.pack $ "post-" ++ name)] ++ 
+          ([("type", "checkbox"), ("name", name), 
+            ("id", "post-" `T.append` name)] ++ 
               [("checked", "checked") | value])  
           []
       ]
-    textarea :: T.Text -> String -> ByteString -> Node
+    textarea :: Text -> Text -> Text -> Node
     textarea fieldLabel name value = field fieldLabel name [
-        Element "textarea" [("name", T.pack name),  
-          ("id", T.pack $ "post-" ++ name),
+        Element "textarea" [("name", name),  
+          ("id", "post-" `T.append` name),
           ("class", "input-xxlarge monospace"), ("rows", "20")] 
-          [TextNode $ T.decodeUtf8 value]
+          [TextNode value]
       ]
-    field :: T.Text -> String -> [Node] -> Node
+    field :: Text -> Text -> [Node] -> Node
     field fieldLabel fieldName fieldControl =
       Element "div" [("class", "control-group")] [
         Element "label" [("class", "control-label"), 
-          ("for", T.pack $ "post-" ++ fieldName)] [
+          ("for", "post-" `T.append` fieldName)] [
           TextNode fieldLabel
         ],
         Element "div" [("class", "controls")] fieldControl
