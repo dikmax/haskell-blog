@@ -263,7 +263,7 @@ vaultGetPost = do
   return Post 
       { postId = read $ unpack id -- TODO validate
       , postTitle = T.decodeUtf8 title
-      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
+      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text
       , postDate = read $ unpack date -- TODO check for format errors
       , postUrl = T.decodeUtf8 url -- TODO check for duplicate
       , postPublished = published /= ""
