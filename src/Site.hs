@@ -178,12 +178,15 @@ writerOptions = defaultWriterOptions
 --
 -- Show post Action
 --
-showPost :: Handler App App ()
+showPost :: AppHandler ()
 showPost = do
-    url <- decodedParam "post"
-    post <- getPost url
-    maybe error404 
-      (\p -> heistLocal (bindSplice "post" $ postSplice p) $ render "post") post
+  url <- decodedParam "post"
+  post <- getPost url
+  maybe error404 
+    (\p -> heistLocal (bindSplices 
+      [ ("post", postSplice p)
+      , ("page-title", pageTitleSplice $ Just $ postTitle p)
+      ]) $ render "post") post
 
 postSplice :: Post -> Splice AppHandler
 postSplice post = return [renderSinglePost post] 
@@ -193,7 +196,10 @@ postSplice post = return [renderSinglePost post]
 --
 
 aboutMe :: AppHandler ()
-aboutMe = heistLocal (bindSplice "about" aboutSplice) $ render "about"
+aboutMe = heistLocal (bindSplices
+  [ ("about", aboutSplice)
+  , ("page-title", pageTitleSplice $ Just "Обо мне")
+  ] ) $ render "about"
   
 aboutSplice :: Splice AppHandler
 aboutSplice = do
@@ -244,8 +250,8 @@ vaultEdit = do
     getPost' id = getPostById id
     
 -- TODO there should be a way to simplify this function
-vaultSave :: AppHandler ()
-vaultSave = do
+vaultGetPost :: AppHandler Post
+vaultGetPost = do
   id <- decodedPostParam "id"
   title <- decodedPostParam "title"
   text <- decodedPostParam "text"
@@ -254,8 +260,7 @@ vaultSave = do
   published <- decodedPostParam "published"
   special <- decodedPostParam "special"
   tags <- decodedPostParam "tags"  
-  let 
-    post = Post 
+  return Post 
       { postId = read $ unpack id -- TODO validate
       , postTitle = T.decodeUtf8 title
       , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
@@ -265,6 +270,11 @@ vaultSave = do
       , postSpecial = special /= ""
       , postTags = stringToTags $ T.decodeUtf8 tags
       }
+
+
+vaultSave :: AppHandler ()
+vaultSave = do
+  post <- vaultGetPost
   savePost post
   redirect "/vault"
 
@@ -328,24 +338,7 @@ vaultPostForm (Post id title text url date published special tags) =
 
 vaultRenderPost :: AppHandler ()
 vaultRenderPost = do
-  title <- decodedPostParam "title"
-  text <- decodedPostParam "text"
-  url <- decodedPostParam "url"
-  date <- decodedPostParam "date"
-  published <- decodedPostParam "published"
-  special <- decodedPostParam "special"
-  tags <- decodedPostParam "tags"  
-  let 
-    post = Post 
-      { postId = 0
-      , postTitle = T.decodeUtf8 title
-      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
-      , postDate = read $ unpack date -- TODO check for format errors
-      , postUrl = T.decodeUtf8 url -- TODO check for duplicate
-      , postPublished = published /= ""
-      , postSpecial = special /= ""
-      , postTags = stringToTags $ T.decodeUtf8 tags
-      }  
+  post <- vaultGetPost 
   writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost post]
   
 vaultAction :: AppHandler ()
@@ -409,6 +402,10 @@ navigationSplice = do
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
 
+pageTitleSplice :: Maybe Text -> Splice AppHandler
+pageTitleSplice Nothing = return [Element "title" [] [TextNode "[dikmax's blog]"]]
+pageTitleSplice (Just t) = return [Element "title" [] [TextNode $ t `T.append` " :: [dikmax's blog]"]]
+
 error404 :: AppHandler ()
 error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
@@ -456,6 +453,9 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , _sessLens = _sesslens'
       }
   where
-    commonSplices = bindSplices [("navigation", navigationSplice)] 
+    commonSplices = bindSplices 
+      [ ("navigation", navigationSplice)
+      , ("page-title", pageTitleSplice Nothing)
+      ] 
       defaultHeistState
   
