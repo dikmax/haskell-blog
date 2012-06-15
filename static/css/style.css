@@ -105,7 +105,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 /*
  * Gray background panels for mobile
  */
-.blurpanel {
+.component-panel {
   min-height: 20px;
   padding: 19px;
   margin-bottom: 20px;
@@ -124,7 +124,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
  * Blurred panels for desktop browser
  */
  
-.no-mobile .blurpanel {
+.no-mobile .component-panel {
   min-height: 20px;
   padding: 19px;
   margin-bottom: 20px;
@@ -151,7 +151,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-800.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-800.jpg) no-repeat center fixed;	
 	}	
 }
@@ -161,7 +161,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-800.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-800.jpg) no-repeat center fixed;
 	}
 }
@@ -172,7 +172,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-1280.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-1280.jpg) no-repeat center fixed;
 	}
 }
@@ -183,7 +183,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-1440.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-1440.jpg) no-repeat center fixed;
 	}
 }
@@ -194,7 +194,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-1680.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-1680.jpg) no-repeat center fixed;
 	}
 }
@@ -204,7 +204,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-1920.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-1920.jpg) no-repeat center fixed;
 	}
 }
@@ -214,7 +214,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  background: url(/img/bg-2560.jpg) no-repeat center fixed;
 	}
 	
-	.no-mobile .blurpanel, .no-mobile .pager a {
+	.no-mobile .component-panel, .no-mobile .pager a {
 	  background: url(/img/bgblur-2560.jpg) no-repeat center fixed;
 	}
 }
@@ -233,7 +233,7 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	  margin-right: 0;
 	}
 	
-	.blurpanel {
+	.component-panel {
 	  -webkit-border-radius: 0;
 	     -moz-border-radius: 0;
 	          border-radius: 0;
