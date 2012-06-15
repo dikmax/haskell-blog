@@ -7,7 +7,7 @@
     <apply template="topnav" />
 
     <div class="container">
-      <div class="blurpanel">
+      <div class="component-panel">
       <post />
       
       <div id="disqus_thread"></div>

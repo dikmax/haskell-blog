@@ -68,7 +68,7 @@ timeLocale = defaultTimeLocale
     , ("декабря", "дек")
     ]  
   }
-  
+
 ------------------------------------------------------------------------------
 index :: Handler App App ()
 index =  ifTop $ do
@@ -102,15 +102,15 @@ paginationSplice page tag = do
       then []
       else [Element "li" [("class", "previous")]
         [ Element "a" [("href", T.pack prevLink)] [TextNode "← Старше"] ] ]
-    nextElement = if nextDisabled
+    nextElement = if nextDisabled      
       then []
       else [Element "li" [("class", "next")]
         [ Element "a" [("href", T.pack nextLink)] [TextNode "Моложе →"] ] ]
   return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
-    
+        
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "div" [("class", "post blurpanel")] [
+  Element "div" [("class", "post component-panel")] [
     Element "p" [("class", "post-date")] 
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
