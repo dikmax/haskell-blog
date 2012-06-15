@@ -19,6 +19,14 @@ body {
 	text-align: center;
 }
 
+.controls {
+	margin-right: 18px;
+}
+
+.input-fullwidth {
+	width: 100%;
+}
+
 .monospace {
 	font-family: 'Ubuntu Mono', monospace;
 }
@@ -46,6 +54,13 @@ span.icon.icon-feed {
 	background: url(/img/32x32/feed.png) no-repeat 0 0;
 	position: relative;
 	top: 4px;
+}
+
+span.icon.icon-github {
+	background: url(/img/32x32/github.png) no-repeat 0 0;
+	position: relative;
+	top: 3px;
+	margin-right: 5px;
 }
 
 footer .navbar-inner {

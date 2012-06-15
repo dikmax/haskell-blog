@@ -5,14 +5,13 @@ module Site
   ) where
 
 ------------------------------------------------------------------------------
+import           Blaze.ByteString.Builder (toByteString)
 import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
-import           Data.ByteString.Char8 (pack, unpack, append)
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as BL
-import           Data.ByteString.Search (replace)
+import           Data.ByteString.Char8 (unpack)
 import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
@@ -116,13 +115,13 @@ renderPostInList post =
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
     Element "h1" [("class", "post-title")] [
-      Element "a" [("href", T.decodeUtf8 $ "/post/" `append` postUrl post)] 
-        [TextNode $ T.decodeUtf8 $ postTitle post]
+      Element "a" [("href", "/post/" `T.append` postUrl post)] 
+        [TextNode $ postTitle post]
     ],
     renderPostBody post,
     Element "p" [("class", "post-comments")] [
-      Element "a" [("href", T.decodeUtf8 $ "/post/" `append` 
-        postUrl post `append` "#disqus_thread" )] 
+      Element "a" [("href", "/post/" `T.append` 
+        postUrl post `T.append` "#disqus_thread" )] 
         [TextNode "Считаем комментарии..."]
     ]
   ]
@@ -134,7 +133,7 @@ renderSinglePost post =
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
     Element "h1" [("class", "post-title")] 
-      [TextNode $ T.decodeUtf8 $ postTitle post],
+      [TextNode $ postTitle post],
     renderPostBody post
   ]
 
@@ -147,20 +146,20 @@ renderPostBody post =
      T.encodeUtf8 $
        T.pack $
          writeHtmlString writerOptions $
-           readMarkdown parserState $ T.unpack $ T.decodeUtf8 $ postText post)
+           readMarkdown parserState $ T.unpack $ postText post)
   ++ renderTags (postTags post)
   where
     extractData (HtmlDocument _ _ content) = content
     extractData (XmlDocument _ _ content) = content       
 
-renderTags :: [ByteString] -> [Node]
+renderTags :: [Text] -> [Node]
 renderTags [] = []
 renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
   where
-    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
-      [TextNode $ T.decodeUtf8 t]]
-    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` (T.decodeUtf8 t))]
-      [TextNode $ T.decodeUtf8 t], TextNode ", "] ++ renderTags' ts
+    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` t)]
+      [TextNode t]]
+    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` t)]
+      [TextNode t], TextNode ", "] ++ renderTags' ts
     renderTags' _ = []
 
 --transformPost :: Pandoc -> Pandoc
@@ -179,12 +178,15 @@ writerOptions = defaultWriterOptions
 --
 -- Show post Action
 --
-showPost :: Handler App App ()
+showPost :: AppHandler ()
 showPost = do
-    url <- decodedParam "post"
-    post <- getPost url
-    maybe error404 
-      (\p -> heistLocal (bindSplice "post" $ postSplice p) $ render "post") post
+  url <- decodedParam "post"
+  post <- getPost url
+  maybe error404 
+    (\p -> heistLocal (bindSplices 
+      [ ("post", postSplice p)
+      , ("page-title", pageTitleSplice $ Just $ postTitle p)
+      ]) $ render "post") post
 
 postSplice :: Post -> Splice AppHandler
 postSplice post = return [renderSinglePost post] 
@@ -194,7 +196,10 @@ postSplice post = return [renderSinglePost post]
 --
 
 aboutMe :: AppHandler ()
-aboutMe = heistLocal (bindSplice "about" aboutSplice) $ render "about"
+aboutMe = heistLocal (bindSplices
+  [ ("about", aboutSplice)
+  , ("page-title", pageTitleSplice $ Just "Обо мне")
+  ] ) $ render "about"
   
 aboutSplice :: Splice AppHandler
 aboutSplice = do
@@ -220,10 +225,10 @@ vaultPostsListSplice = do
    where 
      renderPost post = 
        Element "tr" [("data-rowid", T.pack $ show $ postId post),
-         ("data-url", T.decodeUtf8 $ postUrl post)] [
+         ("data-url", postUrl post)] [
          Element "td" [] [TextNode $ T.pack $ show $ postDate post],
          Element "td" [] [TextNode $ if postPublished post then "+" else ""],
-         Element "td" [] [TextNode $ T.decodeUtf8 $ postTitle post],
+         Element "td" [] [TextNode $ postTitle post],
          Element "td" [("class", "actions")] [
            Element "span" [("class", "action-view")] [],
            Element "span" [("class", "action-delete")] []
@@ -241,12 +246,12 @@ vaultEdit = do
       render "vaultedit"
   where
     getPost' :: HasHdbc m c s => ByteString -> m Post
-    getPost' "" = return newPost
+    getPost' "" = liftIO newPost
     getPost' id = getPostById id
     
 -- TODO there should be a way to simplify this function
-vaultSave :: AppHandler ()
-vaultSave = do
+vaultGetPost :: AppHandler Post
+vaultGetPost = do
   id <- decodedPostParam "id"
   title <- decodedPostParam "title"
   text <- decodedPostParam "text"
@@ -255,36 +260,37 @@ vaultSave = do
   published <- decodedPostParam "published"
   special <- decodedPostParam "special"
   tags <- decodedPostParam "tags"  
-  let 
-    post = Post 
+  return Post 
       { postId = read $ unpack id -- TODO validate
-      , postTitle = title
-      , postText = B.concat . BL.toChunks $ replace "\r\n" newLine text
+      , postTitle = T.decodeUtf8 title
+      , postText = T.replace "\r\n" "\n" $ T.decodeUtf8 text -- B.concat . BL.toChunks $ replace "\r\n" newLine text
       , postDate = read $ unpack date -- TODO check for format errors
-      , postUrl = url -- TODO check for duplicate
+      , postUrl = T.decodeUtf8 url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
-      , postTags = stringToTags tags
+      , postTags = stringToTags $ T.decodeUtf8 tags
       }
+
+
+vaultSave :: AppHandler ()
+vaultSave = do
+  post <- vaultGetPost
   savePost post
   redirect "/vault"
-  where
-    newLine :: ByteString
-    newLine = "\n"
 
 -- TODO digestive functors
 vaultPostForm :: Post -> Splice AppHandler
 vaultPostForm (Post id title text url date published special tags) =
   return 
     [
-      Element "form" [("class", "form-horizontal"), ("method", "post")] [
+      Element "form" [("class", "form-horizontal post-form"), ("method", "post")] [
         Element "input" [("type", "hidden"), ("name", "id"), 
           ("value", T.pack $ show id)] [],
         Element "fieldset" [] [
           Element "legend" [] [TextNode "Редактирование записи"],
           inputText "Заголовок" "title" title,
           inputText "Url" "url" url,
-          inputText "Дата" "date" $ pack $ show date,
+          inputText "Дата" "date" $ T.pack $ show date,
           inputCheckbox "Опубликовано" "published" published,
           inputCheckbox "Специальный" "special" special,
           textarea "Текст" "text" text,
@@ -292,43 +298,49 @@ vaultPostForm (Post id title text url date published special tags) =
           Element "div" [("class", "form-actions")] [
             Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
               [TextNode "Сохранить"],
-            Element "button" [("class", "btn")] [TextNode "Отмена"]
+            Element "button" [("class", "btn")] [TextNode "Отмена"],
+            Element "button" [("class", "btn btn-refresh")] [TextNode "Обновить"]
           ]
         ]
       ]
     ]
   where
-    inputText :: T.Text -> String -> ByteString -> Node
+    inputText :: Text -> Text -> Text -> Node
     inputText fieldLabel name value = field fieldLabel name [
-        Element "input" [("type", "text"), ("name", T.pack name), 
-          ("class", "input-xxlarge"), ("id", T.pack $ "post-" ++ name), 
-          ("value", T.decodeUtf8 value)] []
+        Element "input" [("type", "text"), ("name", name), 
+          ("class", "input-fullwidth"), ("id", "post-" `T.append` name), 
+          ("value", value)] []
       ]
-    inputCheckbox :: T.Text -> String -> Bool -> Node
+    inputCheckbox :: Text -> Text -> Bool -> Node
     inputCheckbox fieldLabel name value = field fieldLabel name [
         Element "input" 
-          ([("type", "checkbox"), ("name", T.pack name), 
-            ("id", T.pack $ "post-" ++ name)] ++ 
+          ([("type", "checkbox"), ("name", name), 
+            ("id", "post-" `T.append` name)] ++ 
               [("checked", "checked") | value])  
           []
       ]
-    textarea :: T.Text -> String -> ByteString -> Node
+    textarea :: Text -> Text -> Text -> Node
     textarea fieldLabel name value = field fieldLabel name [
-        Element "textarea" [("name", T.pack name),  
-          ("id", T.pack $ "post-" ++ name),
-          ("class", "input-xxlarge monospace"), ("rows", "20")] 
-          [TextNode $ T.decodeUtf8 value]
+        Element "textarea" [("name", name),  
+          ("id", "post-" `T.append` name),
+          ("class", "input-fullwidth monospace"), ("rows", "20")] 
+          [TextNode value]
       ]
-    field :: T.Text -> String -> [Node] -> Node
+    field :: Text -> Text -> [Node] -> Node
     field fieldLabel fieldName fieldControl =
       Element "div" [("class", "control-group")] [
         Element "label" [("class", "control-label"), 
-          ("for", T.pack $ "post-" ++ fieldName)] [
+          ("for", "post-" `T.append` fieldName)] [
           TextNode fieldLabel
         ],
         Element "div" [("class", "controls")] fieldControl
       ]
 
+vaultRenderPost :: AppHandler ()
+vaultRenderPost = do
+  post <- vaultGetPost 
+  writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost post]
+  
 vaultAction :: AppHandler ()
 vaultAction = do
   action <- decodedPostParam "action"
@@ -390,6 +402,10 @@ navigationSplice = do
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
 
+pageTitleSplice :: Maybe Text -> Splice AppHandler
+pageTitleSplice Nothing = return [Element "title" [] [TextNode "[dikmax's blog]"]]
+pageTitleSplice (Just t) = return [Element "title" [] [TextNode $ t `T.append` " :: [dikmax's blog]"]]
+
 error404 :: AppHandler ()
 error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
@@ -411,6 +427,7 @@ routes =
   , ("/vault/edit", vaultAllowed vaultEdit)
   , ("/vault/edit/:id", vaultAllowed vaultEdit)
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
+  , ("/vault/renderpost", vaultAllowed vaultRenderPost)
   , ("", serveDirectory "static")
   , ("", error404)
   ]
@@ -436,6 +453,9 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , _sessLens = _sesslens'
       }
   where
-    commonSplices = bindSplices [("navigation", navigationSplice)] 
+    commonSplices = bindSplices 
+      [ ("navigation", navigationSplice)
+      , ("page-title", pageTitleSplice Nothing)
+      ] 
       defaultHeistState
   

@@ -9,7 +9,8 @@
       </a>
       <a class="brand" href="/">[dikmax's blog]</a>
 	  <navigation />
-	  <a class="pull-right" href="/rss"><span class="icon icon-feed"></span></a>            
+	  <a class="pull-right" href="/rss" title="RSS"><span class="icon icon-feed"></span></a>            
+	  <a class="pull-right" href="https://github.com/dikmax/haskell-blog" title="Исходный код сайта на github"><span class="icon icon-github"></span></a>            
     </div>
   </div>
 </div>

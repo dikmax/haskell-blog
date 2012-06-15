@@ -1,17 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Types where
 
-import Data.ByteString.Char8 (ByteString)
+import Data.Text
 import Data.Time
 
 -- TODO change ByteString to Text
 data Post = Post 
   { postId :: Int
-  , postTitle :: ByteString
-  , postText :: ByteString
-  , postUrl :: ByteString
+  , postTitle :: Text
+  , postText :: Text
+  , postUrl :: Text
   , postDate :: LocalTime
   , postPublished :: Bool
   , postSpecial :: Bool
-  , postTags :: [ByteString]
+  , postTags :: [Text]
   }         
