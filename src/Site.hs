@@ -34,13 +34,9 @@ import           Application
 import           Config
 import           Database
 import           Site.Rss
+import           Site.Vault.Files
+import           Site.Utils
 import           Types
-
--- Utility functions
-decodedParam :: MonadSnap f => ByteString -> f ByteString
-decodedParam p = fromMaybe "" <$> getParam p
-decodedPostParam :: MonadSnap f => ByteString -> f ByteString
-decodedPostParam p = fromMaybe "" <$> getPostParam p
 
 timeLocale :: TimeLocale
 timeLocale = defaultTimeLocale 
@@ -444,7 +440,10 @@ routes =
   , ("/vault/edit", vaultAllowed vaultEdit)
   , ("/vault/edit/:id", vaultAllowed vaultEdit)
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
+  , ("/vault/files", vaultAllowed vaultFiles)
   , ("/vault/renderpost", vaultAllowed vaultRenderPost)
+  , ("/vault/fileshandler", vaultAllowed vaultFilesService)
+  , ("/vault/fileupload", vaultAllowed vaultFileUpload)
   , ("", serveDirectory "static")
   , ("", error404)
   ]

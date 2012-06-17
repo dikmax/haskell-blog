@@ -16,3 +16,9 @@ domain = "http://localhost:8000"
 
 postsPerPage :: Int
 postsPerPage = 5
+
+rackspaceAuthKey :: String
+rackspaceAuthKey = "00000000000000000000000000000000"
+
+rackspaceAuthUser :: String
+rackspaceAuthUser = "anonymous"
