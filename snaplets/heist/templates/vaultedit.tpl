@@ -10,7 +10,7 @@
 				<vault-form />
 			</div>
 			<div class="span6">
-			  <div class="blurpanel">
+			  <div class="component-panel">
 			  	<div class="render-area"></div>
 			  </div>
 			</div>
