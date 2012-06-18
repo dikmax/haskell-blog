@@ -94,7 +94,8 @@ paginationSplice page tag = do
   postsCount <- lift $ getPostsCount tag
   let
     prevDisabled = page * postsPerPage >= postsCount  
-    prevLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ "page/" ++ show (page + 1)
+    prevLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
+      "page/" ++ show (page + 1)
     nextDisabled = page <= 1
     nextLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
       if page == 2 then "" else "page/" ++ show (page - 1)
@@ -162,8 +163,6 @@ renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
       [TextNode t], TextNode ", "] ++ renderTags' ts
     renderTags' _ = []
 
---transformPost :: Pandoc -> Pandoc
---transformPost = t
 parserState :: ParserState
 parserState = defaultParserState 
   { stateSmart = True
@@ -175,7 +174,8 @@ writerOptions = defaultWriterOptions
   { writerHighlight = True,
     writerHighlightStyle = kate
   }
---
+
+-- |
 -- Show post Action
 --
 showPost :: AppHandler ()
@@ -191,10 +191,9 @@ showPost = do
 postSplice :: Post -> Splice AppHandler
 postSplice post = return [renderSinglePost post] 
         
---
+-- |
 -- About me action
 --
-
 aboutMe :: AppHandler ()
 aboutMe = heistLocal (bindSplices
   [ ("about", aboutSplice)
@@ -206,7 +205,7 @@ aboutSplice = do
   post <- lift $ getPost "about"
   return $ maybe [] (\p -> [renderPostBody p]) post
 
---
+-- |
 -- Vault action
 --
 vault :: AppHandler ()
@@ -282,24 +281,34 @@ vaultSave = do
 vaultPostForm :: Post -> Splice AppHandler
 vaultPostForm (Post id title text url date published special tags) =
   return 
-    [
-      Element "form" [("class", "form-horizontal post-form"), ("method", "post")] [
-        Element "input" [("type", "hidden"), ("name", "id"), 
-          ("value", T.pack $ show id)] [],
-        Element "fieldset" [] [
-          Element "legend" [] [TextNode "Редактирование записи"],
-          inputText "Заголовок" "title" title,
-          inputText "Url" "url" url,
-          inputText "Дата" "date" $ T.pack $ show date,
-          inputCheckbox "Опубликовано" "published" published,
-          inputCheckbox "Специальный" "special" special,
-          textarea "Текст" "text" text,
-          inputText "Теги" "tags" $ tagsToString tags, 
-          Element "div" [("class", "form-actions")] [
-            Element "button" [("type", "submit"), ("class", "btn btn-primary")] 
-              [TextNode "Сохранить"],
-            Element "button" [("class", "btn")] [TextNode "Отмена"],
-            Element "button" [("class", "btn btn-refresh")] [TextNode "Обновить"]
+    [ Element "form" 
+      [ ("class", "form-horizontal post-form")
+      , ("method", "post")
+      ] 
+      [ Element "input" 
+        [ ("type", "hidden")
+        , ("name", "id")
+        , ("value", T.pack $ show id)
+        ] []
+      , Element "fieldset" [] 
+        [ Element "legend" [] [TextNode "Редактирование записи"]
+        , inputText "Заголовок" "title" title
+        , inputText "Url" "url" url
+        , inputText "Дата" "date" $ T.pack $ show date
+        , inputCheckbox "Опубликовано" "published" published
+        , inputCheckbox "Специальный" "special" special
+        , textarea "Текст" "text" text
+        , inputText "Теги" "tags" $ tagsToString tags
+        , Element "div" [("class", "form-actions")] 
+          [ Element "button" 
+            [ ("type", "submit")
+            , ("class", "btn btn-primary")
+            ] 
+            [TextNode "Сохранить"]
+          , Element "button" [("class", "btn")] [TextNode "Отмена"]
+          , Element "button" 
+            [ ("class", "btn btn-refresh") ] 
+            [ TextNode "Обновить" ]
           ]
         ]
       ]
@@ -403,8 +412,16 @@ navigationSplice = do
       | otherwise = request 
 
 pageTitleSplice :: Maybe Text -> Splice AppHandler
-pageTitleSplice Nothing = return [Element "title" [] [TextNode "[dikmax's blog]"]]
-pageTitleSplice (Just t) = return [Element "title" [] [TextNode $ t `T.append` " :: [dikmax's blog]"]]
+pageTitleSplice Nothing = 
+  return 
+    [ Element "title" [] 
+      [ TextNode "[dikmax's blog]" ]
+    ]
+pageTitleSplice (Just t) = 
+  return 
+    [ Element "title" [] 
+      [ TextNode $ t `T.append` " :: [dikmax's blog]" ]
+    ]
 
 error404 :: AppHandler ()
 error404 = do
@@ -442,7 +459,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
-                   "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
+    "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
   wrapHandlers (setEncoding *>)
   wrapHandlers $ withSession sessLens
   addRoutes routes
