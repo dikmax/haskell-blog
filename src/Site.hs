@@ -90,19 +90,26 @@ paginationSplice page tag = do
   postsCount <- lift $ getPostsCount tag
   let
     prevDisabled = page * postsPerPage >= postsCount  
-    prevLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
-      "page/" ++ show (page + 1)
+    
+    prevLink :: Text
+    prevLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag 
+      `T.append` "/page/" `T.append` (T.pack $ show (page + 1))
+    
     nextDisabled = page <= 1
-    nextLink = maybe "/" (\t -> "/tag/" ++ unpack t) tag ++ 
-      if page == 2 then "" else "page/" ++ show (page - 1)
+
+    nextLink :: Text
+    nextLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
+      `T.append`  if page == 2 then "" else "/page/" `T.append` 
+        (T.pack $ show (page - 1))
+
     prevElement = if prevDisabled
       then []
       else [Element "li" [("class", "previous")]
-        [ Element "a" [("href", T.pack prevLink)] [TextNode "← Старше"] ] ]
+        [ Element "a" [("href", prevLink)] [TextNode "← Старше"] ] ]
     nextElement = if nextDisabled      
       then []
       else [Element "li" [("class", "next")]
-        [ Element "a" [("href", T.pack nextLink)] [TextNode "Моложе →"] ] ]
+        [ Element "a" [("href", nextLink)] [TextNode "Моложе →"] ] ]
   return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
         
 renderPostInList :: Post -> Node 
