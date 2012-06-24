@@ -215,20 +215,23 @@ vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $
 
 vaultPostsListSplice :: Splice AppHandler
 vaultPostsListSplice = do
-   posts <- lift vaultGetPostsList
-   return $ map renderPost posts
-   where 
-     renderPost post = 
-       Element "tr" [("data-rowid", T.pack $ show $ postId post),
-         ("data-url", postUrl post)] [
-         Element "td" [] [TextNode $ T.pack $ show $ postDate post],
-         Element "td" [] [TextNode $ if postPublished post then "+" else ""],
-         Element "td" [] [TextNode $ postTitle post],
-         Element "td" [("class", "actions")] [
-           Element "span" [("class", "action-view")] [],
-           Element "span" [("class", "action-delete")] []
-         ]
-       ]
+  posts <- lift vaultGetPostsList
+  return $ map renderPost posts
+  where 
+    renderPost post = Element "tr" 
+      [ ("data-rowid", T.pack $ show $ postId post)
+      , ("data-url", postUrl post) ] 
+      [ Element "td" [] [TextNode $ T.pack $ show $ postDate post]
+      , Element "td" [] [TextNode $ if postPublished post then "+" else ""]
+      , Element "td" [] 
+        [ TextNode $ postTitle post
+        , Element "div" [] $ renderTags $ postTags post
+        ]
+      , Element "td" [("class", "actions")] 
+        [ Element "span" [("class", "action-view")] []
+        , Element "span" [("class", "action-delete")] []
+        ]
+      ]
 
 vaultEdit :: AppHandler ()
 vaultEdit = do
