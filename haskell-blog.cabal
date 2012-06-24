@@ -12,7 +12,7 @@ Cabal-version:       >=1.2
 
 Flag development
   Description: Whether to build the server in development (interpreted) mode
-  Default: True
+  Default: False
 
 Executable haskell-blog
   hs-source-dirs: src
