@@ -24,55 +24,70 @@ $(function() {
         document.location = '/post/' + url;
         return false;
     });
-    
+
     // Replace text in comments lint to proper Russian
-    $('p.post-comments > a').bind("DOMCharacterDataModified", function (e) {
-        var text = e.target.innerText;
-        var match = text.match(/^(\d+) комментариев/);
-        if (match) {
-            var count = Number(match[1]);
-            if (count % 100 != 1) {
-                var count10 = count % 10;
-                if (count10 == 1) {
-                    e.target.innerText = count + ' комментарий';
-                } else if (count10 >= 2 && count10 <= 4) {
-                    e.target.innerText = count + ' комментария';
-                }
-            }
+
+
+    var commentsInterval = setInterval(function () {
+        var counters = $('p.post-comments > a');
+        if (counters.length === 0) {
+            clearInterval(commentsInterval);
+            return;
         }
-    });
-    
-    // TODO edit page check
-    // Refresh page in vault
-    var refreshHandler = function () {
-        $.post('/vault/renderpost', $('.post-form').serialize(),
-            function (data) {
-                $('.render-area').html(data);
-            },
-            "html"
-        );
-        return false;
-    };
-    
-    $('.btn-refresh').click(refreshHandler);
-    refreshHandler()
-    
-    if (!isMobile) {
-        var formData = $('.post-form').serialize();
-        var updateTimeout;
-        setInterval(function () {
-            var newFormData = $('.post-form').serialize();
-            if (formData != newFormData) {
-                if (updateTimeout) {
-                    clearTimeout(updateTimeout);
+        if ($(counters[0]).text() == 'Считаем комментарии...') {
+            return;
+        }
+        clearInterval(commentsInterval);
+        counters.each(function (i, item) {
+            item = $(item);
+            var text = item.text();
+            var match = text.match(/^(\d+) комментариев/);
+            if (match) {
+                var count = Number(match[1]);
+                if (Math.round(count % 100 / 10) != 1) {
+                    var count10 = count % 10;
+                    if (count10 == 1) {
+                        item.text(count + ' комментарий');
+                    } else if (count10 >= 2 && count10 <= 4) {
+                        item.text(count + ' комментария');
+                    }
                 }
-                formData = newFormData;
-                updateTimeout = setTimeout(function () {
-                    updateTimeout = null;
-                    refreshHandler();
-                }, 2000);
-            }
-        }, 1000);   
+            }            
+        });
+    }, 100);
+    
+    // Refresh page in vault
+    if (document.location.pathname.indexOf('/vault/edit') === 0) {
+        var refreshHandler = function () {
+            $.post('/vault/renderpost', $('.post-form').serialize(),
+                function (data) {
+                    $('.render-area').html(data);
+                },
+                "html"
+            );
+            return false;
+        };
+        
+        $('.btn-refresh').click(refreshHandler);
+        refreshHandler()
+        
+        if (!isMobile) {
+            var formData = $('.post-form').serialize();
+            var updateTimeout;
+            setInterval(function () {
+                var newFormData = $('.post-form').serialize();
+                if (formData != newFormData) {
+                    if (updateTimeout) {
+                        clearTimeout(updateTimeout);
+                    }
+                    formData = newFormData;
+                    updateTimeout = setTimeout(function () {
+                        updateTimeout = null;
+                        refreshHandler();
+                    }, 2000);
+                }
+            }, 1000);   
+        }
     }
 
     // Vault files handlers
