@@ -2,6 +2,10 @@ body {
 	padding-bottom: 0;
 }
 
+h1 {
+	margin-bottom: 10px;
+}
+
 .post-date {
 	font-size: 90%;
 	font-style: italic;
@@ -264,6 +268,15 @@ pre.sourceCode span.InfixOperator { color: #aaa; }
 	          
 	  border-left: none;
 	  border-right: none; 	
+	}    
+}
+
+/*
+ * Wider paddings for >= 980px width
+ */
+@media (min-width: 980px) {
+	.component-panel {
+		padding-left: 30px !important;
+		padding-right: 30px !important;
 	}
-    
 }
