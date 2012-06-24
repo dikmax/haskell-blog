@@ -395,7 +395,9 @@ vaultAllowed action = do
 -- Navigation
 -- 
 siteStructure :: [(String, String)]
-siteStructure = [("/", "Главная"), ("/about", "Обо мне")]
+siteStructure = 
+  [ ("/about", "Обо мне")
+  ]
 
 createList :: String -> [Node]
 createList request = map listItem siteStructure
