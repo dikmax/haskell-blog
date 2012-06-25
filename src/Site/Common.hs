@@ -10,6 +10,7 @@ import System.Locale
 import Text.XmlHtml hiding (render)
 import Text.Pandoc
 import Text.Pandoc.Highlighting
+import Text.Pandoc.Shared
 
 import Types
 
@@ -84,6 +85,7 @@ parserState = defaultParserState
   
 writerOptions :: WriterOptions
 writerOptions = defaultWriterOptions
-  { writerHighlight = True,
-    writerHighlightStyle = kate
+  { writerEmailObfuscation = NoObfuscation
+  , writerHighlight = True
+  , writerHighlightStyle = kate
   }
