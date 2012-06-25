@@ -9,5 +9,6 @@ import Snap.Core
 
 decodedParam :: MonadSnap f => ByteString -> f ByteString
 decodedParam p = fromMaybe "" <$> getParam p
+
 decodedPostParam :: MonadSnap f => ByteString -> f ByteString
 decodedPostParam p = fromMaybe "" <$> getPostParam p
