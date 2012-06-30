@@ -15,3 +15,11 @@ data Post = Post
   , postSpecial :: Bool
   , postTags :: [Text]
   }         
+
+newtype Tag = Tag (Text, Int)
+
+instance Eq Tag where
+  Tag (tag1, _) == Tag (tag2, _) = tag1 == tag2
+
+instance Ord Tag where
+  compare (Tag (tag1, _)) (Tag (tag2, _)) = compare tag1 tag2	

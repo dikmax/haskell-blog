@@ -2,6 +2,8 @@
 
 module Site.Vault where
 
+import Prelude hiding (id)
+
 import Blaze.ByteString.Builder (toByteString)
 import Control.Monad.Trans
 import Data.ByteString (ByteString)

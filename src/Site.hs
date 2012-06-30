@@ -9,6 +9,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (unpack)
+import           Data.List (maximumBy, minimumBy, sort)
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -148,31 +149,80 @@ shoutboxSplice = do
 --
 -- Navigation
 -- 
-siteStructure :: [(String, String)]
+siteStructure :: [(Text, Text)]
 siteStructure = 
-  [ ("/about", "Обо мне")
-  , ("/shoutbox", "Shoutbox")
+  [ ("Обо мне", "/about")
+  , ("Shoutbox", "/shoutbox")
   ]
 
 createList :: String -> [Node]
 createList request = map listItem siteStructure
   where
-    listItem item = Element "li" [("class", "active") | request == fst item] [
-      Element "a" [("href", T.pack $ fst item)] [
-        TextNode $ T.pack (snd item) ]
+    listItem (title, url) = Element "li" [("class", "active") | request == T.unpack url] [
+      Element "a" [("href", url)] [
+        TextNode title ]
+      ]
+
+themesList :: [(Text, Text)]
+themesList = 
+  [ ("Программирование", "/tag/программирование")
+  , ("ЦТ", "/tag/централизованное%20тестирование")
+  ]
+
+createThemesList :: [Node]
+createThemesList = concatMap listItem themesList
+  where
+    listItem :: (Text, Text) -> [Node]
+    listItem (title, url) = 
+      [ Element "a" [("href", url), ("class", "main-theme-link")] 
+        [TextNode title]
+      , TextNode " "
       ]
 
 navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqContextPath
+  tags <- lift getTags
   return [Element "div" [("class", "nav-collapse")] [
       Element "ul" [("class", "nav")] $
-        createList $ normalizeRequest $ unpack request
+        (createList $ normalizeRequest $ unpack request) ++
+        [ Element "li" [("class", "themes-box-toggle")]
+          [ Element "a" [] [TextNode "Темы"]
+          , Element "div" [("class", "themes-box"), ("style", "display: none;")] 
+            ([TextNode "Темы "] ++ createThemesList ++ (renderTagsCloud $ normalizeTags tags))
+          ]
+        ]
     ]]
   where
     normalizeRequest request
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
+
+    normalizeTags tags = map (updateWeigth (getWeight minWeight) (getWeight maxWeight)) $ sort tags
+      where 
+        getWeight (Tag (_, count)) = count
+        minWeight = minimumBy weightCompare tags
+        maxWeight = maximumBy weightCompare tags
+      
+        weightCompare (Tag (_, count1)) (Tag (_, count2)) = compare count1 count2
+
+        updateWeigth minW maxW (Tag (tag, count)) = 
+          Tag (tag, round 
+            ((5 * ((fromIntegral count :: Double) - fromIntegral minW) + 
+              fromIntegral maxW - fromIntegral minW) / 
+              (fromIntegral maxW - fromIntegral minW)))
+
+    renderTagsCloud tags = 
+      [ Element "div" [("class", "tags-wrapper")] $ concatMap renderTagsCloud' tags ]
+    renderTagsCloud' (Tag (tag, weight)) = 
+      [ Element "a" 
+        [ ("href", "/tag/" `T.append` tag)
+        , ("class", T.append "weight-" $ T.pack $ show weight)
+        ] 
+        [TextNode tag]
+      , TextNode " "
+      ]
+
 
 pageTitleSplice :: Maybe Text -> Splice AppHandler
 pageTitleSplice Nothing = 
