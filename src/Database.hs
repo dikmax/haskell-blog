@@ -7,6 +7,7 @@ module Database
   , getPostsCount
   , getPost
   , getPostById
+  , getTags
   , savePost  
   
   , vaultGetPostsList
@@ -216,6 +217,18 @@ newPost = do
     , postSpecial = False
     , postTags = []
     }
+
+getTags :: HasHdbc m c s => m [Tag]
+getTags = do
+  rows <- query 
+    ("SELECT t.`tag`, COUNT(pt.posts_id) `count` " ++
+      "FROM posts_has_tags pt " ++
+      "LEFT JOIN tags t ON t.id = pt.`tags_id` " ++
+      "GROUP BY pt.tags_id") []
+  return $ map rowToTag rows
+  where
+    rowToTag :: Row -> Tag
+    rowToTag row = Tag (fromSql $ row ! "tag", fromSql $ row ! "count")
 
 --
 -- Vault functions
