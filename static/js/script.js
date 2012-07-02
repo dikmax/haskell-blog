@@ -39,13 +39,24 @@ $(function() {
     var themesVisible = false;
     var themesSize = 0;
     $('.themes-box-toggle > a').click(function () {
-        if (!themesVisible) {            
-            var themesSize = $('.nav-collapse')[0].scrollHeight;
-            $('.themes-box').show();
-            var newH = $('.nav-collapse')[0].scrollHeight;
-            $('.nav-collapse').height(newH);
+        var smallScreen = $(window).width() < 980;
+        if (!themesVisible) {
+            if (smallScreen) {
+                themesSize = $('.nav-collapse')[0].scrollHeight;
+            }            
+            $('.themes-box').show();            
+            if (smallScreen) {
+                var newH = $('.nav-collapse')[0].scrollHeight;
+                $('.nav-collapse').height(newH);                
+            }
             //$('.nav-collapse').collapse('show');
             themesVisible = true;
+        } else {
+            $('.themes-box').hide();
+            if (smallScreen) {
+                $('.nav-collapse').height(themesSize);
+            }            
+            themesVisible = false;            
         }
         return false;
     });
@@ -54,9 +65,13 @@ $(function() {
             return;
         }
         var target = $(e.target);
-        if (!target.hasClass('themes-box') && target.parents('themes-box').length === 0) {
+        if (!target.hasClass('themes-box') && target.parents('.themes-box').length === 0
+            || target.hasClass('themes-button')) {
             $('.themes-box').hide();
-            $('.nav-collapse').height(themesSize);
+            var smallScreen = $(window).width() < 980;
+            if (smallScreen) {
+                $('.nav-collapse').height(themesSize);
+            }            
             themesVisible = false;
         }
     });

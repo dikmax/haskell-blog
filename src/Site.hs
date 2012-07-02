@@ -165,9 +165,7 @@ createList request = map listItem siteStructure
 
 themesList :: [(Text, Text)]
 themesList = 
-  [ ("Программирование", "/tag/программирование")
-  , ("ЦТ", "/tag/централизованное%20тестирование")
-  ]
+  [ ]
 
 createThemesList :: [Node]
 createThemesList = concatMap listItem themesList
@@ -188,8 +186,9 @@ navigationSplice = do
         (createList $ normalizeRequest $ unpack request) ++
         [ Element "li" [("class", "themes-box-toggle")]
           [ Element "a" [] [TextNode "Темы"]
-          , Element "div" [("class", "themes-box"), ("style", "display: none;")] 
-            ([TextNode "Темы "] ++ createThemesList ++ (renderTagsCloud $ normalizeTags tags))
+          , Element "div" [("class", "themes-box"), ("style", "display: none;")] $
+            [Element "div" [("class", "themes-button")] $ [TextNode "Темы "] ++ createThemesList ]
+               ++ (renderTagsCloud $ normalizeTags tags)
           ]
         ]
     ]]

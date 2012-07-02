@@ -4,6 +4,7 @@
 <body>
 <apply template="vaulttopnav"/>
 <div class="container vault-files">
+    <a class="btn" href="/vault">Список записей</a>
     <div class="row">
         <div class="span3">
             <table class="containers-list table table-stripped">
