@@ -8,7 +8,9 @@
         <span class="icon-bar"></span>
       </a>
       <a class="brand" href="/">[dikmax's blog]</a>
-      <navigation />
+      <cache ttl="300 seconds">
+        <navigation />
+      </cache>
 
     <a class="pull-right" href="/rss" title="RSS"><span class="icon icon-feed"></span></a>            
     <a class="pull-right" href="https://github.com/dikmax/haskell-blog" title="Исходный код сайта на github"><span class="icon icon-github"></span></a>            

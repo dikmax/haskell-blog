@@ -22,4 +22,4 @@ instance Eq Tag where
   Tag (tag1, _) == Tag (tag2, _) = tag1 == tag2
 
 instance Ord Tag where
-  compare (Tag (tag1, _)) (Tag (tag2, _)) = compare tag1 tag2
+  compare (Tag (tag1, _)) (Tag (tag2, _)) = compare (toCaseFold tag1) (toCaseFold tag2)
