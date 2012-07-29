@@ -23,6 +23,18 @@ h1 {
 	text-align: center;
 }
 
+.note-link {
+  color: #0088cc;
+  text-decoration: none;
+}
+
+
+.note-link:hover {
+  color: #005580;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .controls {
 	margin-right: 18px;
 }
@@ -176,8 +188,7 @@ footer .navbar-inner {
 
 li pre.sourceCode { font-size: 80%; padding: 16px 16px 16px 32px; margin-top: 29px;}
 pre.sourceCode {
-    background: #222;
-    color: #ffbf00;
+    background: #002B36;
     width: 87%;
     margin: 0px auto 29px auto;
     padding: 16px;
@@ -186,7 +197,7 @@ pre.sourceCode {
     -webkit-border-radius: 10px;
     border-radius: 10px;	
 }
-pre.sourceCode span.Normal { }
+/*pre.sourceCode span.Normal { }
 pre.sourceCode span.Keyword, pre.sourceCode span.kw { font-weight: bold; } 
 pre.sourceCode span.DataType, pre.sourceCode span.dt { color: #ff0; }
 pre.sourceCode span.DecVal, pre.sourceCode span.de { color: #4f4; }
@@ -209,7 +220,7 @@ pre.sourceCode span.Constructor { font-weight: bold; }
 pre.sourceCode span.DataConstructor { color: #C4E7FF; }
 pre.sourceCode span.TypeConstructor { font-weight: bold; }
 pre.sourceCode span.InfixOperator { color: #aaa; }
-
+*/
 @media (min-width: 768px) {
 	img {
 		max-width: 684px;

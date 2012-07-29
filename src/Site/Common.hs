@@ -4,13 +4,13 @@ module Site.Common where
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.Time
 import System.Locale
 import Text.XmlHtml hiding (render)
 import Text.Pandoc
-import Text.Pandoc.Highlighting
-import Text.Pandoc.Shared
+--import Text.Pandoc.Highlighting
+--import Text.Pandoc.Shared
+import XmlHtmlWriter
 
 import Types
 
@@ -66,16 +66,12 @@ renderSinglePost post =
 renderPostBody :: Post -> Node
 renderPostBody post =
   Element "div" [("class", "post-body")] $
-    either (\ a -> [TextNode $ T.pack a]) extractData
-  (parseHTML "post" $
-     T.encodeUtf8 $
-       T.pack $
-         writeHtmlString writerOptions $
-           readMarkdown parserState $ T.unpack $ postText post)
+    (writeXmlHtml defaultXmlHtmlWriterOptions 
+      { idPrefix = postUrl post
+      , debugOutput = False
+      } $
+      readMarkdown parserState $ T.unpack $ postText post)
   ++ renderTags (postTags post)
-  where
-    extractData (HtmlDocument _ _ content) = content
-    extractData (XmlDocument _ _ content) = content       
 
 parserState :: ParserState
 parserState = defaultParserState 
@@ -83,9 +79,9 @@ parserState = defaultParserState
   , stateParseRaw = True
   }
   
-writerOptions :: WriterOptions
-writerOptions = defaultWriterOptions
-  { writerEmailObfuscation = NoObfuscation
-  , writerHighlight = True
-  , writerHighlightStyle = kate
-  }
+--writerOptions :: WriterOptions
+--writerOptions = defaultWriterOptions
+--  { writerEmailObfuscation = NoObfuscation
+--  , writerHighlight = True
+--  , writerHighlightStyle = kate
+--  }
