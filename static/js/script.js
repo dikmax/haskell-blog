@@ -1,6 +1,8 @@
 $(function() {
     'use strict';
 
+    hljs.initHighlightingOnLoad();
+    
     // Detect mobile
     var a = navigator.userAgent || navigator.vendor || window.opera;
     var isMobile = /android.+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)
@@ -34,6 +36,28 @@ $(function() {
             }            
         });
     }, 100);
+
+    // Inline footnotes
+    $('.footnotes').each(function (i, footnotes) {
+        footnotes = $(footnotes);
+        footnotes.find('li').each(function (i, item) {
+            item = $(item);
+            var forId = item.attr('data-for');
+            if (!forId) {
+                return;
+            }
+            $("#" + forId).popover({
+                placement: 'top',
+                trigger: 'manual',
+                title: "Примечание " + (item.index() + 1),
+                content: item.html()
+            });
+            $('#' +forId).click(function (node) {
+                $(this).popover('toggle');
+            });
+        });
+        footnotes.remove();
+    });
 
     // Themes toggle
     var themesVisible = false;

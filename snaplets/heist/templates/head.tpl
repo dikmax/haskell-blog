@@ -16,6 +16,7 @@ body {
 </style>
 <link href="/css/bootstrap-responsive.min.css" rel="stylesheet" />
 <link href="/css/style.css" rel="stylesheet" />
+<link href="/css/solarized_dark.css" rel="stylesheet" />
 
 <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
