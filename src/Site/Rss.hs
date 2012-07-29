@@ -48,17 +48,20 @@ rssDocument posts = XmlDocument UTF8 Nothing
   ]
   where
     renderPost :: Post -> Node
-    renderPost (Post id title text url date _ _ _) = 
+    renderPost (Post id title text url date _ _ tags) = 
       Element "item" [] 
-        [ Element "title" [] [TextNode  title]
+        [ Element "title" [] [TextNode title]
         , Element "link" [] [TextNode $ 
             domain `T.append` "/post/" `T.append` url]
         , Element "guid" [] [TextNode $ T.pack $ show id]
         , Element "pubDate" [] [TextNode $ T.pack $ 
             formatTime defaultTimeLocale rfc822DateFormat $
             ZonedTime date $ minutesToTimeZone 180]
-        , Element "description" [] [TextNode $ T.pack $ 
+        , Element "description" [] [TextNode $ (T.pack $ 
             writeHtmlString defaultWriterOptions $ 
             readMarkdown defaultParserState $ 
-            T.unpack text]
+            T.unpack text) `T.append` 
+            "<div class=\"post-tags\"><img src=\"http://dikmax.name/img/16x16/tag_yellow.png\" /> " `T.append` 
+            (T.intercalate ", " tags) `T.append`
+            "</div>"]
         ]
