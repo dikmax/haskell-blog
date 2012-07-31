@@ -121,6 +121,22 @@ $(function() {
 
     // Refresh page in vault
     if (document.location.pathname.indexOf('/vault/edit') === 0) {
+        $('#post-url').change(function () {
+            var url = $(this).val();
+            var id = $('#post-id').val();
+            $.ajax('/vault/checkurl', {
+                data: {
+                    id: id,
+                    url: url
+                },
+                dateType: 'json',
+                type: 'POST',
+                success: function (result) {
+                    result = $.parseJSON(result);
+                    $('#post-url').parents('.control-group').toggleClass('error', !result.result);
+                }
+            });
+        });
         var refreshHandler = function () {
             $.post('/vault/renderpost', $('.post-form').serialize(),
                 function (data) {

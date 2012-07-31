@@ -112,6 +112,7 @@ vaultPostForm (Post id title text url date published special tags) =
       [ Element "input" 
         [ ("type", "hidden")
         , ("name", "id")
+        , ("id", "post-id")
         , ("value", T.pack $ show id)
         ] []
       , Element "fieldset" [] 
@@ -173,6 +174,15 @@ vaultRenderPost :: AppHandler ()
 vaultRenderPost = do
   post <- vaultGetPost 
   writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost post]
+
+vaultCheckUrl :: AppHandler ()
+vaultCheckUrl = do
+  id' <- decodedPostParam "id"
+  url <- decodedPostParam "url"
+  result <- vaultValidateUrl (T.decodeUtf8 id') (T.decodeUtf8 url)
+  case result of
+    True -> writeBS "{\"result\":true}"
+    False -> writeBS "{\"result\":false}"
   
 vaultAction :: AppHandler ()
 vaultAction = do
