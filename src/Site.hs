@@ -259,6 +259,7 @@ routes =
   , ("/vault/delete/:id", vaultAllowed vaultDelete)
   , ("/vault/files", vaultAllowed vaultFiles)
   , ("/vault/renderpost", vaultAllowed vaultRenderPost)
+  , ("/vault/checkurl", vaultAllowed vaultCheckUrl)
   , ("/vault/fileshandler", vaultAllowed vaultFilesService)
   , ("/vault/fileupload", vaultAllowed vaultFileUpload)
   , ("", serveDirectory "static")

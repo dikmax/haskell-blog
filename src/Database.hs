@@ -11,6 +11,7 @@ module Database
   , savePost  
   
   , vaultGetPostsList
+  , vaultValidateUrl
   , newPost
   , tagsToString
   , stringToTags    
@@ -241,6 +242,14 @@ vaultGetPostsList = do
      "FROM posts " ++ 
      "ORDER BY date DESC") []
   return $ map rowToPost rows
+
+vaultValidateUrl :: HasHdbc m c s => Text -> Text -> m Bool
+vaultValidateUrl id' url = do
+  rows <- query
+    ("SELECT COUNT(*) `count` " ++
+      "FROM posts " ++
+      "WHERE url = ? AND id <> ?") [toSql url, toSql id']
+  return $ (fromSql $ head rows ! "count") == (0 :: Int)
 
 --
 -- Utility functions
