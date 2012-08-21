@@ -69,13 +69,13 @@ span.icon {
 span.icon.icon-feed {
 	background: url(/img/32x32/feed.png) no-repeat 0 0;
 	position: relative;
-	top: 4px;
+	top: 2px;
 }
 
 span.icon.icon-github {
 	background: url(/img/32x32/github.png) no-repeat 0 0;
 	position: relative;
-	top: 3px;
+	top: 1px;
 	margin-right: 5px;
 }
 
@@ -85,13 +85,21 @@ footer .navbar-inner {
 
 }
 
+.navbar.navbar-inverse .navbar-inner {
+  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+     -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
 /* themes-box */
 .themes-box-toggle {
 	position: relative;
+	cursor: pointer;
 }
 
 .themes-box {
   position: absolute; 
+  cursor: default;
   top: 0; 
   left: 0;
   padding: 0;
@@ -127,6 +135,7 @@ footer .navbar-inner {
 
 .themes-button {
     padding: 9px 10px 11px;
+    cursor: pointer;
 }
 
 .main-theme-link {
@@ -197,6 +206,20 @@ pre.sourceCode {
     -webkit-border-radius: 10px;
     border-radius: 10px;	
 }
+
+code.sourceCode.highlighted {
+	white-space: normal;
+}
+
+code.sourceCode.highlighted .line {
+	display: block;
+    white-space: pre;
+    white-space: pre-wrap;
+}
+code.sourceCode.highlighted .line:hover {
+	background: #073642;
+}
+
 /*pre.sourceCode span.Normal { }
 pre.sourceCode span.Keyword, pre.sourceCode span.kw { font-weight: bold; } 
 pre.sourceCode span.DataType, pre.sourceCode span.dt { color: #ff0; }

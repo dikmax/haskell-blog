@@ -1,7 +1,7 @@
 $(function() {
     'use strict';
 
-    hljs.initHighlightingOnLoad();
+    hljs.initHighlighting();
     
     // Detect mobile
     var a = navigator.userAgent || navigator.vendor || window.opera;
@@ -36,6 +36,18 @@ $(function() {
             }            
         });
     }, 100);
+
+    // Process code
+    $('pre > code').each(function () {
+        var html = $(this).html();
+        var lines = html.split('\n');
+        lines = $.map(lines, function (item, i) {
+            return '<span class="line">' + item + '</span>';            
+        });
+
+        $(this).html(lines.join('\n'));
+        $(this).addClass('highlighted');
+    });
 
     // Inline footnotes
     $('.footnotes').each(function (i, footnotes) {
