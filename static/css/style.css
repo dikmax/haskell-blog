@@ -134,8 +134,9 @@ footer .navbar-inner {
 }
 
 .themes-button {
-    padding: 9px 10px 11px;
+    padding: 10px 13px;
     cursor: pointer;
+    font-size: 14px;
 }
 
 .main-theme-link {
