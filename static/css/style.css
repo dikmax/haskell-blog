@@ -91,6 +91,79 @@ footer .navbar-inner {
           box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* latest movies block */
+.latest-movies .wrap, .latest-movies .item-header, .latest-movies .item-footer {
+	display: inline-block;
+}
+		
+.latest-movies .item {
+	display: inline;
+}
+
+.latest-movies .item-header, .latest-movies .item-footer {
+	width: 214px;
+}
+
+.latest-movies .item-header {
+	vertical-align: top;
+	text-align: center;
+	padding: 5px 5px 327px;
+}
+
+.latest-movies .item-footer {
+	height: 317px;
+	color: #fff;
+	vertical-align: bottom;
+	margin-left: -224px;
+	padding: 5px;
+	border-bottom: 1px solid white;	
+}
+
+.latest-movies .rating {
+	width: 160px;
+	height: 16px;
+	display: block;
+	margin: 0 27px;
+	background: url(/img/16x16/draw_star.png) repeat-x;
+}
+
+.latest-movies .rating > span {
+	height: 16px;
+	display: block;
+	background: url(/img/16x16/star.png) repeat-x;
+}
+
+.latest-movies .rating .rate-1 {
+	width: 16px;
+}
+.latest-movies .rating .rate-2 {
+	width: 32px;
+}
+.latest-movies .rating .rate-3 {
+	width: 48px;
+}
+.latest-movies .rating .rate-4 {
+	width: 64px;
+}
+.latest-movies .rating .rate-5 {
+	width: 80px;
+}
+.latest-movies .rating .rate-6 {
+	width: 96px;
+}
+.latest-movies .rating .rate-7 {
+	width: 112px;
+}
+.latest-movies .rating .rate-8 {
+	width: 128px;
+}
+.latest-movies .rating .rate-9 {
+	width: 144px;
+}
+.latest-movies .rating .rate-10 {
+	width: 160px;
+}
+
 /* themes-box */
 .themes-box-toggle {
 	position: relative;

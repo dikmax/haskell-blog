@@ -133,7 +133,7 @@ aboutSplice = do
   return $ maybe [] (\p -> [renderPostBody p]) post
 
 -- |
--- About me action
+-- Shoutbox action
 --
 shoutbox :: AppHandler ()
 shoutbox = heistLocal (bindSplices
@@ -145,6 +145,20 @@ shoutboxSplice :: Splice AppHandler
 shoutboxSplice = do
   post <- lift $ getPost "shoutbox"
   return $ maybe [] (\p -> [renderPostBody p]) post
+
+-- |
+-- Latest movies action
+--
+latestMovies :: AppHandler ()
+latestMovies = heistLocal (bindSplices
+  [ ("latest", latestMoviesSplice)
+  , ("page-title", pageTitleSplice $ Just "Последние просмотренные фильмы")
+  ] ) $ render "latest"
+  
+latestMoviesSplice :: Splice AppHandler
+latestMoviesSplice = do
+  post <- lift $ getPost "latest"
+  return $ maybe [] (\p -> [renderPostBody p]) post
   
 --
 -- Navigation
@@ -153,6 +167,7 @@ siteStructure :: [(Text, Text)]
 siteStructure = 
   [ ("Обо мне", "/about")
   , ("Shoutbox", "/shoutbox")
+  , ("Фильмы", "/latest")
   ]
 
 createList :: String -> [Node]
@@ -251,6 +266,7 @@ routes =
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
   , ("/shoutbox", shoutbox)
+  , ("/latest", latestMovies)
   , ("/rss", rss)
   , ("/vault", method POST vaultAction)
   , ("/vault", vault)
