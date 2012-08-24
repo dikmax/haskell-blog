@@ -112,6 +112,67 @@ $(function() {
         }
     });
     
+    // Latest movies transform
+    if ($('.latest-movies').length > 0) {
+        var movies = [];
+        $('.latest-movies li').each(function (i, item) {
+            if (item.childNodes.length !== 3) {
+                return;
+            }
+            var date = item.childNodes[0].data;
+            var titleLink = $(item.childNodes[1]);
+            var link = titleLink.attr('href');
+            var title = titleLink.text();
+            var image = titleLink.attr('title');
+            var rating = item.childNodes[2].data.match(/\((\d+)\/10\)/);
+            movies.push({
+                date: date,
+                link: link,
+                rating: rating ? Number(rating[1]) : null,
+                image: image,
+                title: title
+            });
+        });
+        var topSpan = $(document.createElement('span'));
+        topSpan.addClass('wrap');
+        $.each(movies, function (i, movie) {
+            var item = $(document.createElement('span'));
+            item.addClass('item');
+            // Header
+            var header = $(document.createElement('span'));
+            header.addClass('item-header');
+            header.text(movie.date);
+            header.append($(document.createElement('br')));
+            var link = $(document.createElement('a'));
+            link.attr({
+                'href': movie.link,
+            });
+            link.text(movie.title);
+            header.append(link);
+            if (movie.rating) {
+                header.append($(document.createElement('br')));
+                header.append('<span class="rating" title="(' + movie.rating + '/10)"><span class="rate-' + movie.rating + '"></span></span>')
+            }
+            item.append(header);
+
+            // Footer
+            if (movie.image) {
+                var footer = $(document.createElement('span'));
+                footer.addClass('item-footer');
+                var img = $(document.createElement('img'));
+                img.attr({
+                    'src': movie.image,
+                    'title': movie.title
+                });
+                footer.append(img);
+                item.append(footer)
+            }
+            topSpan.append(item);            
+        });
+        $('.latest-movies ul').replaceWith(topSpan);
+        console.log(movies);
+    }
+
     // Vault table list
     $('.vault-posts-list tbody tr').click(function() {
         document.location = '/vault/edit/' + $(this).attr('data-rowid');
