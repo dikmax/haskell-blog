@@ -167,7 +167,6 @@ siteStructure :: [(Text, Text)]
 siteStructure = 
   [ ("Обо мне", "/about")
   , ("Shoutbox", "/shoutbox")
-  , ("Фильмы", "/latest")
   ]
 
 createList :: String -> [Node]
