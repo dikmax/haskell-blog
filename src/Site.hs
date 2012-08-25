@@ -249,6 +249,10 @@ pageTitleSplice (Just t) =
       [ TextNode $ t `T.append` " :: [dikmax's blog]" ]
     ]
 
+revisionSplice :: Splice AppHandler
+revisionSplice = 
+  return [ TextNode resourcesRevision ]
+
 error404 :: AppHandler ()
 error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
@@ -305,6 +309,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
     commonSplices = bindSplices 
       [ ("navigation", navigationSplice)
       , ("page-title", pageTitleSplice Nothing)
+      , ("revision", revisionSplice)
       ] 
       defaultHeistState
   

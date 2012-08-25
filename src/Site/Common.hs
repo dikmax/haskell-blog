@@ -78,10 +78,6 @@ parserState = defaultParserState
   { stateSmart = True
   , stateParseRaw = True
   }
-  
---writerOptions :: WriterOptions
---writerOptions = defaultWriterOptions
---  { writerEmailObfuscation = NoObfuscation
---  , writerHighlight = True
---  , writerHighlightStyle = kate
---  }
+
+resourcesRevision :: Text  
+resourcesRevision = "2";
