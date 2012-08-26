@@ -167,12 +167,13 @@ siteStructure :: [(Text, Text)]
 siteStructure = 
   [ ("Обо мне", "/about")
   , ("Shoutbox", "/shoutbox")
+  , ("Фильмы", "/latest")
   ]
 
-createList :: String -> [Node]
-createList request = map listItem siteStructure
+createList :: Text -> [Node]
+createList _ = map listItem siteStructure
   where
-    listItem (title, url) = Element "li" [("class", "active") | request == T.unpack url] [
+    listItem (title, url) = Element "li" [] [
       Element "a" [("href", url)] [
         TextNode title ]
       ]
@@ -193,11 +194,11 @@ createThemesList = concatMap listItem themesList
 
 navigationSplice :: Splice AppHandler
 navigationSplice = do
-  request <- getsRequest rqContextPath
+  request <- getsRequest rqURI
   tags <- lift getTags
   return [Element "div" [("class", "nav-collapse")] [
       Element "ul" [("class", "nav")] $
-        (createList $ normalizeRequest $ unpack request) ++
+        (createList $ T.pack $ normalizeRequest $ unpack request) ++
         [ Element "li" [("class", "themes-box-toggle")]
           [ Element "a" [] [TextNode "Темы"]
           , Element "div" [("class", "themes-box"), ("style", "display: none;")] $
