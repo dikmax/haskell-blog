@@ -145,7 +145,7 @@ $(function() {
             header.append($(document.createElement('br')));
             var link = $(document.createElement('a'));
             link.attr({
-                'href': movie.link,
+                'href': movie.link
             });
             link.text(movie.title);
             header.append(link);
@@ -164,7 +164,12 @@ $(function() {
                     'src': movie.image,
                     'title': movie.title
                 });
-                footer.append(img);
+                link = $(document.createElement('a'));
+                link.attr({
+                    'href': movie.link
+                });
+                link.append(img);
+                footer.append(link);
                 item.append(footer)
             }
             topSpan.append(item);            
