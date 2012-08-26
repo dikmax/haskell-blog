@@ -80,4 +80,4 @@ parserState = defaultParserState
   }
 
 resourcesRevision :: Text  
-resourcesRevision = "3";
+resourcesRevision = "4";

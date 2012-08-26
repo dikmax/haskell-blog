@@ -95,6 +95,10 @@ footer .navbar-inner {
 .latest-movies .wrap, .latest-movies .item-header, .latest-movies .item-footer {
 	display: inline-block;
 }
+
+.latest-movies .wrap {
+	text-align: center;
+}
 		
 .latest-movies .item {
 	display: inline;
