@@ -43,7 +43,7 @@ timeLocale = defaultTimeLocale
 
 renderTags :: [Text] -> [Node]
 renderTags [] = []
-renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
+renderTags tags = [Element "div" [("class", "post-tags"), ("itemprop", "keywords")] $ renderTags' tags]
   where
     renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` t)]
       [TextNode t]]
@@ -53,11 +53,15 @@ renderTags tags = [Element "div" [("class", "post-tags")] $ renderTags' tags]
 
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
-  Element "div" [("class", "post")] [
-    Element "p" [("class", "post-date")] 
+  Element "div" [("class", "post"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Article")] [
+    Element "p" 
+      [ ("class", "post-date")
+      , ("itemprop", "dateCreated")
+      , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ postDate post)
+      ]
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
-    Element "h1" [("class", "post-title")] 
+    Element "h1" [("class", "post-title"), ("itemprop", "name")] 
       [TextNode $ postTitle post],
     renderPostBody post
   ]
@@ -65,7 +69,7 @@ renderSinglePost post =
 -- TODO create my own writer (instead of writeHml) with blackjack and hookers  
 renderPostBody :: Post -> Node
 renderPostBody post =
-  Element "div" [("class", "post-body")] $
+  Element "div" [("class", "post-body"), ("itemprop", "articleBody")] $
     (writeXmlHtml defaultXmlHtmlWriterOptions 
       { idPrefix = postUrl post
       , debugOutput = False
