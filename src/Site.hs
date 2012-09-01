@@ -86,12 +86,16 @@ paginationSplice page tag = do
         
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "div" [("class", "post component-panel")] [
-    Element "p" [("class", "post-date")] 
+  Element "div" [("class", "post component-panel"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Article")] [
+    Element "p" 
+      [ ("class", "post-date")
+      , ("itemprop", "dateCreated")
+      , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ postDate post)
+      ] 
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
     Element "h1" [("class", "post-title")] [
-      Element "a" [("href", "/post/" `T.append` postUrl post)] 
+      Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "name")] 
         [TextNode $ postTitle post]
     ],
     renderPostBody post,
