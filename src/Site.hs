@@ -92,6 +92,11 @@ renderPostInList post =
     , ("itemscope", "itemscope")
     , ("itemtype", "http://schema.org/BlogPosting")
     ] [
+    Element "div" [("itemprop", "author"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Person")] 
+      [ Element "meta" [("itemprop", "name"), ("content", "Maxim Dikun")] []
+      , Element "link" [("itemprop", "url"), ("content", "http://dikmax.name/about")] []
+      , Element "link" [("itemprop", "url"), ("content", "https://plus.google.com/109129288587536990618/posts")] []
+      ],
     Element "p" 
       [ ("class", "post-date")
       , ("itemprop", "dateCreated")
