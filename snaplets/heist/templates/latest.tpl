@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 	<apply template="head" />
-<body>
+<body itemscope="itemscope" itemtype="http://schema.org/WebPage">
+    <apply template="author" />
 	<apply template="topnav" />
 	<div class="container">
 		<div class="component-panel latest-movies">
-			<h1>Последние просмотренные фильмы</h1>
+			<h1 itemprop="name">Последние просмотренные фильмы</h1>
 			<latest />
 		      <div id="disqus_thread"></div>
 		      <script type="text/javascript">

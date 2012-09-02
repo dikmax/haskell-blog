@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 	<apply template="head" />
-<body>
+<body itemscope="itemscope" itemtype="http://schema.org/WebPage">
+	<meta itemprop="name" content="Shoutbox" />
+	<apply template="author" />
 	<apply template="topnav" />
 	<div class="container">
 		<div class="component-panel">

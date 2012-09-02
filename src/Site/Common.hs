@@ -53,7 +53,7 @@ renderTags tags = [Element "div" [("class", "post-tags"), ("itemprop", "keywords
 
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
-  Element "div" [("class", "post"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Article")] [
+  Element "div" [("class", "post")] [
     Element "p" 
       [ ("class", "post-date")
       , ("itemprop", "dateCreated")
@@ -63,13 +63,13 @@ renderSinglePost post =
         postDate post],
     Element "h1" [("class", "post-title"), ("itemprop", "name")] 
       [TextNode $ postTitle post],
-    renderPostBody post
+    renderPostBody post "articleBody"
   ]
 
 -- TODO create my own writer (instead of writeHml) with blackjack and hookers  
-renderPostBody :: Post -> Node
-renderPostBody post =
-  Element "div" [("class", "post-body"), ("itemprop", "articleBody")] $
+renderPostBody :: Post -> Text -> Node
+renderPostBody post propertyName =
+  Element "div" [("class", "post-body"), ("itemprop", propertyName)] $
     (writeXmlHtml defaultXmlHtmlWriterOptions 
       { idPrefix = postUrl post
       , debugOutput = False
