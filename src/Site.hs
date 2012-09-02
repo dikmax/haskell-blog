@@ -86,7 +86,7 @@ paginationSplice page tag = do
         
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "div" 
+  Element "article" 
     [ ("class", "post component-panel")
     , ("itemprop", "blogPost")
     , ("itemscope", "itemscope")

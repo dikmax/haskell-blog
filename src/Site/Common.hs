@@ -53,7 +53,7 @@ renderTags tags = [Element "div" [("class", "post-tags"), ("itemprop", "keywords
 
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
-  Element "div" [("class", "post")] [
+  Element "article" [("class", "post")] [
     Element "p" 
       [ ("class", "post-date")
       , ("itemprop", "dateCreated")
