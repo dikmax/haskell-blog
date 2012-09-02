@@ -8,5 +8,7 @@
 	<div itemprop="alumniOf" itemscope="itemscope" itemtype="http://schema.org/CollegeOrUniversity">
 		<meta itemprop="name" content="Belorussian State University" />
 	</div>
+	<link itemprop="url" href="http://dikmax.name/about" />
+	<link itemprop="url" href="https://plus.google.com/109129288587536990618/posts" />
 </div>
-<link itemprop="author" href="http://dikmax.name/about/" />
+
