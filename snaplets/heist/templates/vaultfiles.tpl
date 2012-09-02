@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <apply template="head"/>
 <body>
 <apply template="vaulttopnav"/>

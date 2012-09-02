@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <apply template="head" />
 
-  <body>
+  <body itemscope="itemscope" itemtype="http://schema.org/Blog">
+    <meta itemprop="name" content="[dikmax's blog]" />
+    <apply template="author" />
     <apply template="topnav" />
 
     <div class="container">

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 	<apply template="head" />
-<body>
+<body itemscope="itemscope" itemtype="http://schema.org/ProfilePage">
+	<apply template="author" />
 	<apply template="topnav" />
 	<div class="container">
 		<div class="component-panel">

@@ -86,7 +86,12 @@ paginationSplice page tag = do
         
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "div" [("class", "post component-panel"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Article")] [
+  Element "div" 
+    [ ("class", "post component-panel")
+    , ("itemprop", "blogPost")
+    , ("itemscope", "itemscope")
+    , ("itemtype", "http://schema.org/BlogPosting")
+    ] [
     Element "p" 
       [ ("class", "post-date")
       , ("itemprop", "dateCreated")
@@ -94,14 +99,14 @@ renderPostInList post =
       ] 
       [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
         postDate post],
-    Element "h1" [("class", "post-title")] [
-      Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "name")] 
+    Element "h1" [("class", "post-title"), ("itemprop", "name")] [
+      Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "url")] 
         [TextNode $ postTitle post]
     ],
-    renderPostBody post,
+    renderPostBody post "articleBody",
     Element "p" [("class", "post-comments")] [
       Element "a" [("href", "/post/" `T.append` 
-        postUrl post `T.append` "#disqus_thread" )] 
+        postUrl post `T.append` "#disqus_thread" ), ("itemprop", "discussionUrl")] 
         [TextNode "Считаем комментарии..."]
     ]
   ]
@@ -134,7 +139,7 @@ aboutMe = heistLocal (bindSplices
 aboutSplice :: Splice AppHandler
 aboutSplice = do
   post <- lift $ getPost "about"
-  return $ maybe [] (\p -> [renderPostBody p]) post
+  return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
 
 -- |
 -- Shoutbox action
@@ -148,7 +153,7 @@ shoutbox = heistLocal (bindSplices
 shoutboxSplice :: Splice AppHandler
 shoutboxSplice = do
   post <- lift $ getPost "shoutbox"
-  return $ maybe [] (\p -> [renderPostBody p]) post
+  return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
 
 -- |
 -- Latest movies action
@@ -162,7 +167,7 @@ latestMovies = heistLocal (bindSplices
 latestMoviesSplice :: Splice AppHandler
 latestMoviesSplice = do
   post <- lift $ getPost "latest"
-  return $ maybe [] (\p -> [renderPostBody p]) post
+  return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
   
 --
 -- Navigation
