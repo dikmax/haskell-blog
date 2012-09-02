@@ -69,7 +69,7 @@ renderSinglePost post =
 -- TODO create my own writer (instead of writeHml) with blackjack and hookers  
 renderPostBody :: Post -> Text -> Node
 renderPostBody post propertyName =
-  Element "div" [("class", "post-body"), ("itemprop", propertyName), ("property", "og:description")] $
+  Element "div" [("class", "post-body"), ("itemprop", propertyName)] $
     (writeXmlHtml defaultXmlHtmlWriterOptions 
       { idPrefix = postUrl post
       , debugOutput = False
