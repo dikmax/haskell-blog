@@ -1,9 +1,7 @@
 <head>
 <meta charset="utf-8">
-<page-title />
+<metadata />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="">
-<meta name="author" content="">
 
 <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss" />
 

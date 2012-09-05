@@ -332,3 +332,12 @@ $(function() {
         });
     }
 });
+
+var getDescription = function (node) {
+    var child = findChild(
+        function (cursor) {
+            return checkMainDiv(current(cursor))
+        }, fromNode(node)
+    );
+    return child ? getDescription_(child) : emptyDescription;
+}
