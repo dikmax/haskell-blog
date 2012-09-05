@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
 import           Database.HDBC.MySQL
-import           Prelude hiding (id)
+import           Prelude
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Hdbc
@@ -26,6 +26,7 @@ import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
+import           Text.XmlHtml.Cursor
 ------------------------------------------------------------------------------
 import           Application
 import           Config
@@ -49,6 +50,11 @@ index =  ifTop $ do
     indexSplices = 
       [ ("posts", postsSplice pageNum tag) 
       , ("pagination", paginationSplice pageNum tag)
+      , ("metadata", metadataSplice $ defaultMetadata 
+        { metaUrl = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
+            `T.append` if pageNum == 1 then "" else "/page/" `T.append` (T.pack $ show pageNum)
+        , metaType = FacebookBlog
+        })
       ]
   heistLocal (bindSplices indexSplices) $ render "index"
 
@@ -123,22 +129,62 @@ showPost :: AppHandler ()
 showPost = do
   url <- decodedParam "post"
   post <- getPost url
+
   maybe error404 
     (\p -> heistLocal (bindSplices 
-      [ ("post", postSplice p)
-      , ("page-title", pageTitleSplice $ Just $ postTitle p)
+      [ ("post", return [renderResult p])
+      , ("metadata", metadataSplice $ defaultMetadata 
+        { metaTitle = Just $ postTitle p
+        , metaUrl = "/post/" `T.append` (T.decodeUtf8 $ url) 
+        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderResult p)
+        , metaDescription = getDescription $ renderResult p
+        })
       ]) $ render "post") post
+  where
+    renderResult post = renderSinglePost post
 
-postSplice :: Post -> Splice AppHandler
-postSplice post = return [renderSinglePost post] 
-        
+    emptyDescription = "Мой персональный блог"
+
+    -- filter .post-tags
+    getDescription :: Node -> Text
+    getDescription = maybe emptyDescription 
+      (until (not . T.null) (\_ -> emptyDescription) . getDescription') . 
+      findChild (checkMainDiv . current) . fromNode
+    checkMainDiv node = (maybe False (== "div") $ tagName node) &&
+      (maybe False (== "articleBody") $ getAttribute "itemprop" node)
+
+    getDescription' :: Cursor -> Text
+    getDescription' = cutDescription . transformDescription .
+      T.intercalate " " . map nodeText . filter checkParagraph .
+      maybe [] siblings . firstChild
+    -- getDescription' = nodeText . current
+    checkParagraph = maybe False (`elem` ["p", "h2", "h3", "h4", "h5", "h6"]) . tagName
+
+    transformDescription = T.replace "\n" " "
+    cutDescription d
+      | T.length d > 512 = (T.stripEnd $ fst $ T.breakOnEnd " " $ T.take 512 d) `T.append` "..."
+      | otherwise = d
+
+    getImage :: Node -> Maybe Text
+    getImage = 
+      maybe Nothing (        
+        maybe Nothing (getAttribute "src" . current) . 
+        findChild (maybe False (== "img") . tagName . current)
+      ) . findRec (checkFigure . current) . fromNode      
+    checkFigure node = (maybe False (== "div") $ tagName node) &&
+      (maybe False (== "figure") $ getAttribute "class" node)
+
 -- |
 -- About me action
 --
 aboutMe :: AppHandler ()
 aboutMe = heistLocal (bindSplices
   [ ("about", aboutSplice)
-  , ("page-title", pageTitleSplice $ Just "Обо мне")
+  , ("metadata", metadataSplice $ defaultMetadata 
+    { metaTitle = Just "Обо мне"
+    , metaUrl = "/about"
+    , metaType = FacebookProfile
+    })
   ] ) $ render "about"
   
 aboutSplice :: Splice AppHandler
@@ -152,7 +198,10 @@ aboutSplice = do
 shoutbox :: AppHandler ()
 shoutbox = heistLocal (bindSplices
   [ ("shoutbox", shoutboxSplice)
-  , ("page-title", pageTitleSplice $ Just "Shoutbox")
+  , ("metadata", metadataSplice $ defaultMetadata 
+    { metaTitle = Just "Shoutbox"
+    , metaUrl = "/shoutbox"
+    })
   ] ) $ render "shoutbox"
   
 shoutboxSplice :: Splice AppHandler
@@ -166,7 +215,10 @@ shoutboxSplice = do
 latestMovies :: AppHandler ()
 latestMovies = heistLocal (bindSplices
   [ ("latest", latestMoviesSplice)
-  , ("page-title", pageTitleSplice $ Just "Последние просмотренные фильмы")
+  , ("metadata", metadataSplice $ defaultMetadata 
+    { metaTitle = Just "Последние просмотренные фильмы"
+    , metaUrl = "/latest"
+    })
   ] ) $ render "latest"
   
 latestMoviesSplice :: Splice AppHandler
@@ -251,19 +303,6 @@ navigationSplice = do
       , TextNode " "
       ]
 
-
-pageTitleSplice :: Maybe Text -> Splice AppHandler
-pageTitleSplice Nothing = 
-  return 
-    [ Element "title" [] 
-      [ TextNode "[dikmax's blog]" ]
-    ]
-pageTitleSplice (Just t) = 
-  return 
-    [ Element "title" [] 
-      [ TextNode $ t `T.append` " :: [dikmax's blog]" ]
-    ]
-
 revisionSplice :: Splice AppHandler
 revisionSplice = 
   return [ TextNode resourcesRevision ]
@@ -323,7 +362,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
   where
     commonSplices = bindSplices 
       [ ("navigation", navigationSplice)
-      , ("page-title", pageTitleSplice Nothing)
+      , ("metadata", metadataSplice defaultMetadata)
       , ("revision", revisionSplice)
       ] 
       defaultHeistState
