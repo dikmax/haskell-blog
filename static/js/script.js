@@ -197,6 +197,19 @@ $(function() {
         return false;
     });
 
+    // Show mini statistics in vault
+    if (document.location.pathname.indexOf('/vault') === 0) {        
+        var publishedCount = 0;
+        var posts = $('.vault-posts-list tr[data-rowid]');
+        posts.each(function (i, item) {
+            if ($(item).find('td:nth-child(2)').text() === '+') {
+                ++publishedCount;
+            }
+        });
+        $('.vault-posts-count').text('Записей: ' + posts.length);
+        $('.vault-published-count').text('Опубликовано: ' + publishedCount)
+    }
+
     // Refresh page in vault
     if (document.location.pathname.indexOf('/vault/edit') === 0) {
         $('#post-url').change(function () {
@@ -332,12 +345,3 @@ $(function() {
         });
     }
 });
-
-var getDescription = function (node) {
-    var child = findChild(
-        function (cursor) {
-            return checkMainDiv(current(cursor))
-        }, fromNode(node)
-    );
-    return child ? getDescription_(child) : emptyDescription;
-}

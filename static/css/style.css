@@ -298,6 +298,9 @@ code.sourceCode.highlighted .line:hover {
 	background: #073642;
 }
 
+.vault-statistics {
+	text-align: right;
+}
 /*pre.sourceCode span.Normal { }
 pre.sourceCode span.Keyword, pre.sourceCode span.kw { font-weight: bold; } 
 pre.sourceCode span.DataType, pre.sourceCode span.dt { color: #ff0; }
