@@ -157,7 +157,6 @@ showPost = do
     getDescription' = cutDescription . transformDescription .
       T.intercalate " " . map nodeText . filter checkParagraph .
       maybe [] siblings . firstChild
-    -- getDescription' = nodeText . current
     checkParagraph = maybe False (`elem` ["p", "h2", "h3", "h4", "h5", "h6"]) . tagName
 
     transformDescription = T.replace "\n" " "

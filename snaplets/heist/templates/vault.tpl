@@ -6,6 +6,10 @@
 	<div class="container">
 	    <a class="btn" href="/vault/edit">Новая запись</a>
 	    <a class="btn" href="/vault/files">Управление файлами</a>
+	    <div class="pull-right vault-statistics">
+		    <span class="label label-info vault-posts-count"></span><br />
+		    <span class="label label-success vault-published-count"></span>
+	    </div>
 	    <table class="table table-striped table-hover vault-posts-list">
 	    	<colgroup>
 	    		<col width="100" />
