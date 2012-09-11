@@ -261,8 +261,8 @@ navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqURI
   tags <- lift getTags
-  return [Element "div" [("class", "nav-collapse")] [
-      Element "ul" [("class", "nav")] $
+  return [Element "div" [("class", "nav-collapse topnavbar-collapsible-block")] [
+      Element "ul" [("class", "nav topnavbar-collapsible-content")] $
         (createList $ T.pack $ normalizeRequest $ unpack request) ++
         [ Element "li" [("class", "themes-box-toggle")]
           [ Element "a" [] [TextNode "Темы"]

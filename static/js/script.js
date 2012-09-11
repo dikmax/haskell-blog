@@ -20,17 +20,17 @@ $(function() {
         }
         clearInterval(commentsInterval);
         counters.each(function (i, item) {
-            item = $(item);
-            var text = item.text();
+            var $item = $(item);
+            var text = $item.text();
             var match = text.match(/^(\d+) комментариев/);
             if (match) {
                 var count = Number(match[1]);
                 if (Math.round(count % 100 / 10) != 1) {
                     var count10 = count % 10;
                     if (count10 == 1) {
-                        item.text(count + ' комментарий');
+                        $item.text(count + ' комментарий');
                     } else if (count10 >= 2 && count10 <= 4) {
-                        item.text(count + ' комментария');
+                        $item.text(count + ' комментария');
                     }
                 }
             }            
@@ -39,8 +39,8 @@ $(function() {
 
     // Process code
     $('pre > code').each(function () {
-        var html = $(this).html();
-        var lines = html.split('\n');
+        var $html = $(this).html();
+        var lines = $html.split('\n');
         lines = $.map(lines, function (item, i) {
             return '<span class="line">' + item + '</span>';            
         });
@@ -51,24 +51,24 @@ $(function() {
 
     // Inline footnotes
     $('.footnotes').each(function (i, footnotes) {
-        footnotes = $(footnotes);
-        footnotes.find('li').each(function (i, item) {
-            item = $(item);
-            var forId = item.attr('data-for');
+        var $footnotes = $(footnotes);
+        $footnotes.find('li').each(function (i, item) {
+            var $item = $(item);
+            var forId = $item.attr('data-for');
             if (!forId) {
                 return;
             }
             $("#" + forId).popover({
                 placement: 'top',
                 trigger: 'manual',
-                title: "Примечание " + (item.index() + 1),
-                content: item.html()
+                title: "Примечание " + ($item.index() + 1),
+                content: $item.html()
             });
             $('#' +forId).click(function (node) {
                 $(this).popover('toggle');
             });
         });
-        footnotes.remove();
+        $footnotes.remove();
     });
 
     // Themes toggle
@@ -175,7 +175,6 @@ $(function() {
             topSpan.append(item);            
         });
         $('.latest-movies ul').replaceWith(topSpan);
-        console.log(movies);
     }
 
     // Vault table list
@@ -275,7 +274,7 @@ $(function() {
         $.post(
             '/vault/fileshandler', 
             {
-                action: 'getContainersList',
+                action: 'getContainersList'
             }, 
             function (data) {
                 if (!data.success) {
@@ -317,11 +316,11 @@ $(function() {
                         for (var i = 0; i < length; ++i) {
                             var c = data.result[i];
                             str += '<tr><td><a href="' + 
-                                containers[container].cdn_uri + '/' + 
+                                containers[container]['cdn_uri'] + '/' + 
                                 c.name + '" target="_blank">' + c.name + 
-                                '</a></td><td>' + c.bytes +
-                                '</td><td>' + c.content_type +
-                                '</td><td>' + c.last_modified +
+                                '</a></td><td>' + c['bytes'] +
+                                '</td><td>' + c['content_type'] +
+                                '</td><td>' + c['last_modified'] +
                                 '</td></tr>';
                         }
                         $('.files-list tbody').html(str);
