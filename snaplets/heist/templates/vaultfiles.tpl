@@ -7,7 +7,7 @@
     <a class="btn" href="/vault">Список записей</a>
     <div class="row">
         <div class="span3">
-            <table class="containers-list table table-stripped">
+            <table class="containers-list table table-stripped table-hover">
                 <thead>
                     <tr><th>Контейнеры</th></tr>
                 </thead>
@@ -21,9 +21,9 @@
                 <input type="file" name="file" style="position: absolute; top: -100px; left: -100px;" id="file-upload" />
                 <button class="btn" type="button" id="file-button">Выбрать</button>
                 <input type="text" name="name" id="file-name" placeholder="Под именем" />
-                <button class="btn" type="submit">Отправить</button>
+                <button class="btn" id="file-submit">Отправить</button>
             </form>
-            <table class="files-list table table-stripped">
+            <table class="files-list table table-stripped table-hover">
                 <thead>
                     <tr>
                         <th>Имя</th>

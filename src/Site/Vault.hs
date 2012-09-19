@@ -130,7 +130,11 @@ vaultPostForm (Post id title text url date published special tags) =
             , ("class", "btn btn-primary")
             ] 
             [TextNode "Сохранить"]
-          , Element "button" [("class", "btn")] [TextNode "Отмена"]
+          , Element "button"
+            [ ("type", "reset")
+            , ("class", "btn")
+            ]
+            [TextNode "Отмена"]
           , Element "button" 
             [ ("class", "btn btn-refresh") ] 
             [ TextNode "Обновить" ]

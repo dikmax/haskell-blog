@@ -51,6 +51,7 @@ h1 {
 	width: 32px;
 	height: 32px;
 	display: inline-block;
+    cursor: pointer;
 }
 
 .actions span.action-delete {
@@ -301,6 +302,15 @@ code.sourceCode.highlighted .line:hover {
 .vault-statistics {
 	text-align: right;
 }
+
+.vault-posts-list tbody td, .containers-list tbody td {
+    cursor: pointer;
+}
+.vault-posts-list tbody td.actions {
+    cursor: default;
+}
+
+
 /*pre.sourceCode span.Normal { }
 pre.sourceCode span.Keyword, pre.sourceCode span.kw { font-weight: bold; } 
 pre.sourceCode span.DataType, pre.sourceCode span.dt { color: #ff0; }
