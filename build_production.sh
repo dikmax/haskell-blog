@@ -1,18 +1,6 @@
 #!/bin/sh
 
-./update_templates.sh
-
-echo "Fixing style..."
-fixjsstyle --nojsdoc -r static/js/dikmax
-
-echo "Updating dependencies..."
-closure/library/build/depswriter.py \
-  --root_with_prefix="static/js/third_party ../third_party" \
-  --root_with_prefix="static/js/soy ../soy" \
-  --root_with_prefix="static/js/dikmax ../dikmax" \
-  --root=static/js/goog --output_file=static/js/goog/deps.js
-
-echo "Compiling testing version..."
+echo "Compiling javascript..."
 closure/library/build/closurebuilder.py \
   --root=static/js/dikmax/ \
   --root=static/js/goog/ \
