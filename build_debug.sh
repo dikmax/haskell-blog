@@ -12,6 +12,9 @@ closure/library/build/depswriter.py \
   --root_with_prefix="static/js/dikmax ../dikmax" \
   --root=static/js/goog --output_file=static/js/goog/deps.js
 
+echo "Building highlight.js..."
+./build_highlightjs.sh
+
 echo "Compiling testing version..."
 closure/library/build/closurebuilder.py \
   --root=static/js/dikmax/ \
@@ -21,7 +24,7 @@ closure/library/build/closurebuilder.py \
   --namespace="dikmax.main" \
   --output_mode=compiled \
   --compiler_jar=closure/compiler/compiler.jar \
-  --compiler_flags="--externs=closure/compiler/externs/highlight.js" \
+  --compiler_flags="--js=static/js/highlight.pack.js" \
   --compiler_flags="--externs=closure/compiler/externs/webkit_console.js" \
   --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" \
   --compiler_flags="--use_types_for_optimization" \
