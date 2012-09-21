@@ -103,24 +103,36 @@ renderPostInList post =
       , Element "link" [("itemprop", "url"), ("content", "http://dikmax.name/about")] []
       , Element "link" [("itemprop", "url"), ("content", "https://plus.google.com/109129288587536990618/posts")] []
       ],
-    Element "p" 
-      [ ("class", "post-date")
-      , ("itemprop", "dateCreated")
-      , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ postDate post)
-      ] 
-      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
-        postDate post],
     Element "h1" [("class", "post-title"), ("itemprop", "name")] [
       Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "url")] 
         [TextNode $ postTitle post]
     ],
-    renderPostBody post "articleBody",
-    Element "p" [("class", "post-comments")] [
-      Element "a" [("href", "/post/" `T.append` 
-        postUrl post `T.append` "#disqus_thread" ), ("itemprop", "discussionUrl")] 
-        [TextNode "Считаем комментарии..."]
-    ]
+    addCommentsBlock (postDate post) $ renderPostBody post "articleBody"
   ]
+  where
+    addCommentsBlock :: LocalTime -> Node -> Node
+    addCommentsBlock time = maybe (TextNode "")
+      (maybe (TextNode "") topNode . insertManyLastChild
+      [ TextNode " | "
+      , Element "i" [("class" , "icon-calendar")] []
+      , TextNode " "
+      , Element "span"
+        [ ("itemprop", "dateCreated")
+        , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
+        ]
+        [ TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time ]
+      , TextNode " | "
+      , Element "i" [("class" , "icon-comment")] []
+      , TextNode " "
+      , Element "span" [("class", "post-comments")]
+        [ Element "a"
+          [ ("href", "/post/" `T.append`
+            postUrl post `T.append` "#disqus_thread" )
+          , ("itemprop", "discussionUrl")
+          ]
+          [ TextNode "Считаем комментарии..." ]
+        ]
+      ]) . lastChild . fromNode
 
 -- |
 -- Show post Action

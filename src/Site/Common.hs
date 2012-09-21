@@ -8,6 +8,7 @@ import Data.Time
 import System.Locale
 import Text.Templating.Heist
 import Text.XmlHtml hiding (render)
+import Text.XmlHtml.Cursor
 import Text.Pandoc
 --import Text.Pandoc.Highlighting
 --import Text.Pandoc.Shared
@@ -45,28 +46,48 @@ timeLocale = defaultTimeLocale
 
 renderTags :: [Text] -> [Node]
 renderTags [] = []
-renderTags tags = [Element "div" [("class", "post-tags"), ("itemprop", "keywords")] $ renderTags' tags]
+renderTags tags =
+  [ Element "p" []
+    [ Element "span" [("itemprop", "keywords")] $ renderTags' tags ]
+  ]
+
   where
-    renderTags' (t:[]) = [Element "a" [("href", "/tag/" `T.append` t)]
-      [TextNode t]]
-    renderTags' (t:ts) = [Element "a" [("href", "/tag/" `T.append` t)]
-      [TextNode t], TextNode ", "] ++ renderTags' ts
+    renderTags' (t:[]) =
+      [ Element "a" [("href", "/tag/" `T.append` t)]
+        [ Element "span" [("class", "label")]
+          [ TextNode t ]
+        ]
+      ]
+    renderTags' (t:ts) =
+      [ Element "a" [("href", "/tag/" `T.append` t)]
+        [ Element "span" [("class", "label")]
+          [ TextNode t ]
+        ]
+      , TextNode " "
+      ] ++ renderTags' ts
     renderTags' _ = []
 
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
   Element "article" [("class", "post")] [
-    Element "p" 
-      [ ("class", "post-date")
-      , ("itemprop", "dateCreated")
-      , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
-      ]
-      [TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R." $ 
-        postDate post],
-    Element "h1" [("class", "post-title"), ("itemprop", "name")] 
+    Element "h1" [("class", "post-title"), ("itemprop", "name")]
       [TextNode $ postTitle post],
-    renderPostBody post "articleBody"
+    addCommentsBlock (postDate post) $ renderPostBody post "articleBody"
   ]
+  where
+    addCommentsBlock :: LocalTime -> Node -> Node
+    addCommentsBlock time = maybe (TextNode "")
+      (maybe (TextNode "") topNode . insertManyLastChild
+      [ TextNode " | "
+      , Element "i" [("class" , "icon-calendar")] []
+      , TextNode " "
+      , Element "span"
+        [ ("itemprop", "dateCreated")
+        , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
+        ]
+        [ TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time ]
+      ]) . lastChild . fromNode
+
 
 -- TODO create my own writer (instead of writeHml) with blackjack and hookers  
 renderPostBody :: Post -> Text -> Node
