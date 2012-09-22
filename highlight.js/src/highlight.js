@@ -3,6 +3,7 @@ Syntax highlighting with language autodetection.
 http://softwaremaniacs.org/soft/highlight/
 */
 
+/** @constructor */
 function() {
 
   /* Utility functions */
@@ -136,6 +137,11 @@ function() {
 
   function compileLanguage(language) {
 
+    /**
+     * @param {string} value
+     * @param {boolean=} global
+     * @return {RegExp}
+     */
     function langRe(value, global) {
       return RegExp(
         value,
@@ -143,6 +149,10 @@ function() {
       );
     }
 
+    /**
+     * @param {Object} mode
+     * @param {Object=} parent
+     */
     function compileMode(mode, parent) {
       if (mode.compiled)
         return;
@@ -449,10 +459,14 @@ function() {
     return value;
   }
 
-  /*
-  Applies highlighting to a DOM node containing code. Accepts a DOM node and
-  two optional parameters for fixMarkup.
-  */
+  /**
+   * Applies highlighting to a DOM node containing code. Accepts a DOM node and
+   * two optional parameters for fixMarkup.
+   *
+   * @param {Element} block
+   * @param {boolean=} tabReplace
+   * @param {boolean=} useBR
+   */
   function highlightBlock(block, tabReplace, useBR) {
     var text = blockText(block, useBR);
     var language = blockLanguage(block);
@@ -497,7 +511,7 @@ function() {
     initHighlighting.called = true;
     Array.prototype.map.call(document.getElementsByTagName('pre'), findCode).
       filter(Boolean).
-      forEach(function(code){highlightBlock(code, hljs.tabReplace)});
+      forEach(function(code){highlightBlock(code, hljs['tabReplace'])});
   }
 
   /*

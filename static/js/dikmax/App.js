@@ -30,7 +30,7 @@ dikmax.App = function() {
  * Inits application
  */
 dikmax.App.prototype.init = function() {
-    hljs.initHighlighting();
+    //hljs.initHighlighting();
 
     this.topNavBar_();
 
@@ -124,19 +124,23 @@ dikmax.App.prototype.changeCommentText_ = function(item) {
  * @private
  */
 dikmax.App.prototype.updateCodeListings_ = function() {
-    var code = goog.dom.getElementsByTagNameAndClass('code');
-
-    code = goog.array.filter(code, function(item) {
-        return item.parentNode instanceof HTMLPreElement;
+    var blocks = goog.dom.getElementsByTagNameAndClass('code', 'sourceCode');
+    goog.array.forEach(blocks, function(block) {
+        hljs.highlightBlock(block);
     });
-    goog.array.forEach(code, function(item) {
-        /** @type {string} */
-        var html = item.innerHTML;
-        var lines = html.split('\n');
-        goog.soy.renderElement(item, dikmax.Templates.codeWrapper,
-            {lines: lines});
-        goog.dom.classes.add(item, 'highlighted');
-    });
+//    var code = goog.dom.getElementsByTagNameAndClass('code');
+//
+//    code = goog.array.filter(code, function(item) {
+//        return item.parentNode instanceof HTMLPreElement;
+//    });
+//    goog.array.forEach(code, function(item) {
+//        /** @type {string} */
+//        var html = item.innerHTML;
+//        var lines = html.split('\n');
+//        goog.soy.renderElement(item, dikmax.Templates.codeWrapper,
+//            {lines: lines});
+//        goog.dom.classes.add(item, 'highlighted');
+//    });
 };
 
 /**
