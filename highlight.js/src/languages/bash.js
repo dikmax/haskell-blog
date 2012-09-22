@@ -36,8 +36,8 @@ function(hljs) {
 
   return {
     keywords: {
-      keyword: 'if then else fi for break continue while in do done echo exit return set declare',
-      literal: BASH_LITERAL
+      "keyword": 'if then else fi for break continue while in do done echo exit return set declare',
+      "literal": BASH_LITERAL
     },
     contains: [
       {

@@ -11,7 +11,7 @@ function(hljs) {
         begin: '(begin|start|commit|rollback|savepoint|lock|alter|create|drop|rename|call|delete|do|handler|insert|load|replace|select|truncate|update|set|show|pragma|grant)\\b(?!:)', // negative look-ahead here is specifically to prevent stomping on SmallTalk
         end: ';', endsWithParent: true,
         keywords: {
-          keyword: 'all partial global month current_timestamp using go revoke smallint ' +
+          "keyword": 'all partial global month current_timestamp using go revoke smallint ' +
             'indicator end-exec disconnect zone with character assertion to add current_user ' +
             'usage input local alter match collate real then rollback get read timestamp ' +
             'session_user not integer bit unique day minute desc insert execute like ilike|2 ' +
@@ -31,7 +31,7 @@ function(hljs) {
             'update catalog user sql date on identity timezone_hour natural whenever interval ' +
             'work order cascade diagnostics nchar having left call do handler load replace ' +
             'truncate start lock show pragma exists number',
-          aggregate: 'count sum min max avg'
+          "aggregate": 'count sum min max avg'
         },
         contains: [
           {

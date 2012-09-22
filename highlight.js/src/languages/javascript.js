@@ -5,11 +5,11 @@ Language: JavaScript
 function(hljs) {
   return {
     keywords: {
-      keyword:
+      "keyword":
         'in if for while finally var new function do return void else break catch ' +
         'instanceof with throw case default try this switch continue typeof delete ' +
         'let yield const',
-      literal:
+      "literal":
         'true false null undefined NaN Infinity'
     },
     contains: [

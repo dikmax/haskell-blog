@@ -33,4 +33,8 @@ closure/library/build/closurebuilder.py \
   --compiler_flags="--formatting=PRETTY_PRINT" \
   --compiler_flags="--formatting=PRINT_INPUT_DELIMITER" \
   --compiler_flags="--charset=UTF-8" \
+  --compiler_flags="--create_source_map=./script.testing.js.map" \
   > static/js/script.testing.js
+
+# TODO Replace "script/ to "/ in script.testing.js.map
+# TODO Add comment //@ sourceMappingURL=script.testing.js.map
