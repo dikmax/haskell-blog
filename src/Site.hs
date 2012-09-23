@@ -33,6 +33,7 @@ import           Config
 import           Database
 import           Site.Common
 import           Site.Rss
+import           Site.Sitemap
 import           Site.Vault
 import           Site.Vault.Files
 import           Site.Utils
@@ -336,6 +337,7 @@ routes =
   , ("/shoutbox", shoutbox)
   , ("/latest", latestMovies)
   , ("/rss", rss)
+  , ("/sitemap.xml", sitemap)
   , ("/vault", method POST vaultAction)
   , ("/vault", vault)
   , ("/vault/edit", vaultAllowed vaultEdit)
