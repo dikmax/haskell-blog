@@ -17,6 +17,9 @@ tar --lzma \
   --exclude 'static/js/goog/*' --exclude 'static/js/goog' \
   --exclude 'static/js/soy/*' --exclude 'static/js/soy' \
   --exclude 'static/js/third_party/*' --exclude 'static/js/third_party' \
+  --exclude 'static/js/highlight.pack.js' \
+  --exclude 'static/css/bootstrap-responsive.css' \
+  --exclude 'static/css/bootstrap.css' \
   -cf haskell-blog.tar.lzma haskell-blog snaplets static
 
 echo "Transfer achive to server..."
