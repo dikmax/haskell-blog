@@ -19,10 +19,9 @@ dikmax.FootnotePosition = function(trigger) {
 goog.inherits(dikmax.FootnotePosition, goog.positioning.AbstractPosition);
 
 dikmax.FootnotePosition.prototype.reposition = function(movableElement) {
-    /**
-     * @type {goog.math.Rect}
-     */
+    /** @type {goog.math.Rect} */
     var movableBounds = goog.style.getBounds(movableElement);
+    /** @type {goog.math.Rect} */
     var anchorBounds = goog.style.getBounds(this.trigger);
     goog.positioning.positionAtAnchor(this.trigger,
         goog.positioning.Corner.TOP_LEFT,

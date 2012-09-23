@@ -1,6 +1,7 @@
 goog.provide('dikmax.App');
 
 goog.require('dikmax.CodeSaxHandler');
+goog.require('dikmax.CodeTooltip');
 goog.require('dikmax.FootnotePopover');
 goog.require('dikmax.Templates');
 goog.require('goog.Timer');
@@ -141,6 +142,8 @@ dikmax.App.prototype.updateCodeListings_ = function() {
             {lines: handler.getLines()});
         goog.dom.classes.add(block, 'highlighted');
     });
+
+    new dikmax.CodeTooltip();
 };
 
 /**
