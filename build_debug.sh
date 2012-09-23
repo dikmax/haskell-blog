@@ -36,5 +36,5 @@ closure/library/build/closurebuilder.py \
   --compiler_flags="--create_source_map=./script.testing.js.map" \
   > static/js/script.testing.js
 
-# TODO Replace "script/ to "/ in script.testing.js.map
-# TODO Add comment //@ sourceMappingURL=script.testing.js.map
+sed -i 's/"static\//"\//g' static/js/script.testing.js.map
+echo "//@ sourceMappingURL=script.testing.js.map" >> static/js/script.testing.js
