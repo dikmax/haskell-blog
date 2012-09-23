@@ -1,5 +1,6 @@
 goog.provide('dikmax.App');
 
+goog.require('dikmax.CodeSaxHandler');
 goog.require('dikmax.FootnotePopover');
 goog.require('dikmax.Templates');
 goog.require('goog.Timer');
@@ -17,6 +18,7 @@ goog.require('goog.net.XhrIo');
 goog.require('goog.soy');
 goog.require('goog.string');
 goog.require('goog.string.StringBuffer');
+goog.require('goog.string.html.HtmlParser');
 goog.require('goog.ui.HoverCard');
 goog.require('goog.userAgent');
 
@@ -124,23 +126,21 @@ dikmax.App.prototype.changeCommentText_ = function(item) {
  * @private
  */
 dikmax.App.prototype.updateCodeListings_ = function() {
+    /** @type {{length: number}} */
     var blocks = goog.dom.getElementsByTagNameAndClass('code', 'sourceCode');
+    blocks = goog.array.filter(blocks, function(item) {
+        return item.parentNode instanceof HTMLPreElement;
+    });
+    var parser = new goog.string.html.HtmlParser();
+    var handler = new dikmax.CodeSaxHandler();
     goog.array.forEach(blocks, function(block) {
         hljs.highlightBlock(block);
+
+        parser.parse(handler, block.innerHTML);
+        goog.soy.renderElement(block, dikmax.Templates.codeWrapper,
+            {lines: handler.getLines()});
+        goog.dom.classes.add(block, 'highlighted');
     });
-//    var code = goog.dom.getElementsByTagNameAndClass('code');
-//
-//    code = goog.array.filter(code, function(item) {
-//        return item.parentNode instanceof HTMLPreElement;
-//    });
-//    goog.array.forEach(code, function(item) {
-//        /** @type {string} */
-//        var html = item.innerHTML;
-//        var lines = html.split('\n');
-//        goog.soy.renderElement(item, dikmax.Templates.codeWrapper,
-//            {lines: lines});
-//        goog.dom.classes.add(item, 'highlighted');
-//    });
 };
 
 /**
