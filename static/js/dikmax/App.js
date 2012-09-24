@@ -23,13 +23,18 @@ goog.require('goog.string.html.HtmlParser');
 goog.require('goog.ui.HoverCard');
 goog.require('goog.userAgent');
 
+/** @define {boolean} */
+var EXCLUDE_FRONT = false;
+/** @define {boolean} */
+var EXCLUDE_VAULT = false;
+
 /**
  * @constructor
  */
 dikmax.App = function() {
 };
 
-dikmax.App.initMobile_ = function () {
+dikmax.App.initMobile_ = function() {
     var ua = goog.userAgent.getUserAgentString();
 
     /**
@@ -50,16 +55,16 @@ dikmax.App.prototype.init = function() {
     dikmax.App.initMobile_();
 
     var pathname = document.location.pathname;
-    if (goog.string.startsWith(pathname, '/vault/edit')) {
+    if (!EXCLUDE_VAULT && goog.string.startsWith(pathname, '/vault/edit')) {
         this.setupDuplicateUrlChecker_();
         this.setupRenderer_();
         this.renderVaultPreview_();
-    } else if (goog.string.startsWith(pathname, '/vault/files')) {
+    } else if (!EXCLUDE_VAULT && goog.string.startsWith(pathname, '/vault/files')) {
         this.setupFileManager_();
-    } else if (goog.string.startsWith(pathname, '/vault')) {
+    } else if (!EXCLUDE_VAULT && goog.string.startsWith(pathname, '/vault')) {
         this.vaultEventHandlers_();
         this.showVaultStatistics_();
-    } else {
+    } else if (!EXCLUDE_FRONT) {
         if (dikmax.App.MOBILE) {
             goog.dom.classes.add(document.body, 'mobile');
         } else {
