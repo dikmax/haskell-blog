@@ -3,7 +3,7 @@
 ./update_templates.sh
 
 echo "Fixing style..."
-fixjsstyle --nojsdoc -r static/js/dikmax
+fixjsstyle --strict -r static/js/dikmax -x static/js/dikmax/Templates.js
 
 echo "Updating dependencies..."
 closure/library/build/depswriter.py \
