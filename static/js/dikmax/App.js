@@ -149,24 +149,36 @@ dikmax.App.prototype.changeCommentText_ = function(item) {
  * @private
  */
 dikmax.App.prototype.updateCodeListings_ = function() {
+    if (this.highlighBlocks_()) {
+        new dikmax.CodeTooltip();
+    }
+};
+
+/**
+ * @private
+ * @return {boolean}
+ */
+dikmax.App.prototype.highlighBlocks_ = function () {
     /** @type {{length: number}} */
     var blocks = goog.dom.getElementsByTagNameAndClass('code', 'sourceCode');
     blocks = goog.array.filter(blocks, function(item) {
         return item.parentNode instanceof HTMLPreElement;
     });
-    var parser = new goog.string.html.HtmlParser();
-    var handler = new dikmax.CodeSaxHandler();
-    goog.array.forEach(blocks, function(block) {
-        hljs.highlightBlock(block);
+    if (blocks.length) {
+        var parser = new goog.string.html.HtmlParser();
+        var handler = new dikmax.CodeSaxHandler();
+        goog.array.forEach(blocks, function(block) {
+            hljs.highlightBlock(block);
 
-        parser.parse(handler, block.innerHTML);
-        goog.soy.renderElement(block, dikmax.Templates.codeWrapper,
-            {lines: handler.getLines()});
-        goog.dom.classes.add(block, 'highlighted');
-    });
+            parser.parse(handler, block.innerHTML);
+            goog.soy.renderElement(block, dikmax.Templates.codeWrapper,
+                {lines: handler.getLines()});
+            goog.dom.classes.add(block, 'highlighted');
+        });
+    }
 
-    new dikmax.CodeTooltip();
-};
+    return blocks.length > 0;
+}
 
 /**
  * @private
@@ -434,12 +446,14 @@ dikmax.App.prototype.renderVaultPreview_ = function(formData) {
         formData = goog.dom.forms.getFormDataString(form);
     }
 
+    var me = this;
     goog.net.XhrIo.send('/vault/renderpost', function(e) {
         /** @type {goog.net.XhrIo} */
         var request = e.target;
         if (request.isSuccess()) {
             goog.dom.getElementByClass('render-area').innerHTML =
                 request.getResponseText();
+            me.highlighBlocks_();
         }
     }, 'POST', formData);
 };
@@ -448,6 +462,8 @@ dikmax.App.prototype.renderVaultPreview_ = function(formData) {
  * @private
  */
 dikmax.App.prototype.setupRenderer_ = function() {
+    new dikmax.CodeTooltip();
+
     goog.events.listen(goog.dom.getElementByClass('btn-refresh'),
         goog.events.EventType.CLICK, function(e) {
             this.renderVaultPreview_();
