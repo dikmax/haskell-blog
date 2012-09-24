@@ -17,6 +17,6 @@
     </div>
     <apply template="footer"/>
 </div>
-<apply template="foot"/>
+<apply template="vaultfoot"/>
 </body>
 </html>

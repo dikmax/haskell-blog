@@ -37,6 +37,6 @@
         </div>
     </div>
 </div>
-<apply template="foot"/>
+<apply template="vaultfoot"/>
 </body>
 </html>
