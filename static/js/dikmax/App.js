@@ -74,6 +74,7 @@ dikmax.App.prototype.init = function() {
         this.updateCodeListings_();
         this.inlineFootnotes_();
         this.transformLatestMovies_();
+        this.setupKeyboardNavigation_();
     }
 };
 
@@ -635,4 +636,28 @@ dikmax.App.prototype.setupFileManager_ = function() {
             e.preventDefault();
         }
     );
+};
+
+/**
+ * @private
+ */
+dikmax.App.prototype.setupKeyboardNavigation_ = function () {
+    goog.events.listen(document, goog.events.EventType.KEYDOWN, function (e) {
+        if (e.ctrlKey) {
+            var link;
+            if (e.keyCode === 37) {
+                // Previous page link
+                link = goog.dom.getElementByClass('previous');
+            } else if (e.keyCode === 39) {
+                // Next page link
+                link = goog.dom.getElementByClass('next');
+            }
+            if (link && goog.dom.getAncestorByClass(link, 'pager')) {
+                var anchor = goog.dom.getElementsByTagNameAndClass('a', null, link);
+                if (anchor.length) {
+                    document.location = anchor[0].getAttribute('href');
+                }
+            }
+        }
+    });
 };
