@@ -71,13 +71,16 @@ paginationSplice page tag = do
     prevDisabled = page * postsPerPage >= postsCount  
     
     prevLink :: Text
-    prevLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag 
+    prevLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
       `T.append` "/page/" `T.append` (T.pack $ show (page + 1))
     
     nextDisabled = page <= 1
 
     nextLink :: Text
-    nextLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
+    nextLink = if nextLink_ == "" then "/" else nextLink_
+
+    nextLink_ :: Text
+    nextLink_ = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
       `T.append`  if page == 2 then "" else "/page/" `T.append` 
         (T.pack $ show (page - 1))
 
