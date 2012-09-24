@@ -29,13 +29,25 @@ goog.require('goog.userAgent');
 dikmax.App = function() {
 };
 
+dikmax.App.initMobile_ = function () {
+    var ua = goog.userAgent.getUserAgentString();
+
+    /**
+     * @type {boolean}
+     */
+    dikmax.App.MOBILE = goog.userAgent.MOBILE
+        || ua.indexOf('Opera Mobi') !== -1
+        || ua.indexOf('Opera Mini') !== -1;
+};
+
+
 /**
  * Inits application
  */
 dikmax.App.prototype.init = function() {
-    //hljs.initHighlighting();
-
     this.topNavBar_();
+
+    dikmax.App.initMobile_();
 
     var pathname = document.location.pathname;
     if (goog.string.startsWith(pathname, '/vault/edit')) {
@@ -48,6 +60,11 @@ dikmax.App.prototype.init = function() {
         this.vaultEventHandlers_();
         this.showVaultStatistics_();
     } else {
+        if (dikmax.App.MOBILE) {
+            goog.dom.classes.add(document.body, 'mobile');
+        } else {
+            goog.dom.classes.add(document.body, 'no-mobile');
+        }
         this.updateCommentsText_();
         this.updateCodeListings_();
         this.inlineFootnotes_();
@@ -438,7 +455,7 @@ dikmax.App.prototype.setupRenderer_ = function() {
     var form = /** @type {HTMLFormElement} */
         (goog.dom.getElementByClass('post-form'));
 
-    if (!goog.userAgent.MOBILE) {
+    if (!dikmax.App.MOBILE) {
         var checkTimer = new goog.Timer(500);
         var formData = goog.dom.forms.getFormDataString(form);
         var newFormData = '';
