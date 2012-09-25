@@ -110,7 +110,7 @@ dikmax.App.prototype.commentsElements_ = null;
  */
 dikmax.App.prototype.updateCommentsText_ = function() {
   // Replace text in comments lint to proper Russian
-  var elements = goog.dom.getElementsByTagNameAndClass('p', 'post-comments');
+  var elements = goog.dom.getElementsByTagNameAndClass('span', 'post-comments');
   if (!elements.length) {
     return;
   }
