@@ -5,16 +5,13 @@
 
     <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss"/>
 
-    <link href="/css/bootstrap.css?v=${revision}" rel="stylesheet"/>
+    <!--<link href="/css/bootstrap.css?v=${revision}" rel="stylesheet"/>-->
     <style type="text/css">
-        body {
-            padding-top: 60px;
-            padding-bottom: 40px;
-        }
     </style>
-    <link href="/css/bootstrap-responsive.css?v=${revision}" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="/css/styles.css?v=${revision}" media="all"/>
+    <!--<link href="/css/bootstrap-responsive.css?v=${revision}" rel="stylesheet"/>
     <link href="/css/style.css?v=${revision}" rel="stylesheet"/>
-    <link href="/css/solarized_dark.css?v=${revision}" rel="stylesheet"/>
+    <link href="/css/solarized_dark.css?v=${revision}" rel="stylesheet"/>-->
 
     <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
