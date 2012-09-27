@@ -2,7 +2,7 @@
 <html lang="ru" xmlns:og="http://ogp.me/ns#">
 <apply template="head"/>
 
-<body itemscope="itemscope" itemtype="http://schema.org/Blog">
+<body itemscope="itemscope" itemtype="http://schema.org/Blog" class="${mobile}">
 <meta itemprop="name" content="[dikmax's blog]"/>
 <apply template="author"/>
 <apply template="topnav"/>

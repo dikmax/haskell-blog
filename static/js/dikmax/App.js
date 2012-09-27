@@ -76,11 +76,6 @@ dikmax.App.prototype.init = function() {
     this.vaultEventHandlers_();
     this.showVaultStatistics_();
   } else if (!EXCLUDE_FRONT) {
-    if (dikmax.App.MOBILE) {
-      goog.dom.classes.add(document.body, 'mobile');
-    } else {
-      goog.dom.classes.add(document.body, 'no-mobile');
-    }
     this.updateCommentsText_();
     this.updateCodeListings_();
     this.inlineFootnotes_();

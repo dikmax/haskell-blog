@@ -339,6 +339,17 @@ revisionSplice :: Splice AppHandler
 revisionSplice = 
   return [ TextNode resourcesRevision ]
 
+mobileSplice :: Splice AppHandler
+mobileSplice = do
+  userAgent <- withRequest (return . T.decodeUtf8 . maybe "" id . getHeader "User-Agent")
+
+  return [ TextNode $
+    if ("Opera Mobi" `T.isInfixOf` userAgent || "Opera Mini" `T.isInfixOf` userAgent ||
+        ((not $ "Opera" `T.isPrefixOf` userAgent) && ("WebKit" `T.isInfixOf` userAgent) && ("Mobile" `T.isInfixOf` userAgent))
+      )
+      then "mobile" else "no-mobile"
+    ]
+
 error404 :: AppHandler ()
 error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
@@ -397,6 +408,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       [ ("navigation", navigationSplice)
       , ("metadata", metadataSplice defaultMetadata)
       , ("revision", revisionSplice)
+      , ("mobile", mobileSplice)
       ] 
       defaultHeistState
   
