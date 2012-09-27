@@ -12,4 +12,4 @@ dikmax.main = function() {
   app.init();
 };
 
-goog.exportSymbol('main', dikmax.main);
+dikmax.main();

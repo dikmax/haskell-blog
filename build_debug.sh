@@ -25,7 +25,6 @@ closure/library/build/closurebuilder.py \
   --namespace="dikmax.main" \
   --output_mode=compiled \
   --compiler_jar=closure/compiler/compiler.jar \
-  --compiler_flags="--js=static/js/highlight.pack.js" \
   --compiler_flags="--externs=closure/compiler/externs/webkit_console.js" \
   --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" \
   --compiler_flags="--use_types_for_optimization" \
@@ -36,6 +35,7 @@ closure/library/build/closurebuilder.py \
   --compiler_flags="--charset=UTF-8" \
   --compiler_flags="--create_source_map=static/js/script.testing.js.map" \
   --compiler_flags="--define='EXCLUDE_VAULT=true'" \
+  static/js/highlight.pack.js \
   > static/js/script.testing.js
 
 sed -i 's/"static\//"\//g' static/js/script.testing.js.map
@@ -50,7 +50,6 @@ closure/library/build/closurebuilder.py \
   --namespace="dikmax.main" \
   --output_mode=compiled \
   --compiler_jar=closure/compiler/compiler.jar \
-  --compiler_flags="--js=static/js/highlight.pack.js" \
   --compiler_flags="--externs=closure/compiler/externs/webkit_console.js" \
   --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" \
   --compiler_flags="--use_types_for_optimization" \
@@ -61,6 +60,7 @@ closure/library/build/closurebuilder.py \
   --compiler_flags="--charset=UTF-8" \
   --compiler_flags="--create_source_map=static/js/script.vault.testing.js.map" \
   --compiler_flags="--define='EXCLUDE_FRONT=true'" \
+  static/js/highlight.pack.js \
   > static/js/script.vault.testing.js
 
 sed -i 's/"static\//"\//g' static/js/script.vault.testing.js.map
