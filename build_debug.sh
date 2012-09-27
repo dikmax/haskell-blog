@@ -1,5 +1,6 @@
 #!/bin/sh
 
+./build_styles.sh
 ./update_templates.sh
 
 echo "Fixing style..."

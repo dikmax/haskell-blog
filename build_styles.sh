@@ -1,3 +1,5 @@
 #!/bin/sh
 
-lessc --compress static/less/style.less static/css/styles.css
+echo "Building css..."
+lessc static/less/front.less static/css/style.css
+lessc static/less/vault.less static/css/vault.css

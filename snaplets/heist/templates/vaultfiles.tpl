@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-<apply template="head"/>
+<apply template="vaulthead"/>
 <body>
 <apply template="vaulttopnav"/>
 <div class="container vault-files">
