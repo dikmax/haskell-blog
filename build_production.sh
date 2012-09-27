@@ -1,5 +1,7 @@
 #!/bin/sh
 
+./build_styles.sh
+
 echo "Building highlight.js..."
 ./build_highlightjs.sh
 

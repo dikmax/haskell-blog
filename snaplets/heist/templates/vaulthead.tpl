@@ -5,7 +5,7 @@
 
     <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss"/>
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?v=${revision}" media="all"/>
+    <link rel="stylesheet" type="text/css" href="/css/vault.css?v=${revision}" media="all"/>
 
     <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
