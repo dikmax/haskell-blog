@@ -107,7 +107,7 @@ parserState = defaultParserState
   }
 
 resourcesRevision :: Text  
-resourcesRevision = "16";
+resourcesRevision = "17";
 
 --
 -- Metadata processing
