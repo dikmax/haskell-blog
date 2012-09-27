@@ -22,6 +22,7 @@ goog.require('goog.string.StringBuffer');
 goog.require('goog.string.html.HtmlParser');
 goog.require('goog.ui.HoverCard');
 goog.require('goog.userAgent');
+goog.require('hljs');
 
 
 /** @define {boolean} Don't include frontend part. */
