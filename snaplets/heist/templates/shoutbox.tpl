@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:og="http://ogp.me/ns#">
 <apply template="head"/>
-<body itemscope="itemscope" itemtype="http://schema.org/WebPage">
+<body itemscope="itemscope" itemtype="http://schema.org/WebPage" class="${mobile}">
 <meta itemprop="name" content="Shoutbox"/>
 <apply template="author"/>
 <apply template="topnav"/>

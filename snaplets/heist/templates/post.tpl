@@ -2,7 +2,7 @@
 <html lang="ru" xmlns:og="http://ogp.me/ns#">
 <apply template="head"/>
 
-<body itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+<body itemscope="itemscope" itemtype="http://schema.org/BlogPosting" class="${mobile}">
 <apply template="author"/>
 <apply template="topnav"/>
 
