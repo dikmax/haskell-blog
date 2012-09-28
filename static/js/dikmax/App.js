@@ -33,19 +33,19 @@ var EXCLUDE_FRONT = false;
 var EXCLUDE_VAULT = false;
 
 
-/**
- * @return {boolean} Is it a mobile browser?
- */
-dikmax.App.isMobile = function() {
-  return goog.dom.classes.has(document.body, 'mobile');
-};
-
-
 
 /**
  * @constructor
  */
 dikmax.App = function() {
+};
+
+
+/**
+ * @return {boolean} Is it a mobile browser?
+ */
+dikmax.App.isMobile = function() {
+  return goog.dom.classes.has(document.body, 'mobile');
 };
 
 
