@@ -3,6 +3,9 @@
 ./build_styles.sh
 ./update_templates.sh
 
+echo "Building highlight.js..."
+./build_highlightjs.sh
+
 echo "Fixing style..."
 fixjsstyle --strict -r static/js/dikmax -x static/js/dikmax/Templates.js
 
@@ -11,10 +14,9 @@ closure/library/build/depswriter.py \
   --root_with_prefix="static/js/third_party ../third_party" \
   --root_with_prefix="static/js/soy ../soy" \
   --root_with_prefix="static/js/dikmax ../dikmax" \
-  --root=static/js/goog --output_file=static/js/goog/deps.js
-
-echo "Building highlight.js..."
-./build_highlightjs.sh
+  --root=static/js/goog \
+  --path_with_depspath="static/js/highlight.pack.js ../highlight.pack.js" \
+  --output_file=static/js/goog/deps.js
 
 echo "Compiling front testing version..."
 closure/library/build/closurebuilder.py \

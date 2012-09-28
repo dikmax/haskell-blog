@@ -8,6 +8,7 @@ goog.addDependency('../dikmax/FootnotePopover.js', ['dikmax.FootnotePopover'], [
 goog.addDependency('../dikmax/FootnotePosition.js', ['dikmax.FootnotePosition'], ['goog.positioning', 'goog.positioning.AbstractPosition', 'goog.style']);
 goog.addDependency('../dikmax/Templates.js', ['dikmax.Templates'], ['soy', 'soy.StringBuilder']);
 goog.addDependency('../dikmax/main.js', ['dikmax.main'], ['dikmax.App', 'goog.debug.ErrorHandler']);
+goog.addDependency('../highlight.pack.js', ['hljs'], []);
 goog.addDependency('../soy/soyutils_usegoog.js', ['soy', 'soy.StringBuilder', 'soy.esc', 'soydata', 'soydata.SanitizedHtml', 'soydata.SanitizedHtmlAttribute', 'soydata.SanitizedJsStrChars', 'soydata.SanitizedUri'], ['goog.asserts', 'goog.dom.DomHelper', 'goog.format', 'goog.i18n.BidiFormatter', 'goog.i18n.bidi', 'goog.soy', 'goog.string', 'goog.string.StringBuffer']);
 goog.addDependency('../third_party/closure/goog/caja/string/html/htmlparser.js', ['goog.string.html.HtmlParser', 'goog.string.html.HtmlParser.EFlags', 'goog.string.html.HtmlParser.Elements', 'goog.string.html.HtmlParser.Entities', 'goog.string.html.HtmlSaxHandler'], []);
 goog.addDependency('../third_party/closure/goog/caja/string/html/htmlsanitizer.js', ['goog.string.html.HtmlSanitizer', 'goog.string.html.HtmlSanitizer.AttributeType', 'goog.string.html.HtmlSanitizer.Attributes', 'goog.string.html.htmlSanitize'], ['goog.string.StringBuffer', 'goog.string.html.HtmlParser', 'goog.string.html.HtmlParser.EFlags', 'goog.string.html.HtmlParser.Elements', 'goog.string.html.HtmlSaxHandler']);
