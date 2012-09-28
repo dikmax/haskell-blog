@@ -33,6 +33,14 @@ var EXCLUDE_FRONT = false;
 var EXCLUDE_VAULT = false;
 
 
+/**
+ * @return {boolean} Is it a mobile browser?
+ */
+dikmax.App.isMobile = function() {
+  return goog.dom.classes.has(document.body, 'mobile');
+};
+
+
 
 /**
  * @constructor
@@ -42,27 +50,10 @@ dikmax.App = function() {
 
 
 /**
- * @private
- */
-dikmax.App.initMobile_ = function() {
-  var ua = goog.userAgent.getUserAgentString();
-
-  /**
-     * @type {boolean}
-     */
-  dikmax.App.MOBILE = goog.userAgent.MOBILE ||
-      ua.indexOf('Opera Mobi') !== -1 ||
-      ua.indexOf('Opera Mini') !== -1;
-};
-
-
-/**
  * Inits application
  */
 dikmax.App.prototype.init = function() {
   this.topNavBar_();
-
-  dikmax.App.initMobile_();
 
   var pathname = document.location.pathname;
   if (!EXCLUDE_VAULT && goog.string.startsWith(pathname, '/vault/edit')) {
@@ -502,7 +493,7 @@ dikmax.App.prototype.setupRenderer_ = function() {
   var form = /** @type {HTMLFormElement} */
       (goog.dom.getElementByClass('post-form'));
 
-  if (!dikmax.App.MOBILE) {
+  if (!dikmax.App.isMobile()) {
     var checkTimer = new goog.Timer(500);
     var formData = goog.dom.forms.getFormDataString(form);
     var newFormData = '';

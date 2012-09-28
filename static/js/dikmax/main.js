@@ -12,4 +12,6 @@ dikmax.main = function() {
   app.init();
 };
 
-dikmax.main();
+if (COMPILED) {
+  dikmax.main();
+}
