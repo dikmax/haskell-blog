@@ -346,6 +346,8 @@ mobileSplice = do
 
   return [ TextNode $
     if ("Opera Mobi" `T.isInfixOf` userAgent || "Opera Mini" `T.isInfixOf` userAgent ||
+        "Android" `T.isInfixOf` userAgent || "Silk" `T.isInfixOf` userAgent || "PlayBook" `T.isInfixOf` userAgent ||
+        "iPad" `T.isInfixOf` userAgent || "iPhone" `T.isInfixOf` userAgent || "iPod" `T.isInfixOf` userAgent ||
         ((not $ "Opera" `T.isPrefixOf` userAgent) && ("WebKit" `T.isInfixOf` userAgent) && ("Mobile" `T.isInfixOf` userAgent))
       )
       then "mobile" else "no-mobile"
