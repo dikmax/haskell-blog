@@ -31,6 +31,9 @@ import           Text.XmlHtml.Cursor
 import           Application
 import           Config
 import           Database
+import qualified HtmlTags as H
+import           HtmlTags ((<@), (<#), (<&), (<&&))
+import qualified HtmlAttributes as A
 import           Site.Common
 import           Site.Rss
 import           Site.Sitemap
@@ -79,7 +82,7 @@ index =  ifTop $ do
 postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
 postsSplice page tag = do
   posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
-  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
+  return [H.div <@ A.class_ "posts" <&& map renderPostInList posts]
 
 paginationSplice :: Int -> Maybe ByteString -> Splice AppHandler
 paginationSplice page tag = do
@@ -103,26 +106,24 @@ paginationSplice page tag = do
 
     prevElement = if prevDisabled
       then []
-      else [Element "li" [("class", "previous")]
-        [ Element "a" [("href", prevLink)] [TextNode "← Старше"] ] ]
+      else [H.li <@ A.class_ "previous" <& (H.a <@ A.href prevLink <# "← Старше") ]
     nextElement = if nextDisabled      
       then []
-      else [Element "li" [("class", "next")]
-        [ Element "a" [("href", nextLink)] [TextNode "Моложе →"] ] ]
-  return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
+      else [H.li <@ A.class_ "next" <& (H.a <@ A.href nextLink <# "Моложе →") ]
+  return [H.ul <@ A.class_ "pager" <&& prevElement ++ nextElement]
         
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "article" 
-    [ ("class", "post component-panel")
-    , ("itemprop", "blogPost")
-    , ("itemscope", "itemscope")
-    , ("itemtype", "http://schema.org/BlogPosting")
-    ] [
-    Element "div" [("itemprop", "author"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Person")] 
-      [ Element "meta" [("itemprop", "name"), ("content", "Maxim Dikun")] []
-      , Element "link" [("itemprop", "url"), ("content", "http://dikmax.name/about")] []
-      , Element "link" [("itemprop", "url"), ("content", "https://plus.google.com/109129288587536990618/posts")] []
+  H.article
+    <@ A.class_ "post component-panel"
+    <@ A.itemprop "blogPost"
+    <@ A.itemscope "itemscope"
+    <@ A.itemtype "http://schema.org/BlogPosting"
+    <&& [
+    H.div <@ A.itemprop "author" <@ A.itemscope "itemscope" <@ A.itemtype "http://schema.org/Person" <&&
+      [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
+      , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
+      , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
       ],
     Element "h1" [("class", "post-title"), ("itemprop", "name")] [
       Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "url")] 
