@@ -4,11 +4,15 @@ module HtmlAttributes where
 
 import Data.Text (Text)
 
-class_ :: Text -> (Text, Text)
-class_ attribute = ("class", attribute)
+-- Use <. operator
+cls :: Text -> (Text, Text)
+cls attribute = ("class", attribute)
 
 content :: Text -> (Text, Text)
 content attribute = ("content", attribute)
+
+datetime :: Text -> (Text, Text)
+datetime attribute = ("datetime", attribute)
 
 href :: Text -> (Text, Text)
 href attribute = ("href", attribute)
@@ -21,3 +25,6 @@ itemscope attribute = ("itemscope", attribute)
 
 itemtype :: Text -> (Text, Text)
 itemtype attribute = ("itemtype", attribute)
+
+style :: Text -> (Text, Text)
+style attribute = ("style", attribute)

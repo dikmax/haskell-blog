@@ -6,7 +6,8 @@ import Data.Text (Text)
 import Text.XmlHtml (Node(..))
 import Prelude hiding (div)
 
-infixl 0 <@, <#, <&, <&&
+infixl 1 <@, <., <#
+infixl 0 <&, <&&
 
 -- |
 -- Set attribute
@@ -14,6 +15,13 @@ infixl 0 <@, <#, <&, <&&
 (<@) :: Node -> (Text, Text) -> Node
 (Element tag attrs children) <@ attr = Element tag (attr : attrs) children
 node <@ _ = node
+
+-- |
+-- Set class
+--
+(<.) :: Node -> Text -> Node
+(Element tag attrs children) <. cls = Element tag (("class", cls) : attrs) children
+node <. _ = node
 
 -- |
 -- Append text node
@@ -52,6 +60,48 @@ div :: Node
 div = Element "div" [] []
 
 --
+-- h1 element
+--
+h1 :: Node
+h1 = Element "h1" [] []
+
+--
+-- h2 element
+--
+h2 :: Node
+h2 = Element "h2" [] []
+
+--
+-- h3 element
+--
+h3 :: Node
+h3 = Element "h3" [] []
+
+--
+-- h4 element
+--
+h4 :: Node
+h4 = Element "h4" [] []
+
+--
+-- h5 element
+--
+h5 :: Node
+h5 = Element "h5" [] []
+
+--
+-- h6 element
+--
+h6 :: Node
+h6 = Element "h6" [] []
+
+--
+-- i element
+--
+i :: Node
+i = Element "i" [] []
+
+--
 -- li element
 --
 li :: Node
@@ -68,6 +118,12 @@ link = Element "link" [] []
 --
 meta :: Node
 meta = Element "meta" [] []
+
+--
+-- span element
+--
+span :: Node
+span = Element "span" [] []
 
 --
 -- ul element
