@@ -31,6 +31,9 @@ import           Text.XmlHtml.Cursor
 import           Application
 import           Config
 import           Database
+import qualified HtmlTags as H
+import           HtmlTags ((<@), (<.), (<#), (<&), (<&&))
+import qualified HtmlAttributes as A
 import           Site.Common
 import           Site.Rss
 import           Site.Sitemap
@@ -79,7 +82,7 @@ index =  ifTop $ do
 postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
 postsSplice page tag = do
   posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
-  return [Element "div" [("class", "posts")] $ map renderPostInList posts]
+  return [H.div <. "posts" <&& map renderPostInList posts]
 
 paginationSplice :: Int -> Maybe ByteString -> Splice AppHandler
 paginationSplice page tag = do
@@ -103,31 +106,29 @@ paginationSplice page tag = do
 
     prevElement = if prevDisabled
       then []
-      else [Element "li" [("class", "previous")]
-        [ Element "a" [("href", prevLink)] [TextNode "← Старше"] ] ]
+      else [H.li <. "previous" <& (H.a <@ A.href prevLink <# "← Старше") ]
     nextElement = if nextDisabled      
       then []
-      else [Element "li" [("class", "next")]
-        [ Element "a" [("href", nextLink)] [TextNode "Моложе →"] ] ]
-  return [Element "ul" [("class", "pager")] $ prevElement ++ nextElement ]
+      else [H.li <. "next" <& (H.a <@ A.href nextLink <# "Моложе →") ]
+  return [H.ul <. "pager" <&& prevElement ++ nextElement]
         
 renderPostInList :: Post -> Node 
 renderPostInList post = 
-  Element "article" 
-    [ ("class", "post component-panel")
-    , ("itemprop", "blogPost")
-    , ("itemscope", "itemscope")
-    , ("itemtype", "http://schema.org/BlogPosting")
-    ] [
-    Element "div" [("itemprop", "author"), ("itemscope", "itemscope"), ("itemtype", "http://schema.org/Person")] 
-      [ Element "meta" [("itemprop", "name"), ("content", "Maxim Dikun")] []
-      , Element "link" [("itemprop", "url"), ("content", "http://dikmax.name/about")] []
-      , Element "link" [("itemprop", "url"), ("content", "https://plus.google.com/109129288587536990618/posts")] []
+  H.article
+    <. "post component-panel"
+    <@ A.itemprop "blogPost"
+    <@ A.itemscope "itemscope"
+    <@ A.itemtype "http://schema.org/BlogPosting"
+    <&& [
+    H.div <@ A.itemprop "author" <@ A.itemscope "itemscope" <@ A.itemtype "http://schema.org/Person" <&&
+      [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
+      , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
+      , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
       ],
-    Element "h1" [("class", "post-title"), ("itemprop", "name")] [
-      Element "a" [("href", "/post/" `T.append` postUrl post), ("itemprop", "url")] 
-        [TextNode $ postTitle post]
-    ],
+    H.h1 <. "post-title" <@ A.itemprop "name" <& (
+      H.a <@ A.href ("/post/" `T.append` postUrl post) <@ A.itemprop "url"
+        <# postTitle post
+    ),
     addCommentsBlock (postDate post) $ renderPostBody post "articleBody"
   ]
   where
@@ -135,24 +136,22 @@ renderPostInList post =
     addCommentsBlock time = maybe (TextNode "")
       (maybe (TextNode "") topNode . insertManyLastChild
       [ TextNode " | "
-      , Element "i" [("class" , "icon-calendar")] []
+      , H.i <. "icon-calendar"
       , TextNode " "
-      , Element "span"
-        [ ("itemprop", "dateCreated")
-        , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
-        ]
-        [ TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time ]
+      , H.span
+        <@ A.itemprop "dateCreated"
+        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
+        <# (T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time)
       , TextNode " | "
-      , Element "i" [("class" , "icon-comment")] []
+      , H.i <. "icon-comment"
       , TextNode " "
-      , Element "span" [("class", "post-comments")]
-        [ Element "a"
-          [ ("href", "/post/" `T.append`
-            postUrl post `T.append` "#disqus_thread" )
-          , ("itemprop", "discussionUrl")
-          ]
-          [ TextNode "Считаем комментарии..." ]
-        ]
+      , H.span <. "post-comments"
+        <& (
+          H.a <@ A.href ("/post/" `T.append`
+                      postUrl post `T.append` "#disqus_thread")
+          <@ A.itemprop "discussionUrl"
+          <# "Считаем комментарии..."
+        )
       ]) . lastChild . fromNode
 
 -- |
@@ -271,10 +270,7 @@ siteStructure =
 createList :: Text -> [Node]
 createList _ = map listItem siteStructure
   where
-    listItem (title, url) = Element "li" [] [
-      Element "a" [("href", url)] [
-        TextNode title ]
-      ]
+    listItem (title, url) = H.li <& H.a <@ A.href url <# title
 
 themesList :: [(Text, Text)]
 themesList = 
@@ -285,8 +281,7 @@ createThemesList = concatMap listItem themesList
   where
     listItem :: (Text, Text) -> [Node]
     listItem (title, url) = 
-      [ Element "a" [("href", url), ("class", "main-theme-link")] 
-        [TextNode title]
+      [ H.a <. "main-theme-link" <@ A.href url <# title
       , TextNode " "
       ]
 
@@ -294,17 +289,18 @@ navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqURI
   tags <- lift getTags
-  return [Element "div" [("class", "nav-collapse topnavbar-collapsible-block")] [
-      Element "ul" [("class", "nav topnavbar-collapsible-content")] $
-        (createList $ T.pack $ normalizeRequest $ unpack request) ++
-        [ Element "li" [("class", "themes-box-toggle")]
-          [ Element "a" [] [TextNode "Темы"]
-          , Element "div" [("class", "themes-box"), ("style", "display: none;")] $
-            [Element "div" [("class", "themes-button")] $ [TextNode "Темы "] ++ createThemesList ]
-               ++ (renderTagsCloud $ normalizeTags tags)
+  return [H.div <. "nav-collapse topnavbar-collapsible-block" <&
+    (H.ul <. "nav topnavbar-collapsible-content"
+      <&& (createList $ T.pack $ normalizeRequest $ unpack request)
+      <& (
+        H.li <. "themes-box-toggle" <&&
+          [ H.a <# "Темы"
+          , H.div <. "themes-box" <@ A.style "display: none;"
+            <& (H.div <. "themes-button" <# "Темы " <&& createThemesList)
+            <&& (renderTagsCloud $ normalizeTags tags)
           ]
-        ]
-    ]]
+      )
+    )]
   where
     normalizeRequest request
       | (last request == '/') && (length request > 1) = init request
@@ -325,13 +321,11 @@ navigationSplice = do
               (fromIntegral maxW - fromIntegral minW)))
 
     renderTagsCloud tags = 
-      [ Element "div" [("class", "tags-wrapper")] $ concatMap renderTagsCloud' tags ]
+      [ H.div <. "tags-wrapper" <&& concatMap renderTagsCloud' tags ]
     renderTagsCloud' (Tag (tag, weight)) = 
-      [ Element "a" 
-        [ ("href", "/tag/" `T.append` tag)
-        , ("class", T.append "weight-" $ T.pack $ show weight)
-        ] 
-        [TextNode tag]
+      [ H.a <. (T.append "weight-" $ T.pack $ show weight)
+        <@ A.href ("/tag/" `T.append` tag)
+        <# tag
       , TextNode " "
       ]
 
