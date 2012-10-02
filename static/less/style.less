@@ -1,3 +1,5 @@
+@import "http://fonts.googleapis.com/css?family=Ubuntu+Mono&subset=latin,cyrillic-ext,latin-ext,cyrillic";
+
 body {
   padding-top: 60px;
   padding-bottom: 40px;
@@ -13,11 +15,9 @@ h1 {
   margin: 0;
 }
 
-.post-tags {
-  padding-left: 20px;
-  padding-bottom: 4px;
-  background: url(/img/16x16/tag_yellow.png) no-repeat 0 0;
-  line-height: 16px;
+a.label:hover {
+  color: #e8e8e8;
+  text-decoration: none;
 }
 
 .figure {
@@ -45,22 +45,7 @@ h1 {
 }
 
 .monospace {
-  font-family: 'Ubuntu Mono', monospace;
-}
-
-.actions span {
-  width: 32px;
-  height: 32px;
-  display: inline-block;
-  cursor: pointer;
-}
-
-.actions span.action-delete {
-  background: url(/img/32x32/cross.png) no-repeat 0 0;
-}
-
-.actions span.action-view {
-  background: url(/img/32x32/page_go.png) no-repeat 0 0;
+  font-family: 'Ubuntu Mono', monospace, sans-serif;
 }
 
 span.icon {
