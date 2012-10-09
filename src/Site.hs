@@ -140,7 +140,7 @@ renderPostInList post =
       , TextNode " "
       , H.span
         <@ A.itemprop "dateCreated"
-        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
+        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ time)
         <# (T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time)
       , TextNode " | "
       , H.i <. "icon-comment"
@@ -385,8 +385,7 @@ app :: SnapletInit App App
 app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
   h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
   let 
-    mysqlConnection = connectMySQL $ 
-      MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
+    mysqlConnection = connectMySQL connectInfo
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
