@@ -1,3 +1,5 @@
+@import "http://fonts.googleapis.com/css?family=Ubuntu+Mono&subset=latin,cyrillic-ext,latin-ext,cyrillic";
+
 body {
   padding-top: 60px;
   padding-bottom: 40px;
@@ -13,11 +15,15 @@ h1 {
   margin: 0;
 }
 
-.post-tags {
-  padding-left: 20px;
-  padding-bottom: 4px;
-  background: url(/img/16x16/tag_yellow.png) no-repeat 0 0;
-  line-height: 16px;
+a.label {
+  -webkit-transition: all .2s linear;
+  -moz-transition: all .2s linear;
+  transition: all .2s linear;
+}
+
+a.label:hover {
+  color: #e8e8e8;
+  text-decoration: none;
 }
 
 .figure {
@@ -45,22 +51,7 @@ h1 {
 }
 
 .monospace {
-  font-family: 'Ubuntu Mono', monospace;
-}
-
-.actions span {
-  width: 32px;
-  height: 32px;
-  display: inline-block;
-  cursor: pointer;
-}
-
-.actions span.action-delete {
-  background: url(/img/32x32/cross.png) no-repeat 0 0;
-}
-
-.actions span.action-view {
-  background: url(/img/32x32/page_go.png) no-repeat 0 0;
+  font-family: 'Ubuntu Mono', monospace, sans-serif;
 }
 
 span.icon {
@@ -81,16 +72,27 @@ span.icon.icon-github {
   margin-right: 5px;
 }
 
+.navbar .brand {
+  -webkit-transition: all .2s linear;
+  -moz-transition: all .2s linear;
+  transition: all .2s linear;
+}
+
 footer .navbar-inner {
   background: gray;
   color: black;
-
 }
 
 .navbar.navbar-inverse .navbar-inner {
   -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
   -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.25), 0 -3px 7px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.navbar .nav > li > a {
+  -webkit-transition: all .2s linear;
+  -moz-transition: all .2s linear;
+  transition: all .2s linear;
 }
 
 /* latest movies block */

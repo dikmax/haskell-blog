@@ -5,13 +5,15 @@ module Site.Common where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
+import qualified HtmlTags as H
+import HtmlTags ((<@), (<.), (<#))
+--import HtmlTags ((<&&), (<&)
+import qualified HtmlAttributes as A
 import System.Locale
 import Text.Templating.Heist
 import Text.XmlHtml hiding (render)
 import Text.XmlHtml.Cursor
 import Text.Pandoc
---import Text.Pandoc.Highlighting
---import Text.Pandoc.Shared
 
 import Application
 import Types
@@ -53,16 +55,9 @@ renderTags tags =
 
   where
     renderTags' (t:[]) =
-      [ Element "a" [("href", "/tag/" `T.append` t)]
-        [ Element "span" [("class", "label")]
-          [ TextNode t ]
-        ]
-      ]
+      [ H.a <. "label" <@ A.href ("/tag/" `T.append` t) <# t ]
     renderTags' (t:ts) =
-      [ Element "a" [("href", "/tag/" `T.append` t)]
-        [ Element "span" [("class", "label")]
-          [ TextNode t ]
-        ]
+      [ H.a <. "label" <@ A.href ("/tag/" `T.append` t) <# t
       , TextNode " "
       ] ++ renderTags' ts
     renderTags' _ = []
