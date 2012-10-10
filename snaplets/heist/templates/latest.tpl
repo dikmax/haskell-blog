@@ -9,9 +9,8 @@
         <h1 itemprop="name">Последние просмотренные фильмы</h1>
         <latest/>
         <div id="disqus_thread"></div>
+        <disqusVars />
         <script type="text/javascript">
-            var disqus_shortname = 'dikmax';
-
             (function () {
                 var dsq = document.createElement('script');
                 dsq.type = 'text/javascript';

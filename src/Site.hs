@@ -140,7 +140,7 @@ renderPostInList post =
       , TextNode " "
       , H.span
         <@ A.itemprop "dateCreated"
-        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
+        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ time)
         <# (T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time)
       , TextNode " | "
       , H.i <. "icon-comment"
@@ -170,6 +170,11 @@ showPost = do
         , metaUrl = "/post/" `T.append` (T.decodeUtf8 $ url) 
         , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderResult p)
         , metaDescription = getDescription $ renderResult p
+        })
+      , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
+        { disqusIdentifier = Just $ T.decodeUtf8 $ url
+        , disqusUrl = Just $ "http://dikmax.name/post/" `T.append` (T.decodeUtf8 $ url)
+        , disqusTitle = Just $ postTitle p
         })
       ]) $ render "post") post
   where
@@ -216,6 +221,11 @@ aboutMe = heistLocal (bindSplices
     , metaUrl = "/about"
     , metaType = FacebookProfile
     })
+  , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
+    { disqusIdentifier = Just "about"
+    , disqusUrl = Just  "http://dikmax.name/about"
+    , disqusTitle = Just "Обо мне"
+    })
   ] ) $ render "about"
   
 aboutSplice :: Splice AppHandler
@@ -233,6 +243,11 @@ shoutbox = heistLocal (bindSplices
     { metaTitle = Just "Shoutbox"
     , metaUrl = "/shoutbox"
     })
+  , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
+    { disqusIdentifier = Just "shoutbox"
+    , disqusUrl = Just  "http://dikmax.name/shoutbox"
+    , disqusTitle = Just "Shoutbox"
+    })
   ] ) $ render "shoutbox"
   
 shoutboxSplice :: Splice AppHandler
@@ -249,6 +264,11 @@ latestMovies = heistLocal (bindSplices
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Последние просмотренные фильмы"
     , metaUrl = "/latest"
+    })
+  , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
+    { disqusIdentifier = Just "latest"
+    , disqusUrl = Just  "http://dikmax.name/latest"
+    , disqusTitle = Just "Последние просмотренные фильмы"
     })
   ] ) $ render "latest"
   
@@ -385,8 +405,7 @@ app :: SnapletInit App App
 app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
   h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
   let 
-    mysqlConnection = connectMySQL $ 
-      MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing
+    mysqlConnection = connectMySQL connectInfo
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
@@ -405,6 +424,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , ("metadata", metadataSplice defaultMetadata)
       , ("revision", revisionSplice)
       , ("mobile", mobileSplice)
+      , ("disqusVars", disqusVarsSplice defaultDisqusVars)
       ] 
       defaultHeistState
   

@@ -4,6 +4,10 @@ module Config where
 import Data.ByteString
 import Data.ByteString.Char8 ()
 import Data.Text (Text)
+import Database.HDBC.MySQL
+
+isDeveloperMode :: Bool
+isDeveloperMode = True
 
 adminLogin :: ByteString
 adminLogin = "admin"
@@ -22,3 +26,6 @@ rackspaceAuthKey = "00000000000000000000000000000000"
 
 rackspaceAuthUser :: String
 rackspaceAuthUser = "anonymous"
+
+connectInfo :: MySQLConnectInfo
+connectInfo = MySQLConnectInfo "127.0.0.1" "root" "" "haskellblog" 3306 "" Nothing

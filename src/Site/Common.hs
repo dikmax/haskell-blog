@@ -16,6 +16,7 @@ import Text.XmlHtml.Cursor
 import Text.Pandoc
 
 import Application
+import Config
 import Types
 import XmlHtmlWriter
 
@@ -167,4 +168,35 @@ defaultMetadata = Metadata
   , metaType = FacebookNothing
   , metaDescription = "Мой личный блог"
   , metaKeywords = ["Blog", "блог"]
+  }
+
+-- Disqus vars
+data DisqusVars = DisqusVars
+  { disqusShortName :: Text
+  , disqusIdentifier :: Maybe Text
+  , disqusUrl :: Maybe Text
+  , disqusTitle :: Maybe Text
+  , disqusDeveloper :: Bool
+  }
+
+disqusVarsSplice :: DisqusVars -> Splice AppHandler
+disqusVarsSplice (DisqusVars shortName identifier url title developer) =
+  return [
+    H.script <@ A.typeJavascript <#
+    (
+      "var disqus_shortname='" `T.append` shortName `T.append` "'" `T.append`
+      (maybe "" (\v -> ",disqus_identifier='" `T.append` v `T.append` "'") identifier) `T.append`
+      (maybe "" (\v -> ",disqus_url='" `T.append` v `T.append` "'") url) `T.append`
+      (maybe "" (\v -> ",disqus_title='" `T.append` v `T.append` "'") title) `T.append`
+      (if developer then ",disqus_developer=1" else "") `T.append` ";"
+    )
+  ]
+
+defaultDisqusVars :: DisqusVars
+defaultDisqusVars = DisqusVars
+  { disqusShortName = "dikmax"
+  , disqusIdentifier = Nothing
+  , disqusUrl = Nothing
+  , disqusTitle = Nothing
+  , disqusDeveloper = isDeveloperMode
   }

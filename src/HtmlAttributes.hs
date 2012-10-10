@@ -28,3 +28,9 @@ itemtype attribute = ("itemtype", attribute)
 
 style :: Text -> (Text, Text)
 style attribute = ("style", attribute)
+
+type_ :: Text -> (Text, Text)
+type_ attribute = ("type", attribute)
+
+typeJavascript :: (Text, Text)
+typeJavascript = type_ "text/javascript"
