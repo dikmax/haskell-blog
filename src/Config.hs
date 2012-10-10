@@ -7,7 +7,7 @@ import Data.Text (Text)
 import Database.HDBC.MySQL
 
 isDeveloperMode :: Bool
-isDeveloperMode = True
+isDeveloperMode = False
 
 adminLogin :: ByteString
 adminLogin = "admin"
