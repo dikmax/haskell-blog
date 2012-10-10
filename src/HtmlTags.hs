@@ -120,6 +120,12 @@ meta :: Node
 meta = Element "meta" [] []
 
 --
+-- script element
+--
+script :: Node
+script = Element "script" [] []
+
+--
 -- span element
 --
 span :: Node

@@ -15,9 +15,8 @@
 <!-- /container -->
 
 <apply template="foot"/>
+<disqusVars />
 <script type="text/javascript">
-    var disqus_shortname = 'dikmax';
-
     /* * * DON'T EDIT BELOW THIS LINE * * */
     (function () {
         var s = document.createElement('script');
