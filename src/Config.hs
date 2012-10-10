@@ -6,6 +6,9 @@ import Data.ByteString.Char8 ()
 import Data.Text (Text)
 import Database.HDBC.MySQL
 
+isDeveloperMode :: Bool
+isDeveloperMode = True
+
 adminLogin :: ByteString
 adminLogin = "admin"
 
