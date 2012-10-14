@@ -2,8 +2,10 @@
 
 module Main where
 
-import Data.List (intersperse)
-import Data.Map ((!))
+import Data.List (intersperse, nub)
+import Data.Map ((!), Map)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
@@ -67,7 +69,7 @@ instance JSON DisqusComment where
     | isError getIsSpam = toError "isSpam not found" getIsSpam
     | isError getIsHighlighted = toError "isHighlighted not found" getIsHighlighted
     | isError getUserScore = toError "userScore not found" getUserScore
-    | otherwise = Ok $ DisqusComment
+    | otherwise = Ok DisqusComment
       { dcIsJuliaFlagged = fromResult getIsJuliaFlagged
       , dcIsFlagged = fromResult getIsFlagged
       , dcParent =
@@ -127,10 +129,10 @@ toError prefix _ = Error $ prefix ++ ": Access error"
 disqusApiKey :: String
 disqusApiKey = "eEu5UUONIskKunn9HIudZ8DUpAdPPkbgwsLBzyeVRD4ACEqtOqY1OPdC2cfL7CJ2"
 
-curlDo :: String -> IO (String)
+curlDo :: String -> IO String
 curlDo url = withCurlDo $ do
   h <- initialize
-  response <- curl h (url) []
+  response <- curl h url []
   return $ respBody response
   where
     curl :: Curl -> URLString -> [CurlOption] -> IO CurlResponse
@@ -147,20 +149,49 @@ listPosts since = do
     (Error str) -> return ([], [str])
   where
     url = "https://disqus.com/api/3.0/forums/listPosts.json?forum=dikmax&api_key=" ++ disqusApiKey ++
-      "&order=asc&since=" ++ (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" since)
+      "&order=asc&since=" ++ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" since
     transformArray :: [JSValue] -> ([DisqusComment], [String])
     transformArray [] = ([], [])
     transformArray (x:xs) =
-      case parseItem x of
-        (Ok item) -> (item : (fst $ transformArray xs), snd $ transformArray xs)
-        (Error str) -> (fst $ transformArray xs, str : (snd $ transformArray xs))
-    parseItem item = readJSON item
+      case readJSON x of
+        (Ok item) -> (item : fst (transformArray xs), snd $ transformArray xs)
+        (Error str) -> (fst $ transformArray xs, str : snd (transformArray xs))
 
+listThreads :: [DisqusComment] -> IO (Map String String, [String])
+listThreads comments = do
+  threadsString <- curlDo url
+  let res = decode threadsString
+  case filterError res of
+    (Ok (JSArray arr)) -> return $ transformArray arr
+    (Ok other) -> return (M.empty, ["Server should return array but return " ++ encode other])
+    (Error str) -> return (M.empty, [str])
+  where
+    url = "https://disqus.com/api/3.0/threads/list.json?forum=dikmax&api_key=" ++ disqusApiKey ++
+      concatMap ("&thread=" ++) newThreads
+
+    newThreads = map T.unpack $ nub $ map dcThread [ x | x <- comments, isNothing $ dcMyThread x ]
+
+    transformArray :: [JSValue] -> (Map String String, [String])
+    transformArray = transformArray_ M.empty
+
+    transformArray_ :: Map String String -> [JSValue] -> (Map String String, [String])
+    transformArray_ m [] = (m, [])
+    transformArray_ m (JSObject x : xs)
+      | isError $ getId x = (fst $ transformArray_ m xs, "id not found" : snd (transformArray_ m xs))
+      | isError $ getIdentifiers x = (fst $ transformArray_ m xs, "identifiers not found" : snd (transformArray_ m xs))
+      | otherwise = case getIdentifiers x of
+        (Ok (JSArray [])) -> (fst $ transformArray_ m xs, "identifiers is empty" : snd (transformArray_ m xs))
+        (Ok (JSArray (JSString str : _))) -> (M.insert (fromJSString $ fromResult $ getId x) (fromJSString str) $ fst $ transformArray_ m xs, snd (transformArray_ m xs))
+        _ -> (fst $ transformArray_ m xs, "identifiers is not array" : snd (transformArray_ m xs))
+    transformArray_ m (_ : xs) = (fst $ transformArray_ m xs, "Response item is not an object" : snd (transformArray_ m xs))
+
+    getId = valFromObj "id"
+    getIdentifiers = valFromObj "identifiers"
 
 filterError :: Result JSValue -> Result JSValue
 filterError res@(Ok (JSObject obj))
   | getCode obj == Just 0 = valFromObj "response" obj
-  | (maybe 0 id $ getCode obj) > 0 =
+  | fromMaybe 0 (getCode obj) > 0 =
     case (valFromObj "response" obj :: Result JSValue) of
       (Ok (JSString str)) -> Error $ fromJSString str
       _ -> Error "Error with no message"
@@ -169,7 +200,6 @@ filterError res@(Ok (JSObject obj))
     getCode obj = getCode_ $ valFromObj "code" obj
     getCode_ (Ok (JSRational False a)) = Just a
     getCode_ _ = Nothing
-
 filterError (Ok a) = Error $ "Server should return object but returned: " ++ show a
 filterError e = e
 
@@ -177,9 +207,9 @@ processResponse (Ok a) = JSONResult a
 processResponse (Error e) = ServiceError e
 
 -- Database functions
-getSince :: (IConnection a) => a -> IO (LocalTime)
+getSince :: (IConnection a) => a -> IO LocalTime
 getSince conn = do
-  stmt <- prepare conn "SELECT MAX(date) FROM posts"
+  stmt <- prepare conn "SELECT MAX(date) FROM comments"
   executeRaw stmt
   res <- fetchRow stmt
   finish stmt
@@ -188,13 +218,13 @@ getSince conn = do
     Just [v] -> return $ fromSql v
     _ -> return $ LocalTime (fromGregorian 2012 3 1) midnight
 
-getKnownThreads :: (IConnection a) => a -> [DisqusComment] -> IO ([DisqusComment])
+getKnownThreads :: (IConnection a) => a -> [DisqusComment] -> IO [DisqusComment]
 getKnownThreads _ [] = return []
 getKnownThreads conn comments = do
   stmt <- prepare conn ("SELECT id, disqus_thread " ++
     "FROM posts " ++
-    "WHERE disqus_thread IN (" ++
-    (intersperse ',' $ map (\_ -> '?') comments) ++ ")")
+    "WHERE disqus_thread IN ("  ++
+    intersperse ',' (map (\_ -> '?') comments) ++ ")")
   execute stmt $ map (toSql . dcThread) comments
   updateData stmt comments
   where
@@ -214,16 +244,24 @@ main :: IO ()
 main = do
   conn <- connectMySQL connectInfo
   since <- getSince conn
-  (posts, errors) <- listPosts since
+  (posts, postErrors) <- listPosts since
+  writeErrors "listPosts errors:" postErrors
   updatedPosts <- getKnownThreads conn posts
-  putStrLn $ show $ map (\a -> (dcThread a, dcMyThread a)) updatedPosts
-  writeErrors errors
+  (threads, threadErrors) <- listThreads updatedPosts
+  writeErrors "listThreads errors:" threadErrors
+  print threads
+
   --  case posts of
   --    (Ok a) -> putStrLn $ show a
   --    (Error _) -> putStrLn $ show posts
   disconnect conn
   where
-    writeErrors [] = return ()
-    writeErrors (e:es) = do
+    writeErrors _ [] = return ()
+    writeErrors t e = do
+      putStrLn t
+      writeErrors_ e
+
+    writeErrors_ [] = return ()
+    writeErrors_ (e:es) = do
       putStrLn e
-      writeErrors es
+      writeErrors_ es
