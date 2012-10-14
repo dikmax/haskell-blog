@@ -5,10 +5,11 @@ module Main where
 import Data.List (intersperse, nub)
 import Data.Map ((!), Map)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
+import Data.Time.Format
 import Database.HDBC
 import Database.HDBC.MySQL
 import Network.Curl
@@ -18,22 +19,21 @@ import Text.JSON
 import Config
 
 
-data DisqusResponse
-  = ServiceError String
-  | JSONResult JSValue
-    deriving (Show)
 
 data DisqusComment = DisqusComment
   { dcIsJuliaFlagged :: Bool
   , dcIsFlagged :: Bool
   , dcParent :: Maybe Int
+  , dcAuthorName :: Text
+  , dcAuthorUrl :: Maybe Text
+  , dcAuthorAvatar :: Maybe Text
   -- , dcAuthor :: DisqusAuthor
   -- , dcMedia :: [DisqusMedia]
   , dcIsDeleted :: Bool
   , dcIsApproved :: Bool
   , dcDislikes :: Int
   , dcRawMessage :: Text
-  , dcCreatedAt :: Text -- DateTime
+  , dcCreatedAt :: Maybe LocalTime
   , dcId :: Text -- Int ????
   , dcThread :: Text
   , dcNumReports :: Int
@@ -69,6 +69,7 @@ instance JSON DisqusComment where
     | isError getIsSpam = toError "isSpam not found" getIsSpam
     | isError getIsHighlighted = toError "isHighlighted not found" getIsHighlighted
     | isError getUserScore = toError "userScore not found" getUserScore
+    | isError getAuthor = toError "author not found" getAuthor
     | otherwise = Ok DisqusComment
       { dcIsJuliaFlagged = fromResult getIsJuliaFlagged
       , dcIsFlagged = fromResult getIsFlagged
@@ -76,13 +77,28 @@ instance JSON DisqusComment where
         case fromResult getParent of
           JSRational _ b -> Just $ round $ fromRational b
           _ -> Nothing
+      , dcAuthorName =
+        case valFromObj "name" $ fromResult getAuthor of
+          (Ok (JSString str)) -> T.pack $ fromJSString str
+          _ -> ""
+      , dcAuthorUrl =
+        case valFromObj "url" $ fromResult getAuthor of
+          (Ok (JSString str)) -> Just $ T.pack $ fromJSString str
+          _ -> Nothing
+      , dcAuthorAvatar =
+        case valFromObj "avatar" $ fromResult getAuthor of
+          (Ok (JSObject avatar)) ->
+            case valFromObj "permalink" avatar of
+              (Ok (JSString str)) -> Just $ T.pack $ fromJSString str
+              _ -> Nothing
+          _ -> Nothing
       -- , dcAuthor :: DisqusAuthor
       -- , dcMedia :: [DisqusMedia]
       , dcIsDeleted = fromResult getIsDeleted
       , dcIsApproved = fromResult getIsApproved
       , dcDislikes = fromResult getDislikes
       , dcRawMessage = T.pack $ fromResult getRawMessage
-      , dcCreatedAt = T.pack $ fromResult getCreatedAt  -- DateTime
+      , dcCreatedAt = parseTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" $ fromResult getCreatedAt
       , dcId = T.pack $ fromResult getId
       , dcThread = T.pack $ fromResult getThread
       , dcNumReports = fromResult getNumReports
@@ -114,6 +130,7 @@ instance JSON DisqusComment where
       getIsSpam = valFromObj "isSpam" obj
       getIsHighlighted = valFromObj "isHighlighted" obj
       getUserScore = valFromObj "userScore" obj
+      getAuthor = valFromObj "author" obj
   readJSON _ = Error "Error in discus comment"
 
 isError (Ok _) = False
@@ -203,9 +220,7 @@ filterError res@(Ok (JSObject obj))
 filterError (Ok a) = Error $ "Server should return object but returned: " ++ show a
 filterError e = e
 
-processResponse (Ok a) = JSONResult a
-processResponse (Error e) = ServiceError e
-
+minDate = LocalTime (fromGregorian 2012 3 1) midnight
 -- Database functions
 getSince :: (IConnection a) => a -> IO LocalTime
 getSince conn = do
@@ -214,9 +229,9 @@ getSince conn = do
   res <- fetchRow stmt
   finish stmt
   case res of
-    Just [SqlNull] -> return $ LocalTime (fromGregorian 2012 3 1) midnight
+    Just [SqlNull] -> return minDate
     Just [v] -> return $ fromSql v
-    _ -> return $ LocalTime (fromGregorian 2012 3 1) midnight
+    _ -> return minDate
 
 getKnownThreads :: (IConnection a) => a -> [DisqusComment] -> IO [DisqusComment]
 getKnownThreads _ [] = return []
@@ -255,9 +270,29 @@ saveThreads conn m
       execute stmt [toSql k, toSql v]
       saveThreads_ ms conn
 
+saveComments :: (IConnection a) => a -> [DisqusComment] -> IO ()
+saveComments conn comments = withTransaction conn $ saveComments_ comments
+  where
+    saveComments_ [] _ = return ()
+    saveComments_ (c:cs) conn
+      | isJust $ dcMyThread c = do
+        stmt <- prepare conn ("REPLACE comments (comment_id, thread_id, " ++
+          "parent_comment_id, body, author_name, " ++
+          "author_avatar, author_url, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        execute stmt [toSql $ dcId c, toSql $ fromMaybe 0 $ dcMyThread c,
+          maybe SqlNull toSql $ dcParent c,
+          toSql $ dcMessage c, toSql $ dcAuthorName c,
+          toSql $ fromMaybe "" $ dcAuthorAvatar c,
+          toSql $ fromMaybe "" $ dcAuthorUrl c,
+          toSql $ fromMaybe minDate $ dcCreatedAt c
+          ]
+        saveComments_ cs conn
+      | otherwise = saveComments_ cs conn
+
 main :: IO ()
 main = do
   conn <- connectMySQL connectInfo
+  runRaw conn "SET NAMES utf8"
   -- Get last comment date in our db
   since <- getSince conn
   -- Get new comments from disqus
@@ -272,6 +307,8 @@ main = do
   saveThreads conn threads
   -- Complement comments with just written post ids
   updatedPosts2 <- getKnownThreads conn updatedPosts
+  -- Save
+  saveComments conn updatedPosts2
 
   -- Done
   disconnect conn
