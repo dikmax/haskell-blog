@@ -249,7 +249,7 @@ vaultValidateUrl id' url = do
     ("SELECT COUNT(*) `count` " ++
       "FROM posts " ++
       "WHERE url = ? AND id <> ?") [toSql url, toSql id']
-  return $ (fromSql $ head rows ! "count") == (0 :: Int)
+  return $ fromSql (head rows ! "count") == (0 :: Int)
 
 --
 -- Utility functions

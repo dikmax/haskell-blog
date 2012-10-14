@@ -56,7 +56,7 @@ index =  ifTop $ do
       , ("pagination", paginationSplice pageNum tag)
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaUrl = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
-            `T.append` if pageNum == 1 then "" else "/page/" `T.append` (T.pack $ show pageNum)
+            `T.append` if pageNum == 1 then "" else "/page/" `T.append` T.pack (show pageNum)
         , metaDescription = makeDescription tag pageNum
         , metaTitle = makeTitle tag pageNum
         , metaType = FacebookBlog
@@ -65,17 +65,17 @@ index =  ifTop $ do
 
     makeDescription Nothing 1 = "Мой персональный блог. Я рассказываю о программировании и иногда о своей жизни."
     makeDescription Nothing p = "Мой персональный блог, записи с " `T.append`
-      (T.pack $ show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
-      (T.pack $ show (p * postsPerPage)) `T.append` "."
-    makeDescription (Just t) 1 = "Мой персональный блог, записи с тегом \"" `T.append` (T.decodeUtf8 t) `T.append` ".\""
-    makeDescription (Just t) p = "Мой персональный блог, записи с тегом \"" `T.append` (T.decodeUtf8 t) `T.append` "\" c " `T.append`
-      (T.pack $ show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
-      (T.pack $ show (p * postsPerPage))`T.append` "."
+      T.pack (show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
+      T.pack (show (p * postsPerPage)) `T.append` "."
+    makeDescription (Just t) 1 = "Мой персональный блог, записи с тегом \"" `T.append` T.decodeUtf8 t `T.append` ".\""
+    makeDescription (Just t) p = "Мой персональный блог, записи с тегом \"" `T.append` T.decodeUtf8 t `T.append` "\" c " `T.append`
+      T.pack (show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
+      T.pack (show (p * postsPerPage))`T.append` "."
 
     makeTitle Nothing 1 = Nothing
-    makeTitle Nothing p = Just $ (T.pack $ show p) `T.append` "-я страница"
-    makeTitle (Just t) 1 = Just $ "\"" `T.append` (T.decodeUtf8 t) `T.append` "\""
-    makeTitle (Just t) p = Just $ "\"" `T.append` (T.decodeUtf8 t) `T.append` "\", " `T.append` (T.pack $ show p) `T.append`
+    makeTitle Nothing p = Just $ T.pack (show p) `T.append` "-я страница"
+    makeTitle (Just t) 1 = Just $ "\"" `T.append` T.decodeUtf8 t `T.append` "\""
+    makeTitle (Just t) p = Just $ "\"" `T.append` T.decodeUtf8 t `T.append` "\", " `T.append` T.pack (show p) `T.append`
       "-я страница"
   heistLocal (bindSplices indexSplices) $ render "index"
 
@@ -92,7 +92,7 @@ paginationSplice page tag = do
     
     prevLink :: Text
     prevLink = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
-      `T.append` "/page/" `T.append` (T.pack $ show (page + 1))
+      `T.append` "/page/" `T.append` T.pack (show (page + 1))
     
     nextDisabled = page <= 1
 
@@ -102,7 +102,7 @@ paginationSplice page tag = do
     nextLink_ :: Text
     nextLink_ = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
       `T.append`  if page == 2 then "" else "/page/" `T.append` 
-        (T.pack $ show (page - 1))
+        T.pack (show (page - 1))
 
     prevElement = if prevDisabled
       then []
@@ -140,8 +140,8 @@ renderPostInList post =
       , TextNode " "
       , H.span
         <@ A.itemprop "dateCreated"
-        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ time)
-        <# (T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time)
+        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" time)
+        <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" time)
       , TextNode " | "
       , H.i <. "icon-comment"
       , TextNode " "
@@ -167,18 +167,18 @@ showPost = do
       [ ("post", return [renderResult p])
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaTitle = Just $ postTitle p
-        , metaUrl = "/post/" `T.append` (T.decodeUtf8 $ url) 
+        , metaUrl = "/post/" `T.append` T.decodeUtf8 url
         , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderResult p)
         , metaDescription = getDescription $ renderResult p
         })
       , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
-        { disqusIdentifier = Just $ T.decodeUtf8 $ url
-        , disqusUrl = Just $ "http://dikmax.name/post/" `T.append` (T.decodeUtf8 $ url)
+        { disqusIdentifier = Just $ T.decodeUtf8 url
+        , disqusUrl = Just $ "http://dikmax.name/post/" `T.append` T.decodeUtf8 url
         , disqusTitle = Just $ postTitle p
         })
       ]) $ render "post") post
   where
-    renderResult post = renderSinglePost post
+    renderResult = renderSinglePost
 
     emptyDescription = "Мой персональный блог"
 
@@ -187,8 +187,8 @@ showPost = do
     getDescription = maybe emptyDescription 
       (until (not . T.null) (\_ -> emptyDescription) . getDescription') . 
       findChild (checkMainDiv . current) . fromNode
-    checkMainDiv node = (maybe False (== "div") $ tagName node) &&
-      (maybe False (== "articleBody") $ getAttribute "itemprop" node)
+    checkMainDiv node = maybe False (== "div") (tagName node) &&
+      maybe False (== "articleBody") (getAttribute "itemprop" node)
 
     getDescription' :: Cursor -> Text
     getDescription' = cutDescription . transformDescription .
@@ -198,7 +198,7 @@ showPost = do
 
     transformDescription = T.replace "\n" " "
     cutDescription d
-      | T.length d > 512 = (T.stripEnd $ fst $ T.breakOnEnd " " $ T.take 512 d) `T.append` "..."
+      | T.length d > 512 = T.stripEnd (fst $ T.breakOnEnd " " $ T.take 512 d) `T.append` "..."
       | otherwise = d
 
     getImage :: Node -> Maybe Text
@@ -207,8 +207,8 @@ showPost = do
         maybe Nothing (getAttribute "src" . current) . 
         findChild (maybe False (== "img") . tagName . current)
       ) . findRec (checkFigure . current) . fromNode      
-    checkFigure node = (maybe False (== "div") $ tagName node) &&
-      (maybe False (== "figure") $ getAttribute "class" node)
+    checkFigure node = maybe False (== "div") (tagName node) &&
+      maybe False (== "figure") (getAttribute "class" node)
 
 -- |
 -- About me action
@@ -311,13 +311,13 @@ navigationSplice = do
   tags <- lift getTags
   return [H.div <. "nav-collapse topnavbar-collapsible-block" <&
     (H.ul <. "nav topnavbar-collapsible-content"
-      <&& (createList $ T.pack $ normalizeRequest $ unpack request)
+      <&& createList (T.pack $ normalizeRequest $ unpack request)
       <& (
         H.li <. "themes-box-toggle" <&&
           [ H.a <# "Темы"
           , H.div <. "themes-box" <@ A.style "display: none;"
             <& (H.div <. "themes-button" <# "Темы " <&& createThemesList)
-            <&& (renderTagsCloud $ normalizeTags tags)
+            <&& renderTagsCloud (normalizeTags tags)
           ]
       )
     )]
@@ -343,7 +343,7 @@ navigationSplice = do
     renderTagsCloud tags = 
       [ H.div <. "tags-wrapper" <&& concatMap renderTagsCloud' tags ]
     renderTagsCloud' (Tag (tag, weight)) = 
-      [ H.a <. (T.append "weight-" $ T.pack $ show weight)
+      [ H.a <. T.append "weight-" (T.pack $ show weight)
         <@ A.href ("/tag/" `T.append` tag)
         <# tag
       , TextNode " "
@@ -355,14 +355,13 @@ revisionSplice =
 
 mobileSplice :: Splice AppHandler
 mobileSplice = do
-  userAgent <- withRequest (return . T.decodeUtf8 . maybe "" id . getHeader "User-Agent")
+  userAgent <- withRequest (return . T.decodeUtf8 . fromMaybe "" . getHeader "User-Agent")
 
   return [ TextNode $
-    if ("Opera Mobi" `T.isInfixOf` userAgent || "Opera Mini" `T.isInfixOf` userAgent ||
+    if "Opera Mobi" `T.isInfixOf` userAgent || "Opera Mini" `T.isInfixOf` userAgent ||
         "Android" `T.isInfixOf` userAgent || "Silk" `T.isInfixOf` userAgent || "PlayBook" `T.isInfixOf` userAgent ||
         "iPad" `T.isInfixOf` userAgent || "iPhone" `T.isInfixOf` userAgent || "iPod" `T.isInfixOf` userAgent ||
-        ((not $ "Opera" `T.isPrefixOf` userAgent) && ("WebKit" `T.isInfixOf` userAgent) && ("Mobile" `T.isInfixOf` userAgent))
-      )
+        (not ("Opera" `T.isPrefixOf` userAgent) && ("WebKit" `T.isInfixOf` userAgent) && ("Mobile" `T.isInfixOf` userAgent))
       then "mobile" else "no-mobile"
     ]
 
