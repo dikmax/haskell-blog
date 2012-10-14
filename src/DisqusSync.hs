@@ -167,9 +167,7 @@ listThreads comments = do
     (Error str) -> return (M.empty, [str])
   where
     url = "https://disqus.com/api/3.0/threads/list.json?forum=dikmax&api_key=" ++ disqusApiKey ++
-      concatMap ("&thread=" ++) newThreads
-
-    newThreads = map T.unpack $ nub $ map dcThread [ x | x <- comments, isNothing $ dcMyThread x ]
+      concatMap ("&thread=" ++) (newThreads comments)
 
     transformArray :: [JSValue] -> (Map String String, [String])
     transformArray = transformArray_ M.empty
@@ -187,6 +185,8 @@ listThreads comments = do
 
     getId = valFromObj "id"
     getIdentifiers = valFromObj "identifiers"
+
+newThreads comments = map T.unpack $ nub $ map dcThread [ x | x <- comments, isNothing $ dcMyThread x ]
 
 filterError :: Result JSValue -> Result JSValue
 filterError res@(Ok (JSObject obj))
@@ -220,14 +220,18 @@ getSince conn = do
 
 getKnownThreads :: (IConnection a) => a -> [DisqusComment] -> IO [DisqusComment]
 getKnownThreads _ [] = return []
-getKnownThreads conn comments = do
-  stmt <- prepare conn ("SELECT id, disqus_thread " ++
-    "FROM posts " ++
-    "WHERE disqus_thread IN ("  ++
-    intersperse ',' (map (\_ -> '?') comments) ++ ")")
-  execute stmt $ map (toSql . dcThread) comments
-  updateData stmt comments
+getKnownThreads conn comments
+  | newComments == [] = return comments
+  | otherwise = do
+    stmt <- prepare conn ("SELECT id, disqus_thread " ++
+      "FROM posts " ++
+      "WHERE disqus_thread IN ("  ++
+      intersperse ',' (map (\_ -> '?') newComments) ++ ")")
+    execute stmt $ map toSql newComments
+    updateData stmt comments
   where
+    newComments = newThreads comments
+
     updateData stmt comments = do
       row <- fetchRowMap stmt
       case row of
@@ -240,20 +244,36 @@ getKnownThreads conn comments = do
         { dcMyThread = Just pId }
       | otherwise = comment
 
+saveThreads :: (IConnection a) => a -> Map String String -> IO ()
+saveThreads conn m
+  | M.null m = return ()
+  | otherwise = withTransaction conn $ saveThreads_ $ M.assocs m
+  where
+    saveThreads_ [] _ = return ()
+    saveThreads_ ((k, v) : ms) conn = do
+      stmt <- prepare conn "UPDATE posts SET disqus_thread = ? WHERE url = ?"
+      execute stmt [toSql k, toSql v]
+      saveThreads_ ms conn
+
 main :: IO ()
 main = do
   conn <- connectMySQL connectInfo
+  -- Get last comment date in our db
   since <- getSince conn
+  -- Get new comments from disqus
   (posts, postErrors) <- listPosts since
   writeErrors "listPosts errors:" postErrors
+  -- Complement comments from disqus with our post ids
   updatedPosts <- getKnownThreads conn posts
+  -- Read new urls of posts with comments
   (threads, threadErrors) <- listThreads updatedPosts
   writeErrors "listThreads errors:" threadErrors
-  print threads
+  -- Write links between disqus threads and our threads
+  saveThreads conn threads
+  -- Complement comments with just written post ids
+  updatedPosts2 <- getKnownThreads conn updatedPosts
 
-  --  case posts of
-  --    (Ok a) -> putStrLn $ show a
-  --    (Error _) -> putStrLn $ show posts
+  -- Done
   disconnect conn
   where
     writeErrors _ [] = return ()
