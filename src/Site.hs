@@ -161,10 +161,11 @@ showPost :: AppHandler ()
 showPost = do
   url <- decodedParam "post"
   post <- getPost url
-
+  comments <- getComments post
   maybe error404 
     (\p -> heistLocal (bindSplices 
       [ ("post", return [renderResult p])
+      , ("comments", commentsSplice comments)
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaTitle = Just $ postTitle p
         , metaUrl = "/post/" `T.append` T.decodeUtf8 url
@@ -209,6 +210,32 @@ showPost = do
       ) . findRec (checkFigure . current) . fromNode      
     checkFigure node = maybe False (== "div") (tagName node) &&
       maybe False (== "figure") (getAttribute "class" node)
+
+commentsSplice :: [PostComment] -> Splice AppHandler
+commentsSplice comments =
+  return [H.div <. "post-comments" <&& map commentToHtml comments]
+  where
+    commentToHtml comment =
+      H.div <. "post-comment"
+        <&&
+        [ H.img <. "post-comment-avatar" <@ A.src (commentAuthorAvatar comment)
+        , H.div <. "post-comment-body"
+            <& (
+              H.header <&&
+                [ H.span <. "post-comment-author" <&
+                  if commentAuthorUrl comment == ""
+                    then TextNode $ commentAuthorName comment
+                    else H.a <@ (A.href $ commentAuthorUrl comment) <# commentAuthorName comment
+                , H.span <. "post-comment-bullet" <@ ("aria-hidden", "true") <# "•"
+                , H.span <. "post-comment-date" <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" $ commentDate comment)
+                ]
+            ) <&& (toComment $ parseHTML "comment.html" $ T.encodeUtf8 $ commentBody comment)
+        , H.div <. "clearfix"
+        ]
+    toComment :: Either String Document -> [Node]
+    toComment (Left _) = []
+    toComment (Right (XmlDocument _ _ nodes)) = nodes
+    toComment (Right (HtmlDocument _ _ nodes)) = nodes
 
 -- |
 -- About me action

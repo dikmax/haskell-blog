@@ -96,10 +96,22 @@ h6 :: Node
 h6 = Element "h6" [] []
 
 --
+-- header element
+--
+header :: Node
+header = Element "header" [] []
+
+--
 -- i element
 --
 i :: Node
 i = Element "i" [] []
+
+--
+-- img element
+--
+img :: Node
+img = Element "img" [] []
 
 --
 -- li element
