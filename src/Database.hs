@@ -3,6 +3,7 @@
 module Database
   ( setEncoding
   , deletePost
+  , getComments
   , getPosts
   , getPostsCount
   , getPost
@@ -97,6 +98,28 @@ getPost url = do
   case rows of
     [] -> return Nothing
     _ -> return $ Just $ rowToPost $ head rows
+
+getComments :: HasHdbc m c s => Maybe Post -> m ([PostComment])
+getComments Nothing = return []
+getComments (Just p) = do
+  rows <- query
+    ("SELECT * " ++
+    "FROM comments " ++
+    "WHERE thread_id = ? " ++
+    "ORDER BY `date` ASC") [toSql $ postId p]
+  return $ map rowToComment rows
+  where
+    rowToComment :: Row -> PostComment
+    rowToComment rw = PostComment
+      { commentId = fromSql $ rw ! "comment_id"
+      , commentThread = fromSql $ rw ! "thread_id"
+      , commentParentId = fromSql $ rw ! "parent_comment_id"
+      , commentBody = fromSql $ rw ! "body"
+      , commentAuthorName = fromSql $ rw ! "author_name"
+      , commentAuthorUrl = fromSql $ rw ! "author_url"
+      , commentAuthorAvatar = fromSql $ rw ! "author_avatar"
+      , commentDate = fromSql $ rw ! "date"
+      }
 
 getPostById :: HasHdbc m c s => ByteString -> m Post
 getPostById pId = do
@@ -249,7 +272,7 @@ vaultValidateUrl id' url = do
     ("SELECT COUNT(*) `count` " ++
       "FROM posts " ++
       "WHERE url = ? AND id <> ?") [toSql url, toSql id']
-  return $ (fromSql $ head rows ! "count") == (0 :: Int)
+  return $ fromSql (head rows ! "count") == (0 :: Int)
 
 --
 -- Utility functions

@@ -74,7 +74,7 @@ concatBlocks blocks = do
   result <- foldM concatBlocks' [] blocks
   writerState <- get
   put writerState {rawData = ""}
-  return $ result ++ (parseRawString $ rawData writerState)
+  return $ result ++ parseRawString (rawData writerState)
 
 concatBlocks' :: [Node] -> Block -> WriterState [Node]
 concatBlocks' nodes block@(Plain _) = do
@@ -87,12 +87,12 @@ concatBlocks' nodes block = do
   writerState <- get
   put writerState {rawData = ""}
   items <- writeBlock block
-  return (nodes ++ (parseRawString $ rawData writerState) ++ items)
+  return (nodes ++ parseRawString (rawData writerState) ++ items)
 
 writeBlock :: Block -> WriterState [Node]
 writeBlock (Plain inline) = do
   inlines <- concatInlines inline
-  modify (\s -> s { rawData = rawData s `T.append` (T.decodeUtf8 $ toByteString $ renderHtmlFragment UTF8 inlines) } )
+  modify (\s -> s { rawData = rawData s `T.append` T.decodeUtf8 (toByteString $ renderHtmlFragment UTF8 inlines) } )
   return []
 writeBlock (Para inline) = do
   inlines <- concatInlines inline
@@ -106,7 +106,7 @@ writeBlock (CodeBlock (identifier, classes, others) code) = return
   where 
     mapAttrs = writeAttr (identifier, "sourceCode" : classes, others) 
 writeBlock (RawBlock "html" str) = do  
-  modify (\s -> s { rawData = rawData s `T.append` (T.pack str) })
+  modify (\s -> s { rawData = rawData s `T.append` T.pack str })
   return []
 writeBlock (RawBlock _ _) = return []
 writeBlock (BlockQuote _) = return [TextNode "BlockQuote not implemented"]
@@ -144,7 +144,7 @@ writeBlock (Header _ inline) = do
   inlines <- concatInlines inline
   return [Element "h6" [] inlines]
 writeBlock HorizontalRule = return [Element "hr" [] []]
-writeBlock (Table _ _ _ _ _) = return [TextNode "Table not implemented"]
+writeBlock (Table {}) = return [TextNode "Table not implemented"]
 writeBlock Null = return []
 
 processListItems :: [Node] -> [Block] -> WriterState [Node]
@@ -165,7 +165,7 @@ concatInlines inlines = do
   result <- foldM concatInlines' [] inlines
   writerState <- get
   put writerState {rawInline = ""}
-  return $ result ++ (parseRawString $ rawInline writerState)
+  return $ result ++ parseRawString (rawInline writerState)
 
 concatInlines' :: [Node] -> Inline -> WriterState [Node]
 concatInlines' nodes inline = do
@@ -216,7 +216,7 @@ writeInline Space = return [TextNode " "]
 writeInline LineBreak = return [Element "br" [] []]
 writeInline (Math _ _) = return [TextNode "Math not implemented"]
 writeInline (RawInline "html" str) = do
-  modify (\s -> s {rawInline = rawInline s `T.append` (T.pack str)})
+  modify (\s -> s {rawInline = rawInline s `T.append` T.pack str})
   return []
 writeInline (RawInline _ _) = return []
 writeInline (Link inline target) = do
@@ -229,7 +229,7 @@ writeInline (Image inline target) = do
   inlines <- concatInlines inline
   return 
     [ Element "div" [("class", "figure")] 
-      ([ Element "p" [("class", "figure-description")] $ inlines | inline /= []] ++
+      ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
       [ Element "img"  
         [ ("src", T.pack $ fst target)
         , ("title", T.pack $ snd target)
@@ -243,10 +243,10 @@ writeInline (Note block) = do
   put writerState {
     notesList = notesList writerState ++ [blocks]
   }
-  let noteId = (length $ notesList writerState) + 1
+  let noteId = length (notesList writerState) + 1
   return 
     [ Element "sup" 
-      [ ("id", "note-" `T.append` (idPrefix $ writerOptions writerState) `T.append` (T.pack $ show noteId) ) 
+      [ ("id", "note-" `T.append` idPrefix (writerOptions writerState) `T.append` T.pack (show noteId))
       , ("class", "note-link") 
       ] 
       [ TextNode $ T.pack $ show noteId ]
@@ -298,7 +298,7 @@ writeRawInline (Quoted DoubleQuote inline) = do
   return ("«" `T.append` inlines `T.append` "»")
 writeRawInline (Cite _ _) = return "Cite not implemented"
 writeRawInline (Code attr code) = 
-  return ("<code " `T.append` (writeRawAttr attr) `T.append` ">" `T.append` (T.pack code) `T.append` "</code>" )
+  return ("<code " `T.append` writeRawAttr attr `T.append` ">" `T.append` T.pack code `T.append` "</code>" )
 writeRawInline Space = return " "
 writeRawInline LineBreak = return "<br />"
 writeRawInline (Math _ _) = return "Math not implemented"
@@ -306,7 +306,7 @@ writeRawInline (RawInline "html" str) = return $ T.pack str
 writeRawInline (RawInline _ _) = return ""
 writeRawInline (Link inline target) = do
   inlines <- concatRawInlines inline
-  return ("<a " `T.append` (writeRawAttr ("", [], [("href", fst target), ("title", snd target)])) `T.append` ">" 
+  return ("<a " `T.append` writeRawAttr ("", [], [("href", fst target), ("title", snd target)]) `T.append` ">"
     `T.append` inlines `T.append` "</a>" )
   --writeInline (Image _ _) = [TextNode "Image not implemented"]
 writeRawInline (Image inline target) = do
@@ -325,28 +325,26 @@ writeRawInline (Note block) = do
   put writerState {
     notesList = notesList writerState ++ [blocks]
   }
-  let noteId = (length $ notesList writerState) + 1
+  let noteId = length (notesList writerState) + 1
   return 
-    ("<sup id=\"node-" `T.append` (idPrefix $ writerOptions writerState) `T.append` (T.pack $ show noteId) `T.append`
-      "\" class=\"note-link\">" `T.append` (T.pack $ show noteId) `T.append` "</sup>")
+    ("<sup id=\"node-" `T.append` idPrefix (writerOptions writerState) `T.append` T.pack (show noteId) `T.append`
+      "\" class=\"note-link\">" `T.append` T.pack (show noteId) `T.append` "</sup>")
 
 getFooter :: WriterState [Node]
 getFooter = do
   writerState <- get
-  return $ if (length $ notesList writerState) > 0
-    then 
-      [ Element "div" [ ("class", "footnotes") ] 
-        [ Element "hr" [] []
-        , Element "ol" [] $
-          transformNotes (notesList writerState) 1 ("note-" `T.append` (idPrefix $ writerOptions writerState))
-        ]
-      ]
-    else [ ]
+  return
+    [ Element "div" [ ("class", "footnotes") ]
+      [ Element "hr" [] []
+      , Element "ol" [] $
+        transformNotes (notesList writerState) 1 ("note-" `T.append` idPrefix (writerOptions writerState))
+      ] | length (notesList writerState) > 0
+    ]
   where
     transformNotes :: [[Node]] -> Int -> T.Text -> [Node]
     transformNotes (n:ns) i prefix = 
-      (Element "li" [("data-for", prefix `T.append` (T.pack $ show i))] n
-      ) : transformNotes ns (i+1) prefix
+      Element "li" [("data-for", prefix `T.append` T.pack (show i))] n
+      : transformNotes ns (i+1) prefix
     transformNotes [] _ _ = []
 
 

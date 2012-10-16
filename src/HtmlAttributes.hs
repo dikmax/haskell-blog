@@ -26,6 +26,9 @@ itemscope attribute = ("itemscope", attribute)
 itemtype :: Text -> (Text, Text)
 itemtype attribute = ("itemtype", attribute)
 
+src :: Text -> (Text, Text)
+src attribute = ("src", attribute)
+
 style :: Text -> (Text, Text)
 style attribute = ("style", attribute)
 

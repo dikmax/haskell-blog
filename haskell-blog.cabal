@@ -14,6 +14,10 @@ Flag development
   Description: Whether to build the server in development (interpreted) mode
   Default: False
 
+Executable disqus-sync
+  hs-source-dirs: src
+  main-is: DisqusSync.hs
+
 Executable haskell-blog
   hs-source-dirs: src
   main-is: Main.hs

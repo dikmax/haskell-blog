@@ -102,9 +102,6 @@ parserState = defaultParserState
   , stateParseRaw = True
   }
 
-resourcesRevision :: Text  
-resourcesRevision = "18";
-
 --
 -- Metadata processing
 --
@@ -200,3 +197,7 @@ defaultDisqusVars = DisqusVars
   , disqusTitle = Nothing
   , disqusDeveloper = isDeveloperMode
   }
+
+-- | Resources revision to put in requests
+resourcesRevision :: Text
+resourcesRevision = "19";

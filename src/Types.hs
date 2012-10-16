@@ -4,8 +4,7 @@ module Types where
 import Data.Text
 import Data.Time
 
--- TODO change ByteString to Text
-data Post = Post 
+data Post = Post
   { postId :: Int
   , postTitle :: Text
   , postText :: Text
@@ -15,6 +14,17 @@ data Post = Post
   , postSpecial :: Bool
   , postTags :: [Text]
   }         
+
+data PostComment = PostComment
+  { commentId :: Text
+  , commentThread :: Int
+  , commentParentId :: Maybe Text
+  , commentBody :: Text
+  , commentAuthorName :: Text
+  , commentAuthorUrl :: Text
+  , commentAuthorAvatar :: Text
+  , commentDate :: LocalTime
+  }
 
 newtype Tag = Tag (Text, Int)
 

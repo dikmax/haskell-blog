@@ -9,8 +9,7 @@
 <div class="container">
     <div class="component-panel">
         <post/>
-
-        <div id="disqus_thread"></div>
+        <div id="disqus_thread"><comments/></div>
         <disqusVars />
         <script type="text/javascript">
             (function () {
