@@ -23,7 +23,7 @@ tar --lzma \
   -cf haskell-blog.tar.lzma haskell-blog disqus-sync snaplets static
 
 echo "Transfer achive to server..."
-#rcp haskell-blog.tar.lzma dikmax.name:/home/dikmax/www/haskell-blog.tar.lzma
+rcp haskell-blog.tar.lzma dikmax.name:/home/dikmax/www/haskell-blog.tar.lzma
 
 #echo "Updating server..."
 #ssh dikmax.name <<'ENDSSH'
