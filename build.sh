@@ -6,8 +6,9 @@ echo "Building project..."
 cabal configure
 cabal build
 
-echo "Stripping comments from executable..."
+echo "Stripping comments from executables..."
 strip -p --strip-unneeded --remove-section=.comment -o haskell-blog dist/build/haskell-blog/haskell-blog
+strip -p --strip-unneeded --remove-section=.comment -o disqus-sync dist/build/disqus-sync/disqus-sync
 
 ./build_production.sh
 
@@ -19,10 +20,10 @@ tar --lzma \
   --exclude 'static/js/third_party/*' --exclude 'static/js/third_party' \
   --exclude 'static/js/highlight.pack.js' \
   --exclude 'static/less/*' --exclude 'static/less' \
-  -cf haskell-blog.tar.lzma haskell-blog snaplets static
+  -cf haskell-blog.tar.lzma haskell-blog disqus-sync snaplets static
 
 echo "Transfer achive to server..."
-rcp haskell-blog.tar.lzma dikmax.name:/home/dikmax/www/haskell-blog.tar.lzma
+#rcp haskell-blog.tar.lzma dikmax.name:/home/dikmax/www/haskell-blog.tar.lzma
 
 #echo "Updating server..."
 #ssh dikmax.name <<'ENDSSH'
