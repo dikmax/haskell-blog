@@ -211,9 +211,9 @@ showPost = do
     checkFigure node = maybe False (== "div") (tagName node) &&
       maybe False (== "figure") (getAttribute "class" node)
 
-commentsSplice :: [PostComment] -> Splice AppHandler
-commentsSplice comments =
-  return [H.div <. "post-comments" <&& map commentToHtml comments]
+renderComments :: [PostComment] -> [Node]
+renderComments comments =
+  [H.div <. "post-comments" <&& map commentToHtml comments]
   where
     commentToHtml comment =
       H.div <. "post-comment"
@@ -236,6 +236,9 @@ commentsSplice comments =
     toComment (Left _) = []
     toComment (Right (XmlDocument _ _ nodes)) = nodes
     toComment (Right (HtmlDocument _ _ nodes)) = nodes
+
+commentsSplice :: [PostComment] -> Splice AppHandler
+commentsSplice = return . renderComments
 
 -- |
 -- About me action
@@ -280,7 +283,11 @@ shoutbox = heistLocal (bindSplices
 shoutboxSplice :: Splice AppHandler
 shoutboxSplice = do
   post <- lift $ getPost "shoutbox"
-  return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
+  comments <- lift $ getComments post
+  return $ maybe [] (\p ->
+    [ renderPostBody p "mainContentOfPage"
+    , H.div <@ ("id", "disqus_thread") <&& renderComments comments
+    ]) post
 
 -- |
 -- Latest movies action
@@ -302,8 +309,12 @@ latestMovies = heistLocal (bindSplices
 latestMoviesSplice :: Splice AppHandler
 latestMoviesSplice = do
   post <- lift $ getPost "latest"
-  return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
-  
+  comments <- lift $ getComments post
+  return $ maybe [] (\p ->
+    [ renderPostBody p "mainContentOfPage"
+    , H.div <@ ("id", "disqus_thread") <&& renderComments comments
+    ]) post
+
 --
 -- Navigation
 -- 
