@@ -143,9 +143,6 @@ toError :: String -> Result a -> Result b
 toError prefix (Error str) = Error $ prefix ++ ": " ++ str
 toError prefix _ = Error $ prefix ++ ": Access error"
 
-disqusApiKey :: String
-disqusApiKey = "eEu5UUONIskKunn9HIudZ8DUpAdPPkbgwsLBzyeVRD4ACEqtOqY1OPdC2cfL7CJ2"
-
 curlDo :: String -> IO String
 curlDo url = withCurlDo $ do
   h <- initialize
