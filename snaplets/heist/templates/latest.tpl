@@ -8,7 +8,6 @@
     <div class="component-panel latest-movies">
         <h1 itemprop="name">Последние просмотренные фильмы</h1>
         <latest/>
-        <div id="disqus_thread"></div>
         <disqusVars />
         <script type="text/javascript">
             (function () {

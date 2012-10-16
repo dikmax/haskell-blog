@@ -8,7 +8,6 @@
 <div class="container">
     <div class="component-panel">
         <shoutbox/>
-        <div id="disqus_thread"></div>
         <disqusVars />
         <script type="text/javascript">
             (function () {
