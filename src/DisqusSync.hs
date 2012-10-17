@@ -287,7 +287,7 @@ saveComments conn comments = withTransaction conn $ saveComments_ comments
       | otherwise = saveComments_ cs conn
 
 main :: IO ()
-main = do
+main = handleSqlError $ do
   conn <- connectMySQL connectInfo
   runRaw conn "SET NAMES utf8"
   -- Get last comment date in our db
