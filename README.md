@@ -3,8 +3,8 @@ and [Snap framework](http://snapframework.com/).
 
 I'm novice to Haskell so use code at your own risk.
 
-PREREQUISITIVES
-===============
+PREREQUISITES
+=============
 
 1. Haskell Platform [http://www.haskell.org/platform/](http://www.haskell.org/platform/). I'm using 2012.1.0.0 from Ubuntu 12.04 repositoty.
 2. Node.js and less compiler [http://lesscss.org/](http://lesscss.org/)
