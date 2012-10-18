@@ -456,8 +456,8 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
-  wrapHandlers (setEncoding *>)
-  wrapHandlers $ withSession sessLens
+  wrapSite (setEncoding *>)
+  wrapSite $ withSession sessLens
   addRoutes routes
   return 
     App 
