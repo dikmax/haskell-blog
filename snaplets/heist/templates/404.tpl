@@ -2,12 +2,12 @@
 <html lang="ru">
 <apply template="head"/>
 
-<body>
+<body class="${mobile}">
 
 <apply template="topnav"/>
 
 <div class="container">
-    <div class="well">
+    <div class="component-panel">
         404. Ничего не найдено или плохо искалось. Или даже не искалось вовсе.
     </div>
     <apply template="footer"/>
