@@ -49,9 +49,11 @@ index =  ifTop $ do
   tag <- getParam "tag"
   let
     tagText = T.decodeUtf8' $ fromMaybe "" tag
-    tagLink = case tagText of
-      (Left _) -> Nothing
-      (Right t) -> Just t
+    tagLink
+      | tag == Nothing = Nothing
+      | otherwise = case tagText of
+        (Left _) -> Nothing
+        (Right t) -> Just t
     pageNum = case reads $ unpack page of
       [(x, "")] -> x
       _ -> 1
