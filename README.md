@@ -18,9 +18,12 @@ BUILD PROJECT
 To build project you need a few simple steps:
 
 1. Checkout repository
-2. In project root run `cabal configure` and `cabal build`
-3. The build all required js and css files by running `./build_debug.sh`
-4. Start server `dist/build/haskell-blog/haskell-blog`
+2. Setup cabal if you didn't do that earlier: `cabal update` and `cabal install cabal-install`
+3. Install project dependencies `cabal install --only-dependencies`. This step may require installation of dev-versions
+of some libraries (libcurl3-dev, etc.)
+4. In project root run `cabal configure` and `cabal build`
+5. The build all required js and css files by running `./build_debug.sh`
+6. Start server `dist/build/haskell-blog/haskell-blog`
 
 That's all.
 
