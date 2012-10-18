@@ -47,7 +47,11 @@ index :: Handler App App ()
 index =  ifTop $ do
   page <- decodedParam "page"
   tag <- getParam "tag"
-  let 
+  let
+    tagText = T.decodeUtf8' $ fromMaybe "" tag
+    tagLink = case tagText of
+      (Left _) -> Nothing
+      (Right t) -> Just t
     pageNum = case reads $ unpack page of
       [(x, "")] -> x
       _ -> 1
@@ -55,10 +59,10 @@ index =  ifTop $ do
       [ ("posts", postsSplice pageNum tag) 
       , ("pagination", paginationSplice pageNum tag)
       , ("metadata", metadataSplice $ defaultMetadata 
-        { metaUrl = maybe "" (\t -> "/tag/" `T.append` T.decodeUtf8 t) tag
+        { metaUrl = maybe "" (\t -> "/tag/" `T.append` t) tagLink
             `T.append` if pageNum == 1 then "" else "/page/" `T.append` T.pack (show pageNum)
-        , metaDescription = makeDescription tag pageNum
-        , metaTitle = makeTitle tag pageNum
+        , metaDescription = makeDescription tagLink pageNum
+        , metaTitle = makeTitle tagLink pageNum
         , metaType = FacebookBlog
         })
       ]
@@ -67,17 +71,21 @@ index =  ifTop $ do
     makeDescription Nothing p = "Мой персональный блог, записи с " `T.append`
       T.pack (show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
       T.pack (show (p * postsPerPage)) `T.append` "."
-    makeDescription (Just t) 1 = "Мой персональный блог, записи с тегом \"" `T.append` T.decodeUtf8 t `T.append` ".\""
-    makeDescription (Just t) p = "Мой персональный блог, записи с тегом \"" `T.append` T.decodeUtf8 t `T.append` "\" c " `T.append`
+    makeDescription (Just t) 1 = "Мой персональный блог, записи с тегом \"" `T.append` t `T.append` ".\""
+    makeDescription (Just t) p = "Мой персональный блог, записи с тегом \"" `T.append` t `T.append` "\" c " `T.append`
       T.pack (show ((p - 1) * postsPerPage + 1)) `T.append` " по " `T.append`
       T.pack (show (p * postsPerPage))`T.append` "."
 
     makeTitle Nothing 1 = Nothing
     makeTitle Nothing p = Just $ T.pack (show p) `T.append` "-я страница"
-    makeTitle (Just t) 1 = Just $ "\"" `T.append` T.decodeUtf8 t `T.append` "\""
-    makeTitle (Just t) p = Just $ "\"" `T.append` T.decodeUtf8 t `T.append` "\", " `T.append` T.pack (show p) `T.append`
+    makeTitle (Just t) 1 = Just $ "\"" `T.append` t `T.append` "\""
+    makeTitle (Just t) p = Just $ "\"" `T.append` t `T.append` "\", " `T.append` T.pack (show p) `T.append`
       "-я страница"
-  heistLocal (bindSplices indexSplices) $ render "index"
+
+  either
+    (\_ -> error404)
+    (\_ -> heistLocal (bindSplices indexSplices) $ render "index")
+    tagText
 
 postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
 postsSplice page tag = do
