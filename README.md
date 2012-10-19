@@ -25,7 +25,8 @@ To build project you need these steps:
 of some libraries (libcurl3-dev, etc.)
 6. In project root run `cabal configure` and `cabal build`
 7. The build all required js and css files by running `./build_debug.sh`
-8. Start server `dist/build/haskell-blog/haskell-blog`
+8. Create empty file `config/site_key.txt`: `touch config/site_key.txt`
+9. Start server `dist/build/haskell-blog/haskell-blog`
 
 That's all.
 
