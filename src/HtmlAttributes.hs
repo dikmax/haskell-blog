@@ -4,6 +4,9 @@ module HtmlAttributes where
 
 import Data.Text (Text)
 
+alt :: Text -> (Text, Text)
+alt attribute = ("alt", attribute)
+
 -- Use <. operator
 cls :: Text -> (Text, Text)
 cls attribute = ("class", attribute)
@@ -34,6 +37,9 @@ style attribute = ("style", attribute)
 
 type_ :: Text -> (Text, Text)
 type_ attribute = ("type", attribute)
+
+title :: Text -> (Text, Text)
+title attribute = ("title", attribute)
 
 typeJavascript :: (Text, Text)
 typeJavascript = type_ "text/javascript"

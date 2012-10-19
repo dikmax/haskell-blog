@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:og="http://ogp.me/ns#">
+<html lang="ru" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
 <apply template="head"/>
 <body itemscope="itemscope" itemtype="http://schema.org/WebPage" class="${mobile}">
 <apply template="author"/>

@@ -226,20 +226,24 @@ renderComments comments =
   [H.div <. "post-comments" <&& map commentToHtml comments]
   where
     commentToHtml comment =
-      H.div <. "post-comment"
+      H.div <. "post-comment" <@ A.itemprop "comment" <@ A.itemtype "http://schema.org/UserComments" <@ A.itemscope "itemscope"
         <&&
         [ H.img <. "post-comment-avatar" <@ A.src (commentAuthorAvatar comment)
+          <@ A.itemprop "image" <@ A.href (commentAuthorAvatar comment)
+          <@ A.alt (commentAuthorName comment) <@ A.title (commentAuthorName comment)
         , H.div <. "post-comment-body"
             <& (
               H.header <&&
-                [ H.span <. "post-comment-author" <&
+                [ H.span <. "post-comment-author" <@ A.itemprop "creator" <@ A.itemtype "http://schema.org/Person" <@ A.itemscope "itemscope" <&
                   if commentAuthorUrl comment == ""
                     then TextNode $ commentAuthorName comment
                     else H.a <@ (A.href $ commentAuthorUrl comment) <# commentAuthorName comment
                 , H.span <. "post-comment-bullet" <@ ("aria-hidden", "true") <# "•"
-                , H.span <. "post-comment-date" <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" $ commentDate comment)
+                , H.span <. "post-comment-date" <@ A.itemprop "commentTime"
+                  <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M:%S" $ commentDate comment)
+                  <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" $ commentDate comment)
                 ]
-            ) <&& (toComment $ parseHTML "comment.html" $ T.encodeUtf8 $ commentBody comment)
+            ) <& (H.div <@ A.itemprop "commentText" <&& (toComment $ parseHTML "comment.html" $ T.encodeUtf8 $ commentBody comment))
         , H.div <. "clearfix"
         ]
     toComment :: Either String Document -> [Node]
