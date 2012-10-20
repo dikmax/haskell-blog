@@ -236,8 +236,8 @@ renderComments comments =
               H.header <&&
                 [ H.span <. "post-comment-author" <@ A.itemprop "creator" <@ A.itemtype "http://schema.org/Person" <@ A.itemscope "itemscope" <&
                   if commentAuthorUrl comment == ""
-                    then TextNode $ commentAuthorName comment
-                    else H.a <@ (A.href $ commentAuthorUrl comment) <# commentAuthorName comment
+                    then H.span <@ A.itemprop "name" <# commentAuthorName comment
+                    else H.span <@ A.itemprop "name" <& (H.a <@ A.itemprop "url" <@ (A.href $ commentAuthorUrl comment) <# commentAuthorName comment)
                 , H.span <. "post-comment-bullet" <@ ("aria-hidden", "true") <# "•"
                 , H.span <. "post-comment-date" <@ A.itemprop "commentTime"
                   <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M:%S" $ commentDate comment)
