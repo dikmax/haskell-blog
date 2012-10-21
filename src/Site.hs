@@ -264,6 +264,7 @@ aboutMe = heistLocal (bindSplices
   [ ("about", aboutSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Обо мне"
+    , metaDescription = "Здравствуйте, очень приятно, царь"
     , metaUrl = "/about"
     , metaType = FacebookProfile
     })
@@ -287,6 +288,7 @@ shoutbox = heistLocal (bindSplices
   [ ("shoutbox", shoutboxSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Shoutbox"
+    , metaDescription = "Специальнaя страница, где можно пошуметь и прокричать все, что угодно"
     , metaUrl = "/shoutbox"
     })
   , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
@@ -313,6 +315,7 @@ latestMovies = heistLocal (bindSplices
   [ ("latest", latestMoviesSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Последние просмотренные фильмы"
+    , metaDescription = "Последние просмотренные фильмы"
     , metaUrl = "/latest"
     })
   , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
