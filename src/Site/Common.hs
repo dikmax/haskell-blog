@@ -121,17 +121,33 @@ data Metadata = Metadata
 metadataSplice :: Metadata -> Splice AppHandler
 metadataSplice (Metadata title url description keywords ftype) =
   return $
-    [ Element "title" [] [ TextNode $ titleString title]
-    , Element "meta" [("name", "description"), ("content", description)] []
-    , Element "meta" [("name", "keywords"), ("content", T.intercalate ", " keywords)] []
-    , Element "meta" [("name", "author"), ("content", "Maxim Dikun")] []
-    , Element "meta" [("property", "fb:admins"), ("content", "1201794820")] []
-    , Element "meta" [("property", "og:site_name"), ("content", "[dikmax's blog]")] []
-    , Element "meta" [("property", "og:title"), ("content", facebookTitleString title)] []
-    , Element "meta" [("property", "og:url"), ("content", "http://dikmax.name" `T.append` if url == "" then "/" else url)] []
-    , Element "meta" [("property", "og:description"), ("content", description)] []
+    -- Common metadata
+    [ H.title <# titleString title
+    , H.meta <@ A.name "description" <@ A.content description
+    , H.meta <@ A.name "keywords" <@ A.content (T.intercalate ", " keywords)
+    , H.meta <@ A.name "author" <@ A.content "Maxim Dikun"
+    , H.meta <@ A.property "fb:admins" <@ A.content "1201794820"
+    , H.meta <@ A.property "og:site_name" <@ A.content "[dikmax's blog]"
+    , H.meta <@ A.property "og:title" <@ A.content (facebookTitleString title)
+    , H.meta <@ A.property "og:url" <@ A.content urlString
+    , H.meta <@ A.property "og:description" <@ A.content description
+    -- Dublin Core metadata
+    , H.link <@ A.rel "schema.DC" <@ A.href "http://purl.org/dc/elements/1.1/"
+    , H.link <@ A.rel "schema.DCTERMS" <@ A.href "http://purl.org/dc/terms/"
+    , H.meta <@ A.name "DC.title" <@ A.content (facebookTitleString title)
+    , H.meta <@ A.name "DC.creator" <@ A.content "Maxim Dikun"
+    , H.meta <@ A.name "DC.subject" <@ A.content (T.intercalate "; " keywords)
+    , H.meta <@ A.name "DC.description" <@ A.content description
+    , H.meta <@ A.name "DC.publisher" <@ A.content "Maxim Dikun"
+    , H.meta <@ A.name "DC.rights" <@ A.content "Maxim Dikun, 2012"
+    , H.meta <@ A.name "DC.type" <@ A.scheme "DCTERMS.DCMIType" <@ A.content "Text"
+    , H.meta <@ A.name "DC.format" <@ A.content "text/html;charset=utf-8"
+    , H.meta <@ A.name "DC.identifier" <@ A.scheme "DCTERMS.URI" <@ A.content urlString
+    , H.meta <@ A.name "DC.language" <@ A.content "ru"
     ] ++ (facebookType ftype)
-  where 
+  where
+    urlString = "http://dikmax.name" `T.append` if url == "" then "/" else url
+
     titleString Nothing = "[dikmax's blog]"
     titleString (Just t) = t `T.append` " :: [dikmax's blog]"
 
@@ -139,22 +155,24 @@ metadataSplice (Metadata title url description keywords ftype) =
     facebookTitleString (Just t) = t
 
     facebookType :: FacebookType -> [Node]
-    facebookType FacebookBlog = [ Element "meta" [("property", "og:type"), ("content", "blog")] [] ]
+    facebookType FacebookBlog = [ H.meta <@ A.property "og:type" <@ A.content "blog" ]
     facebookType (FacebookArticle published tags image) = 
-      [ Element "meta" [("property", "og:type"), ("content", "article")] [] 
-      , Element "meta" [("property", "article:author"), ("content", "http://dikmax.name/about")] []
-      , Element "meta" [("property", "article:published_time"), ("content", T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)] []
-      , Element "meta" [("property", "article:modified_time"), ("content", T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)] []
-      ] ++ (map (\t -> Element "meta" [("property", "article:tag"), ("content", t)] []) tags)
-      ++ (maybe [] (\t -> [Element "meta" [("property", "og:image"), ("content", t)] []]) image)
+      [ H.meta <@ A.property "og:type" <@ A.content "article"
+      , H.meta <@ A.property "article:author" <@ A.content "http://dikmax.name/about"
+      , H.meta <@ A.property "article:published_time" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)
+      , H.meta <@ A.property "article:modified_time" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)
+      -- Dublin Core date
+      , H.meta <@ A.name "DC.date" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)
+      ] ++ (map (\t -> H.meta <@ A.property "article:tag" <@ A.content t) tags)
+      ++ (maybe [] (\t -> [H.meta <@ A.property "og:image" <@ A.content t]) image)
     facebookType FacebookProfile =
-      [ Element "meta" [("property", "og:type"), ("content", "profile")] [] 
-      , Element "meta" [("property", "og:image"), ("content", "http://c358655.r55.cf1.rackcdn.com/me.jpg")] []
-      , Element "meta" [("property", "profile:first_name"), ("content", "Maxim")] []
-      , Element "meta" [("property", "profile:last_name"), ("content", "Dikun")] []
-      , Element "meta" [("property", "profile:username"), ("content", "dikmax")] []
-      , Element "meta" [("property", "profile:gender"), ("content", "male")] []
-      , Element "meta" [("property", "fb:profile_id"), ("content", "1201794820")] []
+      [ H.meta <@ A.property "og:type" <@ A.content "profile"
+      , H.meta <@ A.property "og:image" <@ A.content "http://a51056ce8d9b948fb69e-8de36eb37b2366f5a76a776c3dee0b32.r42.cf1.rackcdn.com/me.jpg"
+      , H.meta <@ A.property "profile:first_name" <@ A.content "Maxim"
+      , H.meta <@ A.property "profile:last_name" <@ A.content "Dikun"
+      , H.meta <@ A.property "profile:username" <@ A.content "dikmax"
+      , H.meta <@ A.property "profile:gender" <@ A.content "male"
+      , H.meta <@ A.property "fb:profile_id" <@ A.content "1201794820"
       ]
     facebookType FacebookNothing = []
 
