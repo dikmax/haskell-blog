@@ -95,13 +95,39 @@ dikmax.Templates.vaultContainers = function(opt_data, opt_sb) {
  * @return {string}
  * @notypecheck
  */
+dikmax.Templates.vaultContainersLoading = function(opt_data, opt_sb) {
+  var output = opt_sb || new soy.StringBuilder();
+  output.append('<tr><td>Загружаем список контейнеров...</td></tr>');
+  return opt_sb ? '' : output.toString();
+};
+
+
+/**
+ * @param {Object.<string, *>=} opt_data
+ * @param {soy.StringBuilder=} opt_sb
+ * @return {string}
+ * @notypecheck
+ */
 dikmax.Templates.vaultFiles = function(opt_data, opt_sb) {
   var output = opt_sb || new soy.StringBuilder();
-  var fileList61 = opt_data.files;
-  var fileListLen61 = fileList61.length;
-  for (var fileIndex61 = 0; fileIndex61 < fileListLen61; fileIndex61++) {
-    var fileData61 = fileList61[fileIndex61];
-    output.append('<tr><td><a href="', soy.$$escapeHtml(opt_data.cdnUri), '/', soy.$$escapeHtml(fileData61['name']), '" target="_blank">', soy.$$escapeHtml(fileData61['name']), '</a></td><td>', soy.$$escapeHtml(fileData61['bytes']), '</td><td>', soy.$$escapeHtml(fileData61['content_type']), '</td><td>', soy.$$escapeHtml(fileData61['last_modified']), '</td></tr>');
+  var fileList63 = opt_data.files;
+  var fileListLen63 = fileList63.length;
+  for (var fileIndex63 = 0; fileIndex63 < fileListLen63; fileIndex63++) {
+    var fileData63 = fileList63[fileIndex63];
+    output.append('<tr><td><a href="', soy.$$escapeHtml(opt_data.cdnUri), '/', soy.$$escapeHtml(fileData63['name']), '" target="_blank">', soy.$$escapeHtml(fileData63['name']), '</a></td><td>', soy.$$escapeHtml(fileData63['bytes']), '</td><td>', soy.$$escapeHtml(fileData63['content_type']), '</td><td>', soy.$$escapeHtml(fileData63['last_modified']), '</td></tr>');
   }
+  return opt_sb ? '' : output.toString();
+};
+
+
+/**
+ * @param {Object.<string, *>=} opt_data
+ * @param {soy.StringBuilder=} opt_sb
+ * @return {string}
+ * @notypecheck
+ */
+dikmax.Templates.vaultFilesLoading = function(opt_data, opt_sb) {
+  var output = opt_sb || new soy.StringBuilder();
+  output.append('<tr><td colspan="4">Загружаем список файлов...</td></tr>');
   return opt_sb ? '' : output.toString();
 };

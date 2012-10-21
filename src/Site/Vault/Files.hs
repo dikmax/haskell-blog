@@ -6,11 +6,13 @@ import Control.Monad.IO.Class (liftIO)
 import Data.ByteString.Char8 (pack, unpack)
 import qualified Data.Map as M
 import Data.Maybe
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Foreign.C.Types
 import Foreign.Ptr
 import Network.Curl
 import Text.JSON
-import Snap.Core (getPostParam, writeBS)
+import Snap.Core (getPostParam, writeBS, urlEncode)
 import Snap.Snaplet.Heist
 import Snap.Util.FileUploads
 import System.Directory (getTemporaryDirectory)
@@ -119,7 +121,8 @@ curlDo action = withCurlDo $ do
               return $ if (actualSize > 0) then Just $ fromInteger $ toInteger actualSize else Nothing
 
           fileSize <- hFileSize fh
-          curl h (url ++ "/" ++ container ++ "/" ++ name)
+          let encodedName = T.unpack $ T.replace "+" "%20" $ T.decodeUtf8 $ urlEncode $ pack name
+          curl h (url ++ "/" ++ container ++ "/" ++ encodedName)
             [ CurlPut True
             , CurlHttpHeaders ["X-Auth-Token: " ++ token]
             , CurlReadFunction readFunction
