@@ -529,6 +529,10 @@ dikmax.App.prototype.setupFileManager_ = function() {
   var containers = {};
 
   // Load containers list
+  goog.dom.getElementsByTagNameAndClass('tbody', null,
+      containersList)[0].innerHTML =
+      dikmax.Templates.vaultContainersLoading();
+
   goog.net.XhrIo.send('/vault/fileshandler', function(e) {
     /** @type {goog.net.XhrIo} */
     var request = e.target;
@@ -552,6 +556,9 @@ dikmax.App.prototype.setupFileManager_ = function() {
   }, 'POST', 'action=getContainersList');
 
   var updateFilesList = function() {
+    goog.dom.getElementsByTagNameAndClass('tbody', null,
+        filesList)[0].innerHTML = dikmax.Templates.vaultFilesLoading();
+
     goog.net.XhrIo.send('/vault/fileshandler', function(e) {
       /** @type {goog.net.XhrIo} */
       var request = e.target;
@@ -568,13 +575,6 @@ dikmax.App.prototype.setupFileManager_ = function() {
                 files: data['result'],
                 cdnUri: containers[currentContainer]['cdn_uri']
               });
-          goog.style.showElement(
-              goog.dom.getElementByClass('files-panel'), true
-          );
-          goog.dom.forms.setValue(
-              document.getElementById('file-container'),
-              currentContainer
-          );
         }
       }
     }, 'POST', goog.Uri.QueryData.createFromMap({
@@ -598,6 +598,14 @@ dikmax.App.prototype.setupFileManager_ = function() {
           target = children[0];
         }
         currentContainer = target.getAttribute('href').substring(1);
+
+        goog.style.showElement(
+            goog.dom.getElementByClass('files-panel'), true
+        );
+        goog.dom.forms.setValue(
+            document.getElementById('file-container'),
+            currentContainer
+        );
 
         updateFilesList();
       }
@@ -643,9 +651,13 @@ dikmax.App.prototype.setupFileManager_ = function() {
                   return;
                 }
 
+                goog.dom.forms.setValue(document.getElementById('file-name'),
+                    '');
+                goog.dom.forms.setValue(document.getElementById('file-upload'),
+                    '');
+
                 updateFilesList();
               }
-              console.log(e);
             }
         );
         io.sendFromForm(/** @type {HTMLFormElement} */

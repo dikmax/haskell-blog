@@ -81,6 +81,16 @@
     {/foreach}
 {/template}
 
+
+/**
+ * Template to show when containers list is loading
+ */
+{template .vaultContainersLoading}
+    <tr>
+        <td>Загружаем список контейнеров...</td>
+    </tr>
+{/template}
+
 /**
  * @param files List of files
  * @param cdnUri
@@ -96,4 +106,13 @@
             <td>{$file['last_modified']}</td>
         </tr>
     {/foreach}
+{/template}
+
+/**
+ * Template to show when files list is loading
+ */
+{template .vaultFilesLoading}
+    <tr>
+        <td colspan="4">Загружаем список файлов...</td>
+    </tr>
 {/template}
