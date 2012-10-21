@@ -22,7 +22,7 @@ tar --lzma \
   --exclude 'static/less/*' --exclude 'static/less' \
   -cf haskell-blog.tar.lzma haskell-blog disqus-sync snaplets static
 
-echo "Transfer achive to server..."
+echo "Transfer archive to server..."
 rcp haskell-blog.tar.lzma dikmax.name:/home/dikmax/www/haskell-blog.tar.lzma
 
 #echo "Updating server..."
