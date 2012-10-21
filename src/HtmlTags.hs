@@ -144,6 +144,12 @@ span :: Node
 span = Element "span" [] []
 
 --
+-- title element
+--
+title :: Node
+title = Element "title" [] []
+
+--
 -- ul element
 --
 ul :: Node
