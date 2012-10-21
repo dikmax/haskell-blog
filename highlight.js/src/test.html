@@ -188,6 +188,9 @@ def somefunc(param1='', param2=0):
     return (param2 - param1 + 1) or None
 
 class SomeClass:<br>    pass
+
+&gt;&gt;&gt; message = '''interpreter
+... prompt'''
 </code></pre>
 
   <tr>
@@ -216,7 +219,7 @@ module ABC::DEF
   # @return [String] nothing
   def foo(test)
     Thread.new do |blockvar|
-      ABC::DEF.reverse(:a_symbol, :'a symbol' + 'test' + test)
+      ABC::DEF.reverse(:a_symbol, :'a symbol', :<=>, 'test' + test)
     end.join
   end
 
@@ -226,6 +229,7 @@ end
 
 anIdentifier = an_identifier
 Constant = 1
+render action: :new
 </code></pre>
 
   <tr>
@@ -1384,6 +1388,12 @@ then
  exit 2
 fi
 
+if test $# -eq 0
+then
+elif test [ $1 == 'start' ]
+else
+fi
+
 genApacheConf(){
  if [[ "$2" = "www" ]]
  then
@@ -1741,7 +1751,7 @@ union_dot_union({union, _}=U1, {union, _}=U2) ->
 
   <tr>
     <th>Erlang REPL
-    <td class="erlang_repl">
+    <td class="erlang-repl">
 <pre><code>1> Str = "abcd".
 "abcd"
 2> L = test:length(Str).

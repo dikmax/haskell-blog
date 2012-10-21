@@ -6,6 +6,7 @@ dist
 .idea
 .project
 config/site_key.txt
+highlight.js/docs
 log/*.log
 static/css/*.css
 static/less/tests
