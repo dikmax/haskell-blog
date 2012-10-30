@@ -9,7 +9,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (unpack)
-import           Data.List (maximumBy, minimumBy, sort)
+import           Data.List (groupBy, maximumBy, minimumBy, sort)
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -24,6 +24,7 @@ import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
+import           System.Locale
 import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
 import           Text.XmlHtml.Cursor
@@ -308,6 +309,60 @@ shoutboxSplice = do
     ]) post
 
 -- |
+-- Archive action
+--
+archive :: AppHandler ()
+archive = heistLocal (bindSplices
+  [ ("archive", archiveSplice)
+  , ("metadata", metadataSplice $ defaultMetadata
+    { metaTitle = Just "Архив"
+    , metaDescription = "Список всех постов для \"быстрого поиска\""
+    , metaUrl = "/archive"
+    })
+  ] ) $ render "archive"
+
+archiveSplice :: Splice AppHandler
+archiveSplice = do
+  posts <- lift $ getPosts Nothing 0 1000
+
+  return [H.ul <. "media-list" <&& renderList posts]
+  where
+    renderList posts =
+      concat $ map (\list -> (H.h2 <. "archive-month" <# T.pack (formatTime archiveLocale "%B %Y" $ postDate $ head list)) : map renderPost list) $
+        groupBy (\a b -> isEqual (toGregorian $ localDay $ postDate a) (toGregorian $ localDay $ postDate b)) posts
+    archiveLocale = defaultTimeLocale
+      { months =
+        [ ("Январь", "янв")
+        , ("Февраль", "фев")
+        , ("Март", "мар")
+        , ("Апрель", "апр")
+        , ("Май", "май")
+        , ("Июнь", "июн")
+        , ("Июль", "июл")
+        , ("Август", "авг")
+        , ("Сентябрь", "сен")
+        , ("Октябрь", "окт")
+        , ("Ноябрь", "ноя")
+        , ("Декабрь", "дек")
+        ]
+      }
+    isEqual (y1, m1, _) (y2, m2, _) = y1 == y2 && m1 == m2
+    getDay (_, _, d) = T.pack $ show d
+
+    renderPost post =
+      H.li <. "media" <&&
+      [ H.span <. "pull-left"  <&
+        (
+          H.span <. "media-object archive-day" <# (getDay $ toGregorian $ localDay $ postDate post)
+        )
+      , H.h4 <. "media-heading" <&
+        (
+          H.a <@ A.href ("/post/" `T.append` postUrl post) <# postTitle post
+        )
+      , H.div <&& renderTags (postTags post)
+      ]
+
+-- |
 -- Latest movies action
 --
 latestMovies :: AppHandler ()
@@ -341,6 +396,7 @@ siteStructure :: [(Text, Text)]
 siteStructure = 
   [ ("Обо мне", "/about")
   , ("Shoutbox", "/shoutbox")
+  , ("Архив", "/archive")
   , ("Фильмы", "/latest")
   ]
 
@@ -438,6 +494,7 @@ routes =
   , ("/post/:post", showPost)
   , ("/about", aboutMe)
   , ("/shoutbox", shoutbox)
+  , ("/archive", archive)
   , ("/latest", latestMovies)
   , ("/rss", rss)
   , ("/sitemap.xml", sitemap)
