@@ -218,4 +218,4 @@ defaultDisqusVars = DisqusVars
 
 -- | Resources revision to put in requests
 resourcesRevision :: Text
-resourcesRevision = "20";
+resourcesRevision = "21";
