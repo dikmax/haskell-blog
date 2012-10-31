@@ -28,9 +28,10 @@ sitemap = do
 sitemapDocument :: [Post] -> [Tag] -> Document
 sitemapDocument posts tags = XmlDocument UTF8 Nothing
   [ Element "urlset" [("xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9")] $
-    [ writeUrl (Just "1.0") "/"
+    [ writeUrl (Just "0.5") "/"
     , writeUrl (Just "1.0") "/about"
     , writeUrl (Just "0.7") "/movies"
+    , writeUrl (Just "0.1") "/archive"
     , writeUrl Nothing "/shoutbox"
     ] ++ (map (writeUrl (Just "1.0") . T.append "/post/" . postUrl) posts)
     ++ (writePages1 Nothing "" (ceilDiv $ length posts))
