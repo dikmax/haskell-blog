@@ -356,16 +356,14 @@ archiveSplice = do
         , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
         , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
         ]
+      , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
       , H.span <. "pull-left"  <&
         (
-          H.span <. "media-object archive-day"
-            <@ A.itemprop "dateCreated"
-            <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
-            <# (getDay $ toGregorian $ localDay $ postDate post)
+          H.span <. "media-object archive-day" <# (getDay $ toGregorian $ localDay $ postDate post)
         )
       , H.h4 <. "media-heading" <@ A.itemprop "name" <&
         (
-          H.a <@ A.itemprop "name" <@ A.href ("/post/" `T.append` postUrl post) <# postTitle post
+          H.a <@ A.itemprop "url" <@ A.href ("/post/" `T.append` postUrl post) <# postTitle post
         )
       , H.div <&& renderTags (postTags post)
       ]
