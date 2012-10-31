@@ -70,13 +70,15 @@ renderSinglePost post =
     addCommentsBlock post False (postDate post) (renderPostBody post "articleBody")
 
 addCommentsBlock :: Post -> Bool -> LocalTime -> Node -> [Node]
-addCommentsBlock post commentsLink time node =
-  [ maybe
-      (TextNode "")
-      (maybe (TextNode "") topNode . removeGoUp) $
-      lastChild $ fromNode node
-  , writeFooter extractTags
-  ]
+addCommentsBlock post commentsLink time node
+  | extractTags == Nothing = [ node, writeFooter Nothing ]
+  | otherwise =
+    [ maybe
+        (TextNode "")
+        (maybe (TextNode "") topNode . removeGoUp) $
+        lastChild $ fromNode node
+    , writeFooter extractTags
+    ]
   where
     extractTags :: Maybe Node
     extractTags =
@@ -84,7 +86,10 @@ addCommentsBlock post commentsLink time node =
         Nothing
         (\c -> maybe
           Nothing
-          (Just . current) $
+          (\cur -> case getAttribute "itemprop" $ current cur of
+            Just "keywords" -> Just $ current cur
+            _ -> Nothing
+          ) $
           firstChild c
         ) $
         lastChild $ fromNode node
