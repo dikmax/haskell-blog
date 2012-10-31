@@ -128,10 +128,10 @@ renderPostInList post =
   H.article
     <. "post component-panel"
     <@ A.itemprop "blogPost"
-    <@ A.itemscope "itemscope"
+    <@ A.itemscope
     <@ A.itemtype "http://schema.org/BlogPosting"
     <&& [
-    H.div <@ A.itemprop "author" <@ A.itemscope "itemscope" <@ A.itemtype "http://schema.org/Person" <&&
+    H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
       [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
       , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
       , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
@@ -227,7 +227,7 @@ renderComments comments =
   [H.div <. "post-comments" <&& map commentToHtml comments]
   where
     commentToHtml comment =
-      H.div <. "post-comment" <@ A.itemprop "comment" <@ A.itemtype "http://schema.org/UserComments" <@ A.itemscope "itemscope"
+      H.div <. "post-comment" <@ A.itemprop "comment" <@ A.itemtype "http://schema.org/UserComments" <@ A.itemscope
         <&&
         [ H.img <. "post-comment-avatar" <@ A.src (commentAuthorAvatar comment)
           <@ A.itemprop "image" <@ A.href (commentAuthorAvatar comment)
@@ -235,7 +235,7 @@ renderComments comments =
         , H.div <. "post-comment-body"
             <& (
               H.header <&&
-                [ H.span <. "post-comment-author" <@ A.itemprop "creator" <@ A.itemtype "http://schema.org/Person" <@ A.itemscope "itemscope" <&&
+                [ H.span <. "post-comment-author" <@ A.itemprop "creator" <@ A.itemtype "http://schema.org/Person" <@ A.itemscope <&&
                   [ H.meta <@ A.itemprop "name" <@ A.content (commentAuthorName comment)
                   , if commentAuthorUrl comment == ""
                     then TextNode $ commentAuthorName comment
@@ -350,14 +350,22 @@ archiveSplice = do
     getDay (_, _, d) = T.pack $ show d
 
     renderPost post =
-      H.li <. "media" <&&
-      [ H.span <. "pull-left"  <&
+      H.li <. "media" <@ A.itemtype "http://schema.org/BlogPosting" <@ A.itemscope <@ A.itemprop "blogPost" <&&
+      [ H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
+        [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
+        , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
+        , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
+        ]
+      , H.span <. "pull-left"  <&
         (
-          H.span <. "media-object archive-day" <# (getDay $ toGregorian $ localDay $ postDate post)
+          H.span <. "media-object archive-day"
+            <@ A.itemprop "dateCreated"
+            <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
+            <# (getDay $ toGregorian $ localDay $ postDate post)
         )
-      , H.h4 <. "media-heading" <&
+      , H.h4 <. "media-heading" <@ A.itemprop "name" <&
         (
-          H.a <@ A.href ("/post/" `T.append` postUrl post) <# postTitle post
+          H.a <@ A.itemprop "name" <@ A.href ("/post/" `T.append` postUrl post) <# postTitle post
         )
       , H.div <&& renderTags (postTags post)
       ]
