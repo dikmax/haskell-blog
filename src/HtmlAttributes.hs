@@ -23,8 +23,8 @@ href attribute = ("href", attribute)
 itemprop :: Text -> (Text, Text)
 itemprop attribute = ("itemprop", attribute)
 
-itemscope :: Text -> (Text, Text)
-itemscope attribute = ("itemscope", attribute)
+itemscope :: (Text, Text)
+itemscope = ("itemscope", "itemscope")
 
 itemtype :: Text -> (Text, Text)
 itemtype attribute = ("itemtype", attribute)

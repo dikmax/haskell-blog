@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
 <apply template="head"/>
-<body itemscope="itemscope" itemtype="http://schema.org/WebPage" class="${mobile} archive-body">
-<meta itemprop="name" content="Архив"/>
+<body itemscope="itemscope" itemtype="http://schema.org/Blog" class="${mobile} archive-body">
+<meta itemprop="name" content="[dikmax's blog]"/>
 <apply template="author"/>
 <apply template="topnav"/>
 <!--
