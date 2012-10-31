@@ -132,6 +132,12 @@ meta :: Node
 meta = Element "meta" [] []
 
 --
+-- p element
+--
+p :: Node
+p = Element "p" [] []
+
+--
 -- script element
 --
 script :: Node

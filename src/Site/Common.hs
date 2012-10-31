@@ -6,8 +6,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
 import qualified HtmlTags as H
-import HtmlTags ((<@), (<.), (<#))
---import HtmlTags ((<&&), (<&)
+import HtmlTags ((<@), (<.), (<#), (<&&), (<&))
 import qualified HtmlAttributes as A
 import System.Locale
 import Text.Templating.Heist
@@ -65,25 +64,53 @@ renderTags tags =
 
 renderSinglePost :: Post -> Node 
 renderSinglePost post = 
-  Element "article" [("class", "post")] [
-    Element "h1" [("class", "post-title"), ("itemprop", "name")]
-      [TextNode $ postTitle post],
-    addCommentsBlock (postDate post) $ renderPostBody post "articleBody"
+  H.article <. "post" <&
+    (H.h1 <. "post-title" <@ A.itemprop "name" <# postTitle post) <&
+    (H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)) <&&
+    addCommentsBlock post False (postDate post) (renderPostBody post "articleBody")
+
+addCommentsBlock :: Post -> Bool -> LocalTime -> Node -> [Node]
+addCommentsBlock post commentsLink time node =
+  [ maybe
+      (TextNode "")
+      (maybe (TextNode "") topNode . removeGoUp) $
+      lastChild $ fromNode node
+  , writeFooter extractTags
   ]
   where
-    addCommentsBlock :: LocalTime -> Node -> Node
-    addCommentsBlock time = maybe (TextNode "")
-      (maybe (TextNode "") topNode . insertManyLastChild
-      [ TextNode " | "
-      , Element "i" [("class" , "icon-calendar")] []
-      , TextNode " "
-      , Element "span"
-        [ ("itemprop", "dateCreated")
-        , ("datetime", T.pack $ formatTime timeLocale "%Y-%m-%sT%H:%M" $ time)
-        ]
-        [ TextNode $ T.pack $ formatTime timeLocale "%A, %e %B %Y, %R" $ time ]
-      ]) . lastChild . fromNode
+    extractTags :: Maybe Node
+    extractTags =
+      maybe
+        Nothing
+        (\c -> maybe
+          Nothing
+          (Just . current) $
+          firstChild c
+        ) $
+        lastChild $ fromNode node
 
+    writeFooter Nothing = H.p <&& writeFooter_ commentsLink
+    writeFooter (Just tags) = H.p <& tags <& TextNode " | " <&& writeFooter_ commentsLink
+    writeFooter_ True =
+      [ H.i <. "icon-calendar"
+      , TextNode " "
+      , H.span <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" time)
+      , TextNode " | "
+      , H.i <. "icon-comment"
+      , TextNode " "
+      , H.span <. "post-comments"
+        <& (
+          H.a <@ A.href ("/post/" `T.append`
+                      postUrl post `T.append` "#disqus_thread")
+          <@ A.itemprop "discussionUrl"
+          <# "Считаем комментарии..."
+        )
+      ]
+    writeFooter_ False =
+      [ H.i <. "icon-calendar"
+      , TextNode " "
+      , H.span <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" time)
+      ]
 
 -- TODO create my own writer (instead of writeHml) with blackjack and hookers  
 renderPostBody :: Post -> Text -> Node
