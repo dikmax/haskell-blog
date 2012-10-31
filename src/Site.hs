@@ -130,40 +130,19 @@ renderPostInList post =
     <@ A.itemprop "blogPost"
     <@ A.itemscope
     <@ A.itemtype "http://schema.org/BlogPosting"
-    <&& [
-    H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
-      [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
-      , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
-      , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
-      ],
-    H.h1 <. "post-title" <@ A.itemprop "name" <& (
-      H.a <@ A.href ("/post/" `T.append` postUrl post) <@ A.itemprop "url"
-        <# postTitle post
-    ),
-    addCommentsBlock (postDate post) $ renderPostBody post "articleBody"
-  ]
-  where
-    addCommentsBlock :: LocalTime -> Node -> Node
-    addCommentsBlock time = maybe (TextNode "")
-      (maybe (TextNode "") topNode . insertManyLastChild
-      [ TextNode " | "
-      , H.i <. "icon-calendar"
-      , TextNode " "
-      , H.span
-        <@ A.itemprop "dateCreated"
-        <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" time)
-        <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" time)
-      , TextNode " | "
-      , H.i <. "icon-comment"
-      , TextNode " "
-      , H.span <. "post-comments"
-        <& (
-          H.a <@ A.href ("/post/" `T.append`
-                      postUrl post `T.append` "#disqus_thread")
-          <@ A.itemprop "discussionUrl"
-          <# "Считаем комментарии..."
-        )
-      ]) . lastChild . fromNode
+    <&&
+    [
+      H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
+        [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
+        , H.link <@ A.itemprop "url" <@ A.href "http://dikmax.name/about"
+        , H.link <@ A.itemprop "url" <@ A.href "https://plus.google.com/109129288587536990618/posts"
+        ]
+    , H.h1 <. "post-title" <@ A.itemprop "name" <& (
+        H.a <@ A.href ("/post/" `T.append` postUrl post) <@ A.itemprop "url"
+          <# postTitle post
+      )
+    , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
+    ] ++ (addCommentsBlock post True (postDate post) $ renderPostBody post "articleBody")
 
 -- |
 -- Show post Action
@@ -353,8 +332,8 @@ archiveSplice = do
       H.li <. "media" <@ A.itemtype "http://schema.org/BlogPosting" <@ A.itemscope <@ A.itemprop "blogPost" <&&
       [ H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
         [ H.meta <@ A.itemprop "name" <@ A.content "Maxim Dikun"
-        , H.link <@ A.itemprop "url" <@ A.content "http://dikmax.name/about"
-        , H.link <@ A.itemprop "url" <@ A.content "https://plus.google.com/109129288587536990618/posts"
+        , H.link <@ A.itemprop "url" <@ A.href "http://dikmax.name/about"
+        , H.link <@ A.itemprop "url" <@ A.href "https://plus.google.com/109129288587536990618/posts"
         ]
       , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
       , H.span <. "pull-left"  <&
