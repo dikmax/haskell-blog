@@ -2,37 +2,35 @@
 
 module Site.Rss
   ( rss
+  , rssSplice
   ) where
 
-import Prelude hiding (id)
+import           Prelude hiding (id)
 
-import Blaze.ByteString.Builder (toLazyByteString)
+import           Blaze.ByteString.Builder (toLazyByteString)
+import           Data.ByteString (ByteString)
 import qualified Data.Text as T
-import Data.Time.Format (formatTime)
-import Data.Time.LocalTime (ZonedTime(..), minutesToTimeZone)
-import Snap.Core (writeLBS)
-import System.Locale (rfc822DateFormat, defaultTimeLocale)
-import Text.Pandoc 
-  ( defaultParserState
-  , defaultWriterOptions
-  , readMarkdown
-  , writeHtmlString
-  )
-import Text.XmlHtml 
-  ( Document(..)
-  , Encoding(..)
-  , Node(..)
-  , render
-  )
+import qualified Data.Text.Encoding as T
+import           Data.Time.Format (formatTime)
+import           Data.Time.LocalTime (ZonedTime(..), minutesToTimeZone)
+import           Snap.Core
+import           System.Locale (rfc822DateFormat, defaultTimeLocale)
+import           Text.Pandoc
+import           Text.Templating.Heist
+import           Text.XmlHtml
 
-import Application (AppHandler)
-import Config (domain)
-import Database (getPosts)
-import Types (Post(..))
+import           Application (AppHandler)
+import           Config (domain)
+import           Database (getPosts)
+import qualified HtmlTags as H
+import           HtmlTags ((<@))
+import qualified HtmlAttributes as A
+import           Types
 
 rss :: AppHandler ()
 rss = do
-  posts <- getPosts Nothing 0 10
+  tag <- getParam "tag"
+  posts <- getPosts tag 0 10
   writeLBS $ toLazyByteString $ render $ rssDocument posts
 
 rssDocument :: [Post] -> Document
@@ -65,3 +63,18 @@ rssDocument posts = XmlDocument UTF8 Nothing
             T.intercalate ", " tags `T.append`
             "</div>"]
         ]
+
+-- <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss"/>
+rssSplice :: Maybe ByteString
+          -> Splice AppHandler
+rssSplice Nothing = return
+  [ H.link <@ A.rel "alternate" <@ A.type_ "application/rss+xml"
+    <@ A.href "/rss" <@ A.title "Лента"
+  ]
+rssSplice (Just tag) = return
+  [ H.link <@ A.rel "alternate" <@ A.type_ "application/rss+xml"
+    <@ A.href "/rss" <@ A.title "Лента всех записей"
+  , H.link <@ A.rel "alternate" <@ A.type_ "application/rss+xml"
+    <@ A.href ("/rss/tag/" `T.append` T.decodeUtf8 tag)
+    <@ A.title ("Лента записей с тегом \"" `T.append` T.decodeUtf8 tag `T.append` "\"")
+  ]

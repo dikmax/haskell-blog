@@ -3,7 +3,7 @@
     <metadata/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss"/>
+    <rss />
 
     <link rel="stylesheet" type="text/css" href="/css/style.css?v=${revision}" media="all"/>
 

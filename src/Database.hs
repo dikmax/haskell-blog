@@ -31,6 +31,7 @@ import Snap.Snaplet.Hdbc hiding (query, query')
 import Application()
 import Types
 
+-- | My version of queries execution
 query
   :: HasHdbc m c s
   => String      -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
@@ -44,21 +45,32 @@ query sql bind = do
   rows <- liftIO $ HDBC.fetchAllRowsMap' stmt
   liftIO $ HDBC.finish stmt
   return rows
-  
-query' :: HasHdbc m c s => String -> [SqlValue] -> m Integer
+
+-- | My version of queries execution
+query' :: HasHdbc m c s
+       => String      -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
+       -> [SqlValue]  -- ^ Values for each placeholder according to its position in
+                      --   the SQL statement.
+       -> m Integer   -- ^ Count of affected rows
 query' sql bind = withHdbc $ \conn -> do
   stmt <- HDBC.prepare conn sql
   count <- liftIO $ HDBC.execute stmt bind
   liftIO $ HDBC.finish stmt
   liftIO $ HDBC.commit conn
   return count    
-    
+
+-- | Sets MySQL connection encoding
 setEncoding :: HasHdbc m c s => m ()
 setEncoding = do
   query' "SET NAMES utf8" []
   return ()
 
-getPosts :: HasHdbc m c s => Maybe ByteString -> Int -> Int -> m [Post]
+-- | Read posts from database
+getPosts :: HasHdbc m c s
+         => Maybe ByteString   -- ^ tag
+         -> Int                -- ^ offset
+         -> Int                -- ^ count
+         -> m [Post]
 getPosts Nothing offset count = do
   rows <- query 
     ("SELECT * " ++
@@ -77,8 +89,11 @@ getPosts (Just tag) offset count = do
     "ORDER BY date DESC " ++
     "LIMIT ?, ?") [toSql tag, toSql offset, toSql count]
   return $ map rowToPost rows
-     
-getPostsCount :: HasHdbc m c s => Maybe ByteString -> m Int
+
+-- | Read count of posts
+getPostsCount :: HasHdbc m c s
+              => Maybe ByteString  -- ^ maybe tag
+              -> m Int             -- ^ posts count
 getPostsCount Nothing = do
   rows <- query ("SELECT count(*) AS count " ++
     "FROM posts " ++ 
@@ -91,15 +106,21 @@ getPostsCount (Just tag) = do
     "INNER JOIN tags t ON t.id = pt.tags_id "++
     "WHERE p.published = 1 AND p.special = 0 AND t.tag = ?") [toSql tag]
   return $ fromSql $ head rows ! "count"
-  
-getPost :: HasHdbc m c s => ByteString -> m (Maybe Post)
+
+-- | Read single post from database
+getPost :: HasHdbc m c s
+        => ByteString     -- ^ post url
+        -> m (Maybe Post) -- ^ Maybe result
 getPost url = do
   rows <- query "SELECT * FROM posts WHERE url = ?" [toSql url]
   case rows of
     [] -> return Nothing
     _ -> return $ Just $ rowToPost $ head rows
 
-getComments :: HasHdbc m c s => Maybe Post -> m [PostComment]
+-- | Read comments for the post
+getComments :: HasHdbc m c s
+            => Maybe Post      -- ^ Post
+            -> m [PostComment] -- ^ List of comments
 getComments Nothing = return []
 getComments (Just p) = do
   rows <- query
@@ -121,12 +142,18 @@ getComments (Just p) = do
       , commentDate = fromSql $ rw ! "date"
       }
 
-getPostById :: HasHdbc m c s => ByteString -> m Post
+-- | Read post by id
+getPostById :: HasHdbc m c s
+            => ByteString  -- ^ Post id
+            -> m Post      -- ^ Result
 getPostById pId = do
   rows <- query "SELECT * FROM posts WHERE id = ?" [toSql pId]
   return $ rowToPost $ head rows  -- TODO check for empty result
-  
-savePost :: HasHdbc m c s => Post -> m Post
+
+-- Save post to database
+savePost :: HasHdbc m c s
+         => Post   -- ^ Post to save
+         -> m Post -- ^ Post with new id (on insert)
 savePost post@(Post pId title text url date published special tags)
   | pId == 0 = do
       query' ("INSERT INTO posts " ++ 
@@ -151,7 +178,11 @@ savePost post@(Post pId title text url date published special tags)
       updateTags pId tags
       return post  
 
-updateTags :: HasHdbc m c s => Int -> [Text] -> m ()
+-- | Update post tags
+updateTags :: HasHdbc m c s
+           => Int    -- Post id
+           -> [Text] -- List of tags
+           -> m ()
 updateTags pId tags = do
   -- TODO one transaction
   query' ("DELETE FROM posts_has_tags " ++ 
@@ -192,7 +223,8 @@ updateTags pId tags = do
           C.unpack (questions' $ length linksList)) $
           concatMap linkPair linksList
       | otherwise = return 0      
-  
+
+-- | Split tags list into two list of new tags and old tags
 splitTagsList :: [Text] -> [Row] -> ([Text], [Text])
 splitTagsList tags tagRows = specify predicate tags
   where
@@ -201,16 +233,19 @@ splitTagsList tags tagRows = specify predicate tags
     transformRow row = fromSql $ row ! "tag"
     predicate tag = tag `elem` rows
 
+-- | Split list by predicate
 specify :: forall a. (a -> Bool) -> [a] -> ([a], [a])
 specify p (x:xs) = if p x then (x : fst rest, snd rest) else (fst rest, x : snd rest)
   where rest = specify p xs
 specify _ [] = ([], [])   
 
+-- | Delete post from database
 deletePost :: HasHdbc m c s => ByteString -> m ()
 deletePost pId = do
   query' "DELETE FROM posts WHERE id = ?" [toSql pId]
   return ()
-  
+
+-- | Transform db row into Post
 rowToPost :: Row -> Post
 rowToPost rw = Post 
   { postId = fromSql $ rw ! "id"
@@ -222,7 +257,8 @@ rowToPost rw = Post
   , postSpecial = fromSql $ rw ! "special"
   , postTags = stringToTags $ fromSql $ rw ! "tags"
   }
-  
+
+-- | Creates new dummy post (with current date)
 newPost :: IO Post
 newPost = do
   currentTime <- getCurrentTime
@@ -242,6 +278,7 @@ newPost = do
     , postTags = []
     }
 
+-- | Retunrs list of tags
 getTags :: HasHdbc m c s => m [Tag]
 getTags = do
   rows <- query 
@@ -258,6 +295,7 @@ getTags = do
 -- Vault functions
 --
 
+-- | Get posts for vault list
 vaultGetPostsList :: HasHdbc m c s => m [Post]
 vaultGetPostsList = do
   rows <- query 
@@ -266,6 +304,7 @@ vaultGetPostsList = do
      "ORDER BY date DESC") []
   return $ map rowToPost rows
 
+-- | Check is url already exists
 vaultValidateUrl :: HasHdbc m c s => Text -> Text -> m Bool
 vaultValidateUrl id' url = do
   rows <- query
@@ -278,9 +317,11 @@ vaultValidateUrl id' url = do
 -- Utility functions
 --
 
+-- | Transform tags list into single string
 tagsToString :: [Text] -> Text
 tagsToString = T.intercalate ", "
 
+-- | Transform string into tags list
 stringToTags :: Text -> [Text]
 stringToTags str =
   let tags = map T.strip $ T.split (== ',') str in

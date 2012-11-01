@@ -44,6 +44,8 @@ import           Site.Utils
 import           Types
 
 ------------------------------------------------------------------------------
+
+-- | Main page handler
 index :: Handler App App ()
 index =  ifTop $ do
   page <- decodedParam "page"
@@ -68,6 +70,7 @@ index =  ifTop $ do
         , metaTitle = makeTitle tagLink pageNum
         , metaType = FacebookBlog
         })
+      , ("rss", rssSplice tag)
       ]
 
     makeDescription Nothing 1 = "Мой персональный блог. Я рассказываю о программировании и иногда о своей жизни."
@@ -90,12 +93,18 @@ index =  ifTop $ do
     (\_ -> heistLocal (bindSplices indexSplices) $ render "index")
     tagText
 
-postsSplice :: Int -> Maybe ByteString -> Splice AppHandler
+-- | Posts splice
+postsSplice :: Int                 -- ^ page number
+            -> Maybe ByteString    -- ^ tag
+            -> Splice AppHandler
 postsSplice page tag = do
   posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
   return [H.div <. "posts" <&& map renderPostInList posts]
 
-paginationSplice :: Int -> Maybe ByteString -> Splice AppHandler
+-- | Splice with pagination
+paginationSplice :: Int                 -- ^ page number
+                 -> Maybe ByteString    -- ^ tag
+                 -> Splice AppHandler
 paginationSplice page tag = do
   postsCount <- lift $ getPostsCount tag
   let
@@ -122,8 +131,10 @@ paginationSplice page tag = do
       then []
       else [H.li <. "next" <& (H.a <@ A.href nextLink <# "Моложе →") ]
   return [H.ul <. "pager" <&& prevElement ++ nextElement]
-        
-renderPostInList :: Post -> Node 
+
+-- | Render post in list on main page
+renderPostInList :: Post    -- ^ post to render
+                 -> Node
 renderPostInList post = 
   H.article
     <. "post component-panel"
@@ -144,9 +155,7 @@ renderPostInList post =
     , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
     ] ++ addCommentsBlock post True (postDate post) (renderPostBody post "articleBody")
 
--- |
--- Show post Action
---
+-- | Single post hanlder
 showPost :: AppHandler ()
 showPost = do
   url <- decodedParam "post"
@@ -201,7 +210,9 @@ showPost = do
     checkFigure node = maybe False (== "div") (tagName node) &&
       maybe False (== "figure") (getAttribute "class" node)
 
-renderComments :: [PostComment] -> [Node]
+-- | Render comments
+renderComments :: [PostComment] -- ^ list of comments
+               -> [Node]
 renderComments comments =
   [H.div <. "post-comments" <&& map commentToHtml comments]
   where
@@ -233,12 +244,12 @@ renderComments comments =
     toComment (Right (XmlDocument _ _ nodes)) = nodes
     toComment (Right (HtmlDocument _ _ nodes)) = nodes
 
-commentsSplice :: [PostComment] -> Splice AppHandler
+-- | Splice for render comments
+commentsSplice :: [PostComment]      -- ^ list of comments
+               -> Splice AppHandler
 commentsSplice = return . renderComments
 
--- |
--- About me action
---
+-- | About page
 aboutMe :: AppHandler ()
 aboutMe = heistLocal (bindSplices
   [ ("about", aboutSplice)
@@ -254,15 +265,14 @@ aboutMe = heistLocal (bindSplices
     , disqusTitle = Just "Обо мне"
     })
   ] ) $ render "about"
-  
+
+-- | About splice
 aboutSplice :: Splice AppHandler
 aboutSplice = do
   post <- lift $ getPost "about"
   return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
 
--- |
--- Shoutbox action
---
+-- | Shoutbox page
 shoutbox :: AppHandler ()
 shoutbox = heistLocal (bindSplices
   [ ("shoutbox", shoutboxSplice)
@@ -277,7 +287,8 @@ shoutbox = heistLocal (bindSplices
     , disqusTitle = Just "Shoutbox"
     })
   ] ) $ render "shoutbox"
-  
+
+-- | Shoutbox splice
 shoutboxSplice :: Splice AppHandler
 shoutboxSplice = do
   post <- lift $ getPost "shoutbox"
@@ -287,9 +298,7 @@ shoutboxSplice = do
     , H.div <@ ("id", "disqus_thread") <&& renderComments comments
     ]) post
 
--- |
--- Archive action
---
+-- | Archive action
 archive :: AppHandler ()
 archive = heistLocal (bindSplices
   [ ("archive", archiveSplice)
@@ -300,15 +309,19 @@ archive = heistLocal (bindSplices
     })
   ] ) $ render "archive"
 
+-- | Archive splice
 archiveSplice :: Splice AppHandler
 archiveSplice = do
   posts <- lift $ getPosts Nothing 0 1000
 
   return [H.ul <. "media-list" <&& renderList posts]
   where
+    -- Render posts list
     renderList posts =
       concatMap (\list -> (H.h2 <. "archive-month" <# T.pack (formatTime archiveLocale "%B %Y" $ postDate $ head list)) : map renderPost list) $
         groupBy (\a b -> isEqual (toGregorian $ localDay $ postDate a) (toGregorian $ localDay $ postDate b)) posts
+
+    -- Right month names
     archiveLocale = defaultTimeLocale
       { months =
         [ ("Январь", "янв")
@@ -325,9 +338,14 @@ archiveSplice = do
         , ("Декабрь", "дек")
         ]
       }
+
+    -- Is same month
     isEqual (y1, m1, _) (y2, m2, _) = y1 == y2 && m1 == m2
+
+    -- Extract day from date
     getDay (_, _, d) = T.pack $ show d
 
+    -- Render single post
     renderPost post =
       H.li <. "media" <@ A.itemtype "http://schema.org/BlogPosting" <@ A.itemscope <@ A.itemprop "blogPost" <&&
       [ H.div <@ A.itemprop "author" <@ A.itemscope <@ A.itemtype "http://schema.org/Person" <&&
@@ -347,9 +365,7 @@ archiveSplice = do
       , H.div <&& renderTags (postTags post)
       ]
 
--- |
--- Latest movies action
---
+-- | Latest movies handler
 latestMovies :: AppHandler ()
 latestMovies = heistLocal (bindSplices
   [ ("latest", latestMoviesSplice)
@@ -364,7 +380,8 @@ latestMovies = heistLocal (bindSplices
     , disqusTitle = Just "Последние просмотренные фильмы"
     })
   ] ) $ render "latest"
-  
+
+-- | Latest movies splice
 latestMoviesSplice :: Splice AppHandler
 latestMoviesSplice = do
   post <- lift $ getPost "latest"
@@ -376,7 +393,9 @@ latestMoviesSplice = do
 
 --
 -- Navigation
--- 
+--
+
+-- | Defines man site structure
 siteStructure :: [(Text, Text)]
 siteStructure = 
   [ ("Обо мне", "/about")
@@ -385,15 +404,19 @@ siteStructure =
   , ("Фильмы", "/latest")
   ]
 
-createList :: Text -> [Node]
+-- | Create navigation nodes
+createList :: Text   -- ^ request url TODO
+           -> [Node]
 createList _ = map listItem siteStructure
   where
     listItem (title, url) = H.li <& H.a <@ A.href url <# title
 
+-- | Themes (main tags) not yet used
 themesList :: [(Text, Text)]
 themesList = 
   [ ]
 
+-- | Transform themes list to html-nodes
 createThemesList :: [Node]
 createThemesList = concatMap listItem themesList
   where
@@ -403,6 +426,7 @@ createThemesList = concatMap listItem themesList
       , TextNode " "
       ]
 
+-- | Splice for rendering navbar
 navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqURI
@@ -447,10 +471,12 @@ navigationSplice = do
       , TextNode " "
       ]
 
+-- | Splice for rendering current resources revision
 revisionSplice :: Splice AppHandler
 revisionSplice = 
   return [ TextNode resourcesRevision ]
 
+-- | Splice to detect is userAgent is mobile
 mobileSplice :: Splice AppHandler
 mobileSplice = do
   userAgent <- withRequest (return . T.decodeUtf8 . fromMaybe "" . getHeader "User-Agent")
@@ -463,6 +489,7 @@ mobileSplice = do
       then "mobile" else "no-mobile"
     ]
 
+-- | Handler for sending 404 error
 error404 :: AppHandler ()
 error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
@@ -482,6 +509,7 @@ routes =
   , ("/archive", archive)
   , ("/latest", latestMovies)
   , ("/rss", rss)
+  , ("/rss/tag/:tag", rss)
   , ("/sitemap.xml", sitemap)
   , ("/vault", method POST vaultAction)
   , ("/vault", vault)
@@ -523,6 +551,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , ("revision", revisionSplice)
       , ("mobile", mobileSplice)
       , ("disqusVars", disqusVarsSplice defaultDisqusVars)
+      , ("rss", rssSplice Nothing)
       ] 
       defaultHeistState
   
