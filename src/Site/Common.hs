@@ -2,6 +2,7 @@
 
 module Site.Common where
 
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
@@ -71,7 +72,7 @@ renderSinglePost post =
 
 addCommentsBlock :: Post -> Bool -> LocalTime -> Node -> [Node]
 addCommentsBlock post commentsLink time node
-  | extractTags == Nothing = [ node, writeFooter Nothing ]
+  | isNothing extractTags = [ node, writeFooter Nothing ]
   | otherwise =
     [ maybe
         (TextNode "")
@@ -84,13 +85,13 @@ addCommentsBlock post commentsLink time node
     extractTags =
       maybe
         Nothing
-        (\c -> maybe
+        (maybe
           Nothing
           (\cur -> case getAttribute "itemprop" $ current cur of
             Just "keywords" -> Just $ current cur
             _ -> Nothing
-          ) $
-          firstChild c
+          ) .
+          firstChild
         ) $
         lastChild $ fromNode node
 
@@ -121,11 +122,11 @@ addCommentsBlock post commentsLink time node
 renderPostBody :: Post -> Text -> Node
 renderPostBody post propertyName =
   Element "div" [("class", "post-body"), ("itemprop", propertyName)] $
-    (writeXmlHtml defaultXmlHtmlWriterOptions 
+    writeXmlHtml defaultXmlHtmlWriterOptions
       { idPrefix = postUrl post
       , debugOutput = False
-      } $
-      readMarkdown parserState $ T.unpack $ postText post)
+      }
+      (readMarkdown parserState $ T.unpack $ postText post)
   ++ renderTags (postTags post)
 
 parserState :: ParserState
@@ -176,7 +177,7 @@ metadataSplice (Metadata title url description keywords ftype) =
     , H.meta <@ A.name "DC.format" <@ A.content "text/html;charset=utf-8"
     , H.meta <@ A.name "DC.identifier" <@ A.scheme "DCTERMS.URI" <@ A.content urlString
     , H.meta <@ A.name "DC.language" <@ A.content "ru"
-    ] ++ (facebookType ftype)
+    ] ++ facebookType ftype
   where
     urlString = "http://dikmax.name" `T.append` if url == "" then "/" else url
 
@@ -195,8 +196,8 @@ metadataSplice (Metadata title url description keywords ftype) =
       , H.meta <@ A.property "article:modified_time" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)
       -- Dublin Core date
       , H.meta <@ A.name "DC.date" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" published)
-      ] ++ (map (\t -> H.meta <@ A.property "article:tag" <@ A.content t) tags)
-      ++ (maybe [] (\t -> [H.meta <@ A.property "og:image" <@ A.content t]) image)
+      ] ++ map (\t -> H.meta <@ A.property "article:tag" <@ A.content t) tags
+      ++ maybe [] (\t -> [H.meta <@ A.property "og:image" <@ A.content t]) image
     facebookType FacebookProfile =
       [ H.meta <@ A.property "og:type" <@ A.content "profile"
       , H.meta <@ A.property "og:image" <@ A.content "http://a51056ce8d9b948fb69e-8de36eb37b2366f5a76a776c3dee0b32.r42.cf1.rackcdn.com/me.jpg"
@@ -232,9 +233,9 @@ disqusVarsSplice (DisqusVars shortName identifier url title developer) =
     H.script <@ A.typeJavascript <#
     (
       "var disqus_shortname='" `T.append` shortName `T.append` "'" `T.append`
-      (maybe "" (\v -> ",disqus_identifier='" `T.append` v `T.append` "'") identifier) `T.append`
-      (maybe "" (\v -> ",disqus_url='" `T.append` v `T.append` "'") url) `T.append`
-      (maybe "" (\v -> ",disqus_title='" `T.append` v `T.append` "'") title) `T.append`
+      maybe "" (\v -> ",disqus_identifier='" `T.append` v `T.append` "'") identifier `T.append`
+      maybe "" (\v -> ",disqus_url='" `T.append` v `T.append` "'") url `T.append`
+      maybe "" (\v -> ",disqus_title='" `T.append` v `T.append` "'") title `T.append`
       (if developer then ",disqus_developer=1" else "") `T.append` ";"
     )
   ]

@@ -185,9 +185,9 @@ vaultCheckUrl = do
   id' <- decodedPostParam "id"
   url <- decodedPostParam "url"
   result <- vaultValidateUrl (T.decodeUtf8 id') (T.decodeUtf8 url)
-  case result of
-    True -> writeBS "{\"result\":true}"
-    False -> writeBS "{\"result\":false}"
+  if result
+    then writeBS "{\"result\":true}"
+    else writeBS "{\"result\":false}"
   
 vaultAction :: AppHandler ()
 vaultAction = do

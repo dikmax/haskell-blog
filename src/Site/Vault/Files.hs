@@ -118,7 +118,7 @@ curlDo action = withCurlDo $ do
             readFunction :: Ptr CChar -> CInt -> CInt -> Ptr () -> IO (Maybe CInt)
             readFunction ptr size nmemb _ = do
               actualSize <- hGetBuf fh ptr $ fromInteger $ toInteger (size * nmemb)
-              return $ if (actualSize > 0) then Just $ fromInteger $ toInteger actualSize else Nothing
+              return $ if actualSize > 0 then Just $ fromInteger $ toInteger actualSize else Nothing
 
           fileSize <- hFileSize fh
           let encodedName = T.unpack $ T.replace "+" "%20" $ T.decodeUtf8 $ urlEncode $ pack name
@@ -158,7 +158,7 @@ vaultFileUpload = do
     processForm ((_, Right path) : []) = do
       container <- getPostParam "container"
       name <- getPostParam "name"
-      if container == Nothing || name == Nothing
+      if isNothing container || isNothing name
         then return $ ServiceError "Container or name not defined"
         else liftIO $ curlDo $ UploadFile path (unpack $ fromMaybe "" container) (unpack $ fromMaybe "" name)
 

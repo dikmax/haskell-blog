@@ -99,7 +99,7 @@ getPost url = do
     [] -> return Nothing
     _ -> return $ Just $ rowToPost $ head rows
 
-getComments :: HasHdbc m c s => Maybe Post -> m ([PostComment])
+getComments :: HasHdbc m c s => Maybe Post -> m [PostComment]
 getComments Nothing = return []
 getComments (Just p) = do
   rows <- query

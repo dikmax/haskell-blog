@@ -51,7 +51,7 @@ index =  ifTop $ do
   let
     tagText = T.decodeUtf8' $ fromMaybe "" tag
     tagLink
-      | tag == Nothing = Nothing
+      | isNothing tag = Nothing
       | otherwise = case tagText of
         (Left _) -> Nothing
         (Right t) -> Just t
@@ -142,7 +142,7 @@ renderPostInList post =
           <# postTitle post
       )
     , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
-    ] ++ (addCommentsBlock post True (postDate post) $ renderPostBody post "articleBody")
+    ] ++ addCommentsBlock post True (postDate post) (renderPostBody post "articleBody")
 
 -- |
 -- Show post Action
@@ -218,14 +218,14 @@ renderComments comments =
                   [ H.meta <@ A.itemprop "name" <@ A.content (commentAuthorName comment)
                   , if commentAuthorUrl comment == ""
                     then TextNode $ commentAuthorName comment
-                    else H.a <@ (A.href $ commentAuthorUrl comment) <# commentAuthorName comment
+                    else H.a <@ A.href (commentAuthorUrl comment) <# commentAuthorName comment
                   ]
                 , H.span <. "post-comment-bullet" <@ ("aria-hidden", "true") <# "•"
                 , H.span <. "post-comment-date" <@ A.itemprop "commentTime"
                   <@ A.datetime (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M:%S" $ commentDate comment)
                   <# T.pack (formatTime timeLocale "%A, %e %B %Y, %R" $ commentDate comment)
                 ]
-            ) <& (H.div <@ A.itemprop "commentText" <&& (toComment $ parseHTML "comment.html" $ T.encodeUtf8 $ commentBody comment))
+            ) <& (H.div <@ A.itemprop "commentText" <&& toComment (parseHTML "comment.html" $ T.encodeUtf8 $ commentBody comment))
         , H.div <. "clearfix"
         ]
     toComment :: Either String Document -> [Node]
@@ -307,7 +307,7 @@ archiveSplice = do
   return [H.ul <. "media-list" <&& renderList posts]
   where
     renderList posts =
-      concat $ map (\list -> (H.h2 <. "archive-month" <# T.pack (formatTime archiveLocale "%B %Y" $ postDate $ head list)) : map renderPost list) $
+      concatMap (\list -> (H.h2 <. "archive-month" <# T.pack (formatTime archiveLocale "%B %Y" $ postDate $ head list)) : map renderPost list) $
         groupBy (\a b -> isEqual (toGregorian $ localDay $ postDate a) (toGregorian $ localDay $ postDate b)) posts
     archiveLocale = defaultTimeLocale
       { months =
@@ -338,7 +338,7 @@ archiveSplice = do
       , H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)
       , H.span <. "pull-left"  <&
         (
-          H.span <. "media-object archive-day" <# (getDay $ toGregorian $ localDay $ postDate post)
+          H.span <. "media-object archive-day" <# getDay (toGregorian $ localDay $ postDate post)
         )
       , H.h4 <. "media-heading" <@ A.itemprop "name" <&
         (

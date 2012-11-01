@@ -33,9 +33,9 @@ sitemapDocument posts tags = XmlDocument UTF8 Nothing
     , writeUrl (Just "0.7") "/movies"
     , writeUrl (Just "0.1") "/archive"
     , writeUrl Nothing "/shoutbox"
-    ] ++ (map (writeUrl (Just "1.0") . T.append "/post/" . postUrl) posts)
-    ++ (writePages1 Nothing "" (ceilDiv $ length posts))
-    ++ (concatMap (\(Tag (tag, count)) -> writePages Nothing ("/tag/" `T.append` tag) (ceilDiv count)) tags)
+    ] ++ map (writeUrl (Just "1.0") . T.append "/post/" . postUrl) posts
+    ++ writePages1 Nothing "" (ceilDiv $ length posts)
+    ++ concatMap (\(Tag (tag, count)) -> writePages Nothing ("/tag/" `T.append` tag) (ceilDiv count)) tags
   ]
   where
     ceilDiv count
@@ -53,11 +53,11 @@ sitemapDocument posts tags = XmlDocument UTF8 Nothing
     writePages :: Maybe T.Text -> T.Text -> Int -> [Node]
     writePages _ _ 0 = []
     writePages priority base count =
-      (writeUrl priority base) : writePages1 priority base count
+      writeUrl priority base : writePages1 priority base count
 
     writePages1 :: Maybe T.Text -> T.Text -> Int -> [Node]
     writePages1 _ _ 0 = []
     writePages1 _ _ 1 = []
     writePages1 priority base count =
       map (\n -> writeUrl priority $ base `T.append`
-        "/page/" `T.append` (T.pack $ show n)) [2..count]
+        "/page/" `T.append` T.pack (show n)) [2..count]
