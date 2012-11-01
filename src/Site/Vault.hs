@@ -8,6 +8,7 @@ import Blaze.ByteString.Builder (toByteString)
 import Control.Monad.Trans
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (unpack)
+import Data.List (sort)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -91,7 +92,7 @@ vaultGetPost = do
       , postUrl = T.decodeUtf8 url -- TODO check for duplicate
       , postPublished = published /= ""
       , postSpecial = special /= ""
-      , postTags = stringToTags $ T.decodeUtf8 tags
+      , postTags = sort $ stringToTags $ T.decodeUtf8 tags
       }
 
 
