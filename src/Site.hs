@@ -163,13 +163,13 @@ showPost = do
   comments <- getComments post
   maybe error404 
     (\p -> heistLocal (bindSplices 
-      [ ("post", return [renderResult p])
+      [ ("post", return [renderSinglePost p])
       , ("comments", commentsSplice comments)
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaTitle = Just $ postTitle p
         , metaUrl = "/post/" `T.append` T.decodeUtf8 url
-        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderResult p)
-        , metaDescription = getDescription $ renderResult p
+        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderSinglePost p)
+        , metaDescription = getDescription $ renderSinglePost p
         })
       , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
         { disqusIdentifier = Just $ T.decodeUtf8 url
@@ -178,37 +178,56 @@ showPost = do
         })
       ]) $ render "post") post
   where
-    renderResult = renderSinglePost
-
+    -- Text for empty description (will be shown in case of error)
     emptyDescription = "Мой персональный блог"
 
-    -- filter .post-tags
+    -- Looking for div with article body and then extracting text from it
     getDescription :: Node -> Text
     getDescription = maybe emptyDescription 
-      (until (not . T.null) (\_ -> emptyDescription) . getDescription') . 
+      (until (not . T.null) (const emptyDescription) . getDescription') .
       findChild (checkMainDiv . current) . fromNode
+
+    -- Check if element is main div
     checkMainDiv node = maybe False (== "div") (tagName node) &&
       maybe False (== "articleBody") (getAttribute "itemprop" node)
 
+    -- Filter node children and extracting text from rest
     getDescription' :: Cursor -> Text
     getDescription' = cutDescription . transformDescription .
-      T.intercalate " " . map nodeText . filter checkParagraph .
+      T.intercalate " " . map extractNodeText . filter checkParagraph .
       maybe [] siblings . firstChild
+
+    -- Behaves link nodeText except that is skips footnote links
+    extractNodeText :: Node -> Text
+    extractNodeText (TextNode t)    = t
+    extractNodeText (Comment _)     = ""
+    extractNodeText (Element n cl c)
+      | n == "sup" && ("class", "note-link") `elem` cl = ""
+      | otherwise = T.concat (map extractNodeText c)
+
+    -- Filter predicate for getDescription'
     checkParagraph = maybe False (`elem` ["p", "h2", "h3", "h4", "h5", "h6"]) . tagName
 
+    -- Replate newlines with spaces
     transformDescription = T.replace "\n" " "
+
+    -- Cut long descriptions
     cutDescription d
       | T.length d > 512 = T.stripEnd (fst $ T.breakOnEnd " " $ T.take 512 d) `T.append` "..."
       | otherwise = d
 
+    -- Looking for images
     getImage :: Node -> Maybe Text
     getImage = 
       maybe Nothing (        
         maybe Nothing (getAttribute "src" . current) . 
         findChild (maybe False (== "img") . tagName . current)
-      ) . findRec (checkFigure . current) . fromNode      
+      ) . findRec (checkFigure . current) . fromNode
+
+    -- Check if image is suitable
     checkFigure node = maybe False (== "div") (tagName node) &&
       maybe False (== "figure") (getAttribute "class" node)
+
 
 -- | Render comments
 renderComments :: [PostComment] -- ^ list of comments
