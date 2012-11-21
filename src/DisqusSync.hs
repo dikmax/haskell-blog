@@ -43,7 +43,6 @@ data DisqusComment = DisqusComment
   , dcMessage :: Text
   , dcIsSpam :: Bool
   , dcIsHighlighted :: Bool
-  , dcUserScore :: Int
   , dcMyThread :: Maybe Int
   } deriving (Show)
 
@@ -68,7 +67,6 @@ instance JSON DisqusComment where
     | isError getMessage = toError "message not found" getMessage
     | isError getIsSpam = toError "isSpam not found" getIsSpam
     | isError getIsHighlighted = toError "isHighlighted not found" getIsHighlighted
-    | isError getUserScore = toError "userScore not found" getUserScore
     | isError getAuthor = toError "author not found" getAuthor
     | otherwise = Ok DisqusComment
       { dcIsJuliaFlagged = fromResult getIsJuliaFlagged
@@ -108,7 +106,6 @@ instance JSON DisqusComment where
       , dcMessage = T.pack $ fromResult getMessage
       , dcIsSpam = fromResult getIsSpam
       , dcIsHighlighted = fromResult getIsHighlighted
-      , dcUserScore = fromResult getUserScore
       , dcMyThread = Nothing
       }
     where
@@ -129,7 +126,6 @@ instance JSON DisqusComment where
       getMessage = valFromObj "message" obj
       getIsSpam = valFromObj "isSpam" obj
       getIsHighlighted = valFromObj "isHighlighted" obj
-      getUserScore = valFromObj "userScore" obj
       getAuthor = valFromObj "author" obj
   readJSON _ = Error "Error in discus comment"
 
