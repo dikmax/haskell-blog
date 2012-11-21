@@ -20,12 +20,14 @@ import Snap.Snaplet.Session
 import Text.Templating.Heist
 import Text.XmlHtml hiding (render)
 
-import Application
-import Config
-import Database
-import Site.Common
-import Site.Utils
-import Types
+import           Application
+import           Config
+import           Database
+import qualified HtmlTags as H
+import           HtmlTags ((<.))
+import           Site.Common
+import           Site.Utils
+import           Types
 
 -- |
 -- Vault action
@@ -48,7 +50,13 @@ vaultPostsListSplice = do
       [ ("data-rowid", T.pack $ show $ postId post)
       , ("data-url", postUrl post) ] 
       [ Element "td" [] [TextNode $ T.pack $ show $ postDate post]
-      , Element "td" [] [TextNode $ if postPublished post then "+" else ""]
+      , Element "td" [] [
+        if postSpecial post
+        then H.i <. "icon-ok-circle"
+        else
+          if postPublished post
+          then H.i <. "icon-ok"
+          else TextNode ""]
       , Element "td" [] 
         [ TextNode $ postTitle post
         , Element "div" [] $ renderTags $ postTags post
