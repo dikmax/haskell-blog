@@ -406,7 +406,7 @@ dikmax.App.prototype.showVaultStatistics_ = function() {
         'Удалить');
 
     ++totalCount;
-    if (goog.dom.getTextContent(row.childNodes[1]) === '+') {
+    if (goog.dom.getElementsByClass('icon-ok', row.childNodes[1]).length > 0) {
       ++publishedCount;
     }
   });
