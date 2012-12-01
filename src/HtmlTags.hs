@@ -54,6 +54,12 @@ article :: Node
 article = Element "article" [] []
 
 --
+-- br element
+--
+br :: Node
+br = Element "br" [] []
+
+--
 -- div element
 --
 div :: Node

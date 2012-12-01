@@ -268,6 +268,26 @@ commentsSplice :: [PostComment]      -- ^ list of comments
                -> Splice AppHandler
 commentsSplice = return . renderComments
 
+tagsCloud :: AppHandler ()
+tagsCloud = heistLocal (bindSplices
+  [ ("tags", tagsSplice)
+  , ("metadata", metadataSplice $ defaultMetadata
+    { metaTitle = Just "Темы"
+    , metaDescription = "Полный список тем (тегов) на сайте"
+    , metaUrl = "/tags"
+    })
+  , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
+    { disqusIdentifier = Just "tags"
+    , disqusUrl = Just  "http://dikmax.name/tags"
+    , disqusTitle = Just "Темы"
+    })
+  ]) $ render "tags"
+
+tagsSplice :: Splice AppHandler
+tagsSplice = do
+  tags <- lift $ getTags 0
+  return $ renderTagsCloud tags
+
 -- | About page
 aboutMe :: AppHandler ()
 aboutMe = heistLocal (bindSplices
@@ -449,7 +469,7 @@ createThemesList = concatMap listItem themesList
 navigationSplice :: Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqURI
-  tags <- lift getTags
+  tags <- lift $ getTags 2
   return [H.div <. "nav-collapse topnavbar-collapsible-block" <&
     (H.ul <. "nav topnavbar-collapsible-content"
       <&& createList (T.pack $ normalizeRequest $ unpack request)
@@ -458,7 +478,12 @@ navigationSplice = do
           [ H.a <# "Темы"
           , H.div <. "themes-box" <@ A.style "display: none;"
             <& (H.div <. "themes-button" <# "Темы " <&& createThemesList)
-            <&& renderTagsCloud (normalizeTags tags)
+            <&&
+              ( renderTagsCloud tags )
+            <&
+              ( H.div <. "tags-more" <&
+                ( H.a <@ A.href "/tags" <# "Огласите весь список, пожалуйста..." )
+              )
           ]
       )
     )]
@@ -467,25 +492,43 @@ navigationSplice = do
       | (last request == '/') && (length request > 1) = init request
       | otherwise = request 
 
-    normalizeTags tags = map (updateWeigth (getWeight minWeight) (getWeight maxWeight)) $ sort tags
-      where 
+-- Render tags cloud from list
+renderTagsCloud :: [Tag] -> [Node]
+renderTagsCloud tags =
+  [ H.div <. "tags-wrapper" <&& concatMap renderTagsCloud_ normalizeTags ]
+  where
+    normalizeTags = map (updateWeight (getWeight minWeight) (getWeight maxWeight)) $ sort tags
+      where
         getWeight (Tag (_, count)) = count
         minWeight = minimumBy weightCompare tags
         maxWeight = maximumBy weightCompare tags
-      
+
         weightCompare (Tag (_, count1)) (Tag (_, count2)) = compare count1 count2
 
-        updateWeigth minW maxW (Tag (tag, count)) = 
-          Tag (tag, round 
-            ((5 * ((fromIntegral count :: Double) - fromIntegral minW) + 
-              fromIntegral maxW - fromIntegral minW) / 
-              (fromIntegral maxW - fromIntegral minW)))
+        updateWeight :: Int -> Int -> Tag -> (Text, Int, Text)
+        updateWeight minW maxW (Tag (tag, count)) =
+          ( tag
+          , round
+            ((5 * ((fromIntegral count :: Double) - fromIntegral minW) +
+              fromIntegral maxW - fromIntegral minW) /
+              (fromIntegral maxW - fromIntegral minW))
+          , countText count)
 
-    renderTagsCloud tags = 
-      [ H.div <. "tags-wrapper" <&& concatMap renderTagsCloud' tags ]
-    renderTagsCloud' (Tag (tag, weight)) = 
+        countText :: Int -> Text
+        countText count
+          | count `mod` 100 `div` 10 == 1 =
+            T.pack (show count) `T.append` " постов"
+          | count `mod` 10 == 1 =
+            T.pack (show count) `T.append` " пост"
+          | count `mod` 10 == 2 || count `mod` 10 == 3 || count `mod` 10 == 4 =
+            T.pack (show count) `T.append` " поста"
+          | otherwise =
+            T.pack (show count) `T.append` " постов"
+
+    renderTagsCloud_ (tag, weight, count) =
       [ H.a <. T.append "weight-" (T.pack $ show weight)
         <@ A.href ("/tag/" `T.append` tag)
+        <@ A.title count
         <# tag
       , TextNode " "
       ]
@@ -523,6 +566,7 @@ routes =
   , ("/tag/:tag", index)
   , ("/tag/:tag/page/:page", index)
   , ("/post/:post", showPost)
+  , ("/tags", tagsCloud)
   , ("/about", aboutMe)
   , ("/shoutbox", shoutbox)
   , ("/archive", archive)
