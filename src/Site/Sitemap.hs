@@ -22,7 +22,7 @@ import Types
 sitemap :: AppHandler ()
 sitemap = do
   posts <- getPosts Nothing 0 1000000
-  tags <- getTags
+  tags <- getTags 0
   writeLBS $ toLazyByteString $ render $ sitemapDocument posts tags
 
 sitemapDocument :: [Post] -> [Tag] -> Document
