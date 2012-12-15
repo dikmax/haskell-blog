@@ -10,6 +10,7 @@ PREREQUISITES
 2. Node.js and less compiler [http://lesscss.org/](http://lesscss.org/)
 3. Closure linter [https://developers.google.com/closure/utilities/docs/linter_howto](https://developers.google.com/closure/utilities/docs/linter_howto)
 4. Java and Python for Google Closure Compiler.
+5. MySQL database
 
 BUILD PROJECT
 =============
