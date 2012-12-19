@@ -90,7 +90,7 @@ goog.db.ObjectStore.prototype.insert_ = function(fn, msg, value, opt_key) {
     if (opt_key) {
       msg += ', with key ' + goog.debug.deepExpose(opt_key);
     }
-    d.errback(new goog.db.Error(err.code, msg));
+    d.errback(goog.db.Error.create(err, msg));
     return d;
   }
   request.onsuccess = function(ev) {
@@ -163,7 +163,7 @@ goog.db.ObjectStore.prototype.remove = function(key) {
   } catch (err) {
     var msg = 'removing from ' + this.getName() + ' with key ' +
         goog.debug.deepExpose(key);
-    d.errback(new goog.db.Error(err.code, msg));
+    d.errback(goog.db.Error.create(err, msg));
     return d;
   }
   request.onsuccess = function(ev) {
@@ -196,7 +196,7 @@ goog.db.ObjectStore.prototype.get = function(key) {
   } catch (err) {
     var msg = 'getting from ' + this.getName() + ' with key ' +
         goog.debug.deepExpose(key);
-    d.errback(new goog.db.Error(err.code, msg));
+    d.errback(goog.db.Error.create(err, msg));
     return d;
   }
   request.onsuccess = function(ev) {
@@ -291,11 +291,14 @@ goog.db.ObjectStore.prototype.openCursor = function(opt_range, opt_direction) {
   var request;
 
   try {
-    request = this.store_.openCursor(
-        opt_range ? opt_range.range_ : null,
-        opt_direction);
+    var range = opt_range ? opt_range.range_ : null;
+    if (opt_direction) {
+      request = this.store_.openCursor(range, opt_direction);
+    } else {
+      request = this.store_.openCursor(range);
+    }
   } catch (err) {
-    throw new goog.db.Error(err.code, msg);
+    throw goog.db.Error.create(err, msg);
   }
   request.onsuccess = function(ev) {
     cursor.cursor_ = ev.target.result || null;
@@ -324,7 +327,7 @@ goog.db.ObjectStore.prototype.clear = function() {
   try {
     request = this.store_.clear();
   } catch (err) {
-    d.errback(new goog.db.Error(err.code, msg));
+    d.errback(goog.db.Error.create(err, msg));
     return d;
   }
   request.onsuccess = function(ev) {
@@ -359,7 +362,7 @@ goog.db.ObjectStore.prototype.createIndex = function(
         name, keyPath, opt_parameters));
   } catch (err) {
     var msg = 'creating new index ' + name + ' with key path ' + keyPath;
-    throw new goog.db.Error(err.code, msg);
+    throw goog.db.Error.create(err, msg);
   }
 };
 
@@ -376,7 +379,7 @@ goog.db.ObjectStore.prototype.getIndex = function(name) {
     return new goog.db.Index(this.store_.index(name));
   } catch (err) {
     var msg = 'getting index ' + name;
-    throw new goog.db.Error(err.code, msg);
+    throw goog.db.Error.create(err, msg);
   }
 };
 
@@ -393,6 +396,6 @@ goog.db.ObjectStore.prototype.deleteIndex = function(name) {
     this.store_.deleteIndex(name);
   } catch (err) {
     var msg = 'deleting index ' + name;
-    throw new goog.db.Error(err.code, msg);
+    throw goog.db.Error.create(err, msg);
   }
 };
