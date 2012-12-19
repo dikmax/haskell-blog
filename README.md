@@ -10,6 +10,7 @@ PREREQUISITES
 2. Node.js and less compiler [http://lesscss.org/](http://lesscss.org/)
 3. Closure linter [https://developers.google.com/closure/utilities/docs/linter_howto](https://developers.google.com/closure/utilities/docs/linter_howto)
 4. Java and Python for Google Closure Compiler.
+5. MySQL database
 
 BUILD PROJECT
 =============
@@ -22,7 +23,8 @@ To build project you need these steps:
 3. Configure database access in `src/Config.hs`
 4. Setup cabal if you didn't do that earlier: `cabal update` and `cabal install cabal-install`
 5. Install project dependencies `cabal install --only-dependencies`. This step may require installation of dev-versions
-of some libraries (libcurl3-dev, etc.)
+of some libraries (libcurl4-dev, etc.). For Ubuntu you can use this command:
+  `sudo apt-get install libcurl4-openssl-dev libmysqlclient-dev`.
 6. In project root run `cabal configure` and `cabal build`
 7. The build all required js and css files by running `./build_debug.sh`
 8. Create empty file `config/site_key.txt`: `touch config/site_key.txt`
