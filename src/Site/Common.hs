@@ -2,23 +2,25 @@
 
 module Site.Common where
 
-import Data.Maybe
-import Data.Text (Text)
+import           Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time
+import           Data.Time
+-- import           Heist
+import qualified Heist.Interpreted as I
+-- import qualified Heist.Compiled as C
 import qualified HtmlTags as H
-import HtmlTags ((<@), (<.), (<#), (<&&), (<&))
+import           HtmlTags ((<@), (<.), (<#), (<&&), (<&))
 import qualified HtmlAttributes as A
-import System.Locale
-import Text.Templating.Heist
-import Text.XmlHtml hiding (render)
-import Text.XmlHtml.Cursor
-import Text.Pandoc
+import           System.Locale
+import           Text.XmlHtml hiding (render)
+import           Text.XmlHtml.Cursor
+import           Text.Pandoc
 
-import Application
-import Config
-import Types
-import XmlHtmlWriter
+import           Application
+import           Config
+import           Types
+import           XmlHtmlWriter
 
 timeLocale :: TimeLocale
 timeLocale = defaultTimeLocale 
@@ -151,7 +153,7 @@ data Metadata = Metadata
   , metaKeywords :: [Text]
   , metaType :: FacebookType
   }
-metadataSplice :: Metadata -> Splice AppHandler
+metadataSplice :: Metadata -> I.Splice AppHandler
 metadataSplice (Metadata title url description keywords ftype) =
   return $
     -- Common metadata
@@ -227,7 +229,7 @@ data DisqusVars = DisqusVars
   , disqusDeveloper :: Bool
   }
 
-disqusVarsSplice :: DisqusVars -> Splice AppHandler
+disqusVarsSplice :: DisqusVars -> I.Splice AppHandler
 disqusVarsSplice (DisqusVars shortName identifier url title developer) =
   return [
     H.script <@ A.typeJavascript <#

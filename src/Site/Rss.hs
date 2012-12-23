@@ -13,10 +13,12 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time.Format (formatTime)
 import           Data.Time.LocalTime (ZonedTime(..), minutesToTimeZone)
+-- import           Heist
+import qualified Heist.Interpreted as I
+-- import qualified Heist.Compiled as C
 import           Snap.Core
 import           System.Locale (rfc822DateFormat, defaultTimeLocale)
 import           Text.Pandoc
-import           Text.Templating.Heist
 import           Text.XmlHtml
 
 import           Application (AppHandler)
@@ -66,7 +68,7 @@ rssDocument posts = XmlDocument UTF8 Nothing
 
 -- <link rel="alternate" type="application/rss+xml" title="Лента" href="/rss"/>
 rssSplice :: Maybe ByteString
-          -> Splice AppHandler
+          -> I.Splice AppHandler
 rssSplice Nothing = return
   [ H.link <@ A.rel "alternate" <@ A.type_ "application/rss+xml"
     <@ A.href "/rss" <@ A.title "Лента"

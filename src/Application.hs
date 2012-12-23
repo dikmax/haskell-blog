@@ -10,7 +10,7 @@ module Application where
 
 ------------------------------------------------------------------------------
 import Control.Monad.State
-import Data.Lens.Template
+import Control.Lens
 import Database.HDBC.MySQL
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -24,7 +24,7 @@ data App = App
     , _dbLens :: Snaplet (HdbcSnaplet Connection IO)       
     }
 
-makeLens ''App
+makeLenses ''App
 
 instance HasHeist App where
     heistLens = subSnaplet heist
