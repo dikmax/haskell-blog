@@ -16,7 +16,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
 import           Database.HDBC.MySQL
-import           Prelude
+-- import           Heist
+import qualified Heist.Interpreted as I
+-- import qualified Heist.Compiled as C
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Hdbc
@@ -25,7 +27,6 @@ import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 import           System.Locale
-import           Text.Templating.Heist
 import           Text.XmlHtml hiding (render)
 import           Text.XmlHtml.Cursor
 ------------------------------------------------------------------------------
@@ -90,13 +91,13 @@ index =  ifTop $ do
 
   either
     (\_ -> error404)
-    (\_ -> heistLocal (bindSplices indexSplices) $ render "index")
+    (\_ -> heistLocal (I.bindSplices indexSplices) $ render "index")
     tagText
 
 -- | Posts splice
 postsSplice :: Int                 -- ^ page number
             -> Maybe ByteString    -- ^ tag
-            -> Splice AppHandler
+            -> I.Splice AppHandler
 postsSplice page tag = do
   posts <- lift $ getPosts tag ((page - 1) * postsPerPage) postsPerPage
   return [H.div <. "posts" <&& map renderPostInList posts]
@@ -104,7 +105,7 @@ postsSplice page tag = do
 -- | Splice with pagination
 paginationSplice :: Int                 -- ^ page number
                  -> Maybe ByteString    -- ^ tag
-                 -> Splice AppHandler
+                 -> I.Splice AppHandler
 paginationSplice page tag = do
   postsCount <- lift $ getPostsCount tag
   let
@@ -162,7 +163,7 @@ showPost = do
   post <- getPost url
   comments <- getComments post
   maybe error404 
-    (\p -> heistLocal (bindSplices 
+    (\p -> heistLocal (I.bindSplices
       [ ("post", return [renderSinglePost p])
       , ("comments", commentsSplice comments)
       , ("metadata", metadataSplice $ defaultMetadata 
@@ -265,11 +266,11 @@ renderComments comments =
 
 -- | Splice for render comments
 commentsSplice :: [PostComment]      -- ^ list of comments
-               -> Splice AppHandler
+               -> I.Splice AppHandler
 commentsSplice = return . renderComments
 
 tagsCloud :: AppHandler ()
-tagsCloud = heistLocal (bindSplices
+tagsCloud = heistLocal (I.bindSplices
   [ ("tags", tagsSplice)
   , ("metadata", metadataSplice $ defaultMetadata
     { metaTitle = Just "Темы"
@@ -283,14 +284,14 @@ tagsCloud = heistLocal (bindSplices
     })
   ]) $ render "tags"
 
-tagsSplice :: Splice AppHandler
+tagsSplice :: I.Splice AppHandler
 tagsSplice = do
   tags <- lift $ getTags 0
   return $ renderTagsCloud tags
 
 -- | About page
 aboutMe :: AppHandler ()
-aboutMe = heistLocal (bindSplices
+aboutMe = heistLocal (I.bindSplices
   [ ("about", aboutSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Обо мне"
@@ -306,14 +307,14 @@ aboutMe = heistLocal (bindSplices
   ] ) $ render "about"
 
 -- | About splice
-aboutSplice :: Splice AppHandler
+aboutSplice :: I.Splice AppHandler
 aboutSplice = do
   post <- lift $ getPost "about"
   return $ maybe [] (\p -> [renderPostBody p "mainContentOfPage"]) post
 
 -- | Shoutbox page
 shoutbox :: AppHandler ()
-shoutbox = heistLocal (bindSplices
+shoutbox = heistLocal (I.bindSplices
   [ ("shoutbox", shoutboxSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Shoutbox"
@@ -328,7 +329,7 @@ shoutbox = heistLocal (bindSplices
   ] ) $ render "shoutbox"
 
 -- | Shoutbox splice
-shoutboxSplice :: Splice AppHandler
+shoutboxSplice :: I.Splice AppHandler
 shoutboxSplice = do
   post <- lift $ getPost "shoutbox"
   comments <- lift $ getComments post
@@ -339,7 +340,7 @@ shoutboxSplice = do
 
 -- | Archive action
 archive :: AppHandler ()
-archive = heistLocal (bindSplices
+archive = heistLocal (I.bindSplices
   [ ("archive", archiveSplice)
   , ("metadata", metadataSplice $ defaultMetadata
     { metaTitle = Just "Архив"
@@ -349,7 +350,7 @@ archive = heistLocal (bindSplices
   ] ) $ render "archive"
 
 -- | Archive splice
-archiveSplice :: Splice AppHandler
+archiveSplice :: I.Splice AppHandler
 archiveSplice = do
   posts <- lift $ getPosts Nothing 0 1000
 
@@ -406,7 +407,7 @@ archiveSplice = do
 
 -- | Latest movies handler
 latestMovies :: AppHandler ()
-latestMovies = heistLocal (bindSplices
+latestMovies = heistLocal (I.bindSplices
   [ ("latest", latestMoviesSplice)
   , ("metadata", metadataSplice $ defaultMetadata 
     { metaTitle = Just "Последние просмотренные фильмы"
@@ -421,7 +422,7 @@ latestMovies = heistLocal (bindSplices
   ] ) $ render "latest"
 
 -- | Latest movies splice
-latestMoviesSplice :: Splice AppHandler
+latestMoviesSplice :: I.Splice AppHandler
 latestMoviesSplice = do
   post <- lift $ getPost "latest"
   comments <- lift $ getComments post
@@ -466,7 +467,7 @@ createThemesList = concatMap listItem themesList
       ]
 
 -- | Splice for rendering navbar
-navigationSplice :: Splice AppHandler
+navigationSplice :: I.Splice AppHandler
 navigationSplice = do
   request <- getsRequest rqURI
   tags <- lift $ getTags 2
@@ -534,12 +535,12 @@ renderTagsCloud tags =
       ]
 
 -- | Splice for rendering current resources revision
-revisionSplice :: Splice AppHandler
+revisionSplice :: I.Splice AppHandler
 revisionSplice = 
   return [ TextNode resourcesRevision ]
 
 -- | Splice to detect is userAgent is mobile
-mobileSplice :: Splice AppHandler
+mobileSplice :: I.Splice AppHandler
 mobileSplice = do
   userAgent <- withRequest (return . T.decodeUtf8 . fromMaybe "" . getHeader "User-Agent")
 
@@ -592,12 +593,13 @@ routes =
 -- | The application initializer.
 app :: SnapletInit App App
 app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
-  h <- nestSnaplet "heist" heist $ heistInit' "templates" commonSplices
+  h <- nestSnaplet "heist" heist $ heistInit "templates"
   let 
     mysqlConnection = connectMySQL connectInfo
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
+  addSplices commonSplices
   wrapSite (setEncoding *>)
   wrapSite $ withSession sessLens
   addRoutes routes
@@ -608,7 +610,7 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , _sessLens = _sesslens'
       }
   where
-    commonSplices = bindSplices 
+    commonSplices =
       [ ("navigation", navigationSplice)
       , ("metadata", metadataSplice defaultMetadata)
       , ("revision", revisionSplice)
@@ -616,5 +618,4 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , ("disqusVars", disqusVarsSplice defaultDisqusVars)
       , ("rss", rssSplice Nothing)
       ] 
-      defaultHeistState
-  
+

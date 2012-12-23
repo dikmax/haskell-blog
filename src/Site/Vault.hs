@@ -2,23 +2,25 @@
 
 module Site.Vault where
 
-import Prelude hiding (id)
+import           Prelude hiding (id)
 
-import Blaze.ByteString.Builder (toByteString)
-import Control.Monad.Trans
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (unpack)
-import Data.List (sort)
-import Data.Text (Text)
+import           Blaze.ByteString.Builder (toByteString)
+import           Control.Monad.Trans
+import           Data.ByteString (ByteString)
+import           Data.ByteString.Char8 (unpack)
+import           Data.List (sort)
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Snap.Core
-import Snap.Snaplet
-import Snap.Snaplet.Hdbc
-import Snap.Snaplet.Heist
-import Snap.Snaplet.Session
-import Text.Templating.Heist
-import Text.XmlHtml hiding (render)
+-- import           Heist
+import qualified Heist.Interpreted as I
+-- import qualified Heist.Compiled as C
+import           Snap.Core
+import           Snap.Snaplet
+import           Snap.Snaplet.Hdbc
+import           Snap.Snaplet.Heist
+import           Snap.Snaplet.Session
+import           Text.XmlHtml hiding (render)
 
 import           Application
 import           Config
@@ -38,10 +40,10 @@ vault = do
   maybe (render "vaultlogin") (\_ -> vaultMain) isAdminLogin
 
 vaultMain :: AppHandler ()
-vaultMain = heistLocal (bindSplice "posts" vaultPostsListSplice) $
+vaultMain = heistLocal (I.bindSplice "posts" vaultPostsListSplice) $
   render "vault"
 
-vaultPostsListSplice :: Splice AppHandler
+vaultPostsListSplice :: I.Splice AppHandler
 vaultPostsListSplice = do
   posts <- lift vaultGetPostsList
   return $ map renderPost posts
@@ -74,7 +76,7 @@ vaultEdit = do
   post <- getPost' id
   case rqMethod request of
     POST -> vaultSave
-    _ -> heistLocal (bindSplice "vault-form" $ vaultPostForm post) $ 
+    _ -> heistLocal (I.bindSplice "vault-form" $ vaultPostForm post) $
       render "vaultedit"
   where
     getPost' :: HasHdbc m c s => ByteString -> m Post
@@ -111,7 +113,7 @@ vaultSave = do
   redirect "/vault"
 
 -- TODO digestive functors
-vaultPostForm :: Post -> Splice AppHandler
+vaultPostForm :: Post -> I.Splice AppHandler
 vaultPostForm (Post id title text url date published special tags) =
   return 
     [ Element "form" 
@@ -210,7 +212,7 @@ vaultAction = do
             setInSession "isAdminLogin" "1"
             commitSession
           redirect "/vault"
-        else heistLocal (bindString "error" "Неверные данные") $ 
+        else heistLocal (I.bindString "error" "Неверные данные") $
           render "vaultlogin"
 
     "logout" -> do
