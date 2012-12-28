@@ -162,15 +162,16 @@ showPost = do
   url <- decodedParam "post"
   post <- getPost url
   comments <- getComments post
+  isAdminLogin <- with sessLens $ getFromSession "isAdminLogin"
   maybe error404 
     (\p -> heistLocal (I.bindSplices
-      [ ("post", return [renderSinglePost p])
+      [ ("post", return [renderSinglePost (maybe False (\_ -> True) isAdminLogin) p])
       , ("comments", commentsSplice comments)
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaTitle = Just $ postTitle p
         , metaUrl = "/post/" `T.append` T.decodeUtf8 url
-        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderSinglePost p)
-        , metaDescription = getDescription $ renderSinglePost p
+        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderSinglePost False p)
+        , metaDescription = getDescription $ renderSinglePost False p
         })
       , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
         { disqusIdentifier = Just $ T.decodeUtf8 url

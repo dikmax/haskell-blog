@@ -188,7 +188,7 @@ vaultPostForm (Post id title text url date published special tags) =
 vaultRenderPost :: AppHandler ()
 vaultRenderPost = do
   post <- vaultGetPost 
-  writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost post]
+  writeBS $ toByteString $ renderHtmlFragment UTF8 [renderSinglePost False post]
 
 vaultCheckUrl :: AppHandler ()
 vaultCheckUrl = do
