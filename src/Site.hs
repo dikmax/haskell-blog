@@ -9,6 +9,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (unpack)
+import qualified Data.HashMap.Strict as Map
 import           Data.List (groupBy, maximumBy, minimumBy, sort)
 import           Data.Maybe
 import           Data.Text (Text)
@@ -559,6 +560,28 @@ error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
   render "404"
 
+staticMimeMap :: MimeMap
+staticMimeMap = Map.fromList
+  [ ( ".css"     , "text/css"                          )
+  , ( ".dtd"     , "text/xml"                          )
+  , ( ".eot"     , "application/vnd.ms-fontobject"     )
+  , ( ".gif"     , "image/gif"                         )
+  , ( ".jpeg"    , "image/jpeg"                        )
+  , ( ".jpg"     , "image/jpeg"                        )
+  , ( ".js"      , "text/javascript"                   )
+  , ( ".json"    , "application/json"                  )
+  , ( ".ico"     , "image/vnd.microsoft.icon"          )
+  , ( ".less"    , "text/css"                          )
+  , ( ".png"     , "image/png"                         )
+  , ( ".svg"     , "image/svg+xml"                     )
+  , ( ".ttf"     , "application/x-font-truetype"       )
+  , ( ".woff"    , "applicaton/font-woff"              )
+  , ( ".xml"     , "text/xml"                          )
+  ]
+
+staticDirectoryConfig :: DirectoryConfig (Handler App App)
+staticDirectoryConfig = simpleDirectoryConfig
+  { mimeTypes = staticMimeMap }
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
@@ -586,7 +609,7 @@ routes =
   , ("/vault/checkurl", vaultAllowed vaultCheckUrl)
   , ("/vault/fileshandler", vaultAllowed vaultFilesService)
   , ("/vault/fileupload", vaultAllowed vaultFileUpload)
-  , ("", serveDirectory "static")
+  , ("", serveDirectoryWith staticDirectoryConfig "static")
   , ("", error404)
   ]
 
