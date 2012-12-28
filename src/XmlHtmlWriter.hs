@@ -234,6 +234,7 @@ writeInline (Image inline target) = do
         [ ("src", T.pack $ fst target)
         , ("title", T.pack $ snd target)
         , ("alt", T.pack $ snd target)
+        , ("class", "img-polaroid")
         ] []
       ])
     ]  
@@ -317,6 +318,7 @@ writeRawInline (Image inline target) = do
     writeRawAttr ("", [], [ ("src", fst target)
         , ("title", snd target)
         , ("alt", snd target)
+        , ("class", "img-polaroid")
         ]) `T.append` " />"
     )
 writeRawInline (Note block) = do
