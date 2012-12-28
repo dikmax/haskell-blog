@@ -65,10 +65,22 @@ renderTags tags =
       ] ++ renderTags' ts
     renderTags' _ = []
 
-renderSinglePost :: Post -> Node 
-renderSinglePost post = 
+-- | Simply renders post
+renderSinglePost :: Bool -- ^ isAdmin
+                 -> Post -- ^ postData
+                 -> Node
+renderSinglePost False post =
   H.article <. "post" <&
     (H.h1 <. "post-title" <@ A.itemprop "name" <# postTitle post) <&
+    (H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)) <&&
+    addCommentsBlock post False (postDate post) (renderPostBody post "articleBody")
+renderSinglePost True post =
+  H.article <. "post" <&
+    (H.h1 <. "post-title" <@ A.itemprop "name" <&&
+      [ TextNode $ postTitle post
+      , H.a <@ A.href ("/vault/edit/" `T.append` T.pack (show $ postId post)) <&
+        H.i <. "icon-pencil"
+      ]) <&
     (H.meta <@ A.itemprop "dateCreated" <@ A.content (T.pack $ formatTime timeLocale "%Y-%m-%dT%H:%M" $ postDate post)) <&&
     addCommentsBlock post False (postDate post) (renderPostBody post "articleBody")
 

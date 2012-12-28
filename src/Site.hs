@@ -9,6 +9,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Data.ByteString (ByteString)
 import           Data.ByteString.Char8 (unpack)
+import qualified Data.HashMap.Strict as Map
 import           Data.List (groupBy, maximumBy, minimumBy, sort)
 import           Data.Maybe
 import           Data.Text (Text)
@@ -162,15 +163,16 @@ showPost = do
   url <- decodedParam "post"
   post <- getPost url
   comments <- getComments post
+  isAdminLogin <- with sessLens $ getFromSession "isAdminLogin"
   maybe error404 
     (\p -> heistLocal (I.bindSplices
-      [ ("post", return [renderSinglePost p])
+      [ ("post", return [renderSinglePost (maybe False (\_ -> True) isAdminLogin) p])
       , ("comments", commentsSplice comments)
       , ("metadata", metadataSplice $ defaultMetadata 
         { metaTitle = Just $ postTitle p
         , metaUrl = "/post/" `T.append` T.decodeUtf8 url
-        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderSinglePost p)
-        , metaDescription = getDescription $ renderSinglePost p
+        , metaType = FacebookArticle (postDate p) (postTags p) (getImage $ renderSinglePost False p)
+        , metaDescription = getDescription $ renderSinglePost False p
         })
       , ("disqusVars", disqusVarsSplice $ defaultDisqusVars
         { disqusIdentifier = Just $ T.decodeUtf8 url
@@ -558,6 +560,28 @@ error404 = do
   modifyResponse $ setResponseStatus 404 "Not Found"
   render "404"
 
+staticMimeMap :: MimeMap
+staticMimeMap = Map.fromList
+  [ ( ".css"     , "text/css"                          )
+  , ( ".dtd"     , "text/xml"                          )
+  , ( ".eot"     , "application/vnd.ms-fontobject"     )
+  , ( ".gif"     , "image/gif"                         )
+  , ( ".jpeg"    , "image/jpeg"                        )
+  , ( ".jpg"     , "image/jpeg"                        )
+  , ( ".js"      , "text/javascript"                   )
+  , ( ".json"    , "application/json"                  )
+  , ( ".ico"     , "image/vnd.microsoft.icon"          )
+  , ( ".less"    , "text/css"                          )
+  , ( ".png"     , "image/png"                         )
+  , ( ".svg"     , "image/svg+xml"                     )
+  , ( ".ttf"     , "application/x-font-truetype"       )
+  , ( ".woff"    , "applicaton/font-woff"              )
+  , ( ".xml"     , "text/xml"                          )
+  ]
+
+staticDirectoryConfig :: DirectoryConfig (Handler App App)
+staticDirectoryConfig = simpleDirectoryConfig
+  { mimeTypes = staticMimeMap }
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
@@ -585,7 +609,7 @@ routes =
   , ("/vault/checkurl", vaultAllowed vaultCheckUrl)
   , ("/vault/fileshandler", vaultAllowed vaultFilesService)
   , ("/vault/fileupload", vaultAllowed vaultFileUpload)
-  , ("", serveDirectory "static")
+  , ("", serveDirectoryWith staticDirectoryConfig "static")
   , ("", error404)
   ]
 
