@@ -554,6 +554,27 @@ mobileSplice = do
       then "mobile" else "no-mobile"
     ]
 
+-- | Splice to show years in copyright
+copyrightYearSplice :: Integer -> I.Splice AppHandler
+copyrightYearSplice startYear = do
+  currentTime <- liftIO getCurrentTime
+  return
+    [
+      H.span <@ A.itemprop "copyrightYear" <#
+        (
+          if (startYear == getYear currentTime)
+            then
+              T.pack (show startYear)
+            else
+              T.pack (show startYear) `T.append`
+              " — " `T.append`
+              T.pack (show $ getYear currentTime)
+        )
+    ]
+  where
+    getYear time = getYear_ $ toGregorian $ localDay $ utcToLocalTime (minutesToTimeZone 180) time
+    getYear_ (year, _, _) = year
+
 -- | Handler for sending 404 error
 error404 :: AppHandler ()
 error404 = do
@@ -641,5 +662,6 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
       , ("mobile", mobileSplice)
       , ("disqusVars", disqusVarsSplice defaultDisqusVars)
       , ("rss", rssSplice Nothing)
+      , ("copyrightYear", copyrightYearSplice 2012)
       ] 
 
