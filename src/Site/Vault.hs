@@ -26,8 +26,6 @@ import           Text.XmlHtml hiding (render)
 import           Application
 import           Config
 import           Database
-import qualified HtmlTags as H
-import           HtmlTags ((<.))
 import           Site.Common
 import           Site.Utils
 import           Types

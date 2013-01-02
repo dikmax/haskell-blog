@@ -78,14 +78,14 @@ dikmax.Templates.vaultPostsList = function(opt_data, opt_ignored) {
   var postListLen53 = postList53.length;
   for (var postIndex53 = 0; postIndex53 < postListLen53; postIndex53++) {
     var postData53 = postList53[postIndex53];
-    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53.localeDate) + '</td><td>' + ((postData53.special) ? '<i class=\'icon-ok-circle\'></i>' : (postData53.published) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53.title) + '<div><p>';
-    var tagList69 = postData53.tags;
+    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53['localeDate']) + '</td><td>' + ((postData53['special']) ? '<i class=\'icon-ok-circle\'></i>' : (postData53['published']) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53['title']) + '<div><p>';
+    var tagList69 = postData53['tags'];
     var tagListLen69 = tagList69.length;
     for (var tagIndex69 = 0; tagIndex69 < tagListLen69; tagIndex69++) {
       var tagData69 = tagList69[tagIndex69];
       output += '<a href=\'/tag/' + soy.$$escapeHtml(tagData69) + '\' class=\'vault-tag label\'>' + soy.$$escapeHtml(tagData69) + '</a> ';
     }
-    output += '</p></div></td><td class=\'actions\'><a href="/post/' + soy.$$escapeHtml(postData53.url) + '" class=\'action action-view\' title=\'Посмотреть\'></a><span class=\'action action-delete\' title=\'Удалить\'></span></td></tr>';
+    output += '</p></div></td><td class=\'actions\'><a href="/post/' + soy.$$escapeHtml(postData53['url']) + '" class=\'action action-view\' title=\'Посмотреть\'></a><span class=\'action action-delete\' title=\'Удалить\'></span></td></tr>';
   }
   return output;
 };

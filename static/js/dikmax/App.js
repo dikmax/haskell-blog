@@ -357,7 +357,7 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
     /** @type {goog.net.XhrIo} */
     var request = e.target;
     if (request.isSuccess()) {
-      posts = request.getResponseJson().result;
+      posts = request.getResponseJson()['result'];
       var publishedCount = 0;
       for (var i = 0; i < posts.length; ++i) {
         var dateTime = goog.date.fromIsoString(posts[i]['date']);
@@ -369,14 +369,15 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
             goog.string.padNumber(dateTime.getHours(), 2) + ':' +
             goog.string.padNumber(dateTime.getMinutes(), 2) + ':' +
             goog.string.padNumber(dateTime.getSeconds(), 2);
-        posts[i]['index'] = [posts[i]['title'], posts[i]['localeDate'], posts[i]['tags'].join(' ')].
-            join(' ').toLocaleLowerCase();
+        posts[i]['index'] =
+            [posts[i]['title'], posts[i]['localeDate'],
+              posts[i]['tags'].join(' ')].join(' ').toLocaleLowerCase();
         if (posts[i]['published']) {
           ++publishedCount;
         }
       }
-      goog.dom.getElementsByTagNameAndClass('tbody', null, postsList)[0].innerHTML =
-          dikmax.Templates.vaultPostsList({posts: posts});
+      goog.dom.getElementsByTagNameAndClass('tbody', null, postsList)[0].
+          innerHTML = dikmax.Templates.vaultPostsList({posts: posts});
 
       goog.dom.getElementByClass('vault-posts-count').innerHTML =
           'Записей: ' + posts.length;
@@ -430,9 +431,9 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
   );
 
   // Processing filter
-  var delay = new goog.async.Delay(function () {
+  var delay = new goog.async.Delay(function() {
     var value = listFilter.value.toLocaleLowerCase();
-    var words = value.split(' ').filter(function (item) {
+    var words = value.split(' ').filter(function(item) {
       return item !== '';
     });
     var result;
@@ -440,11 +441,11 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
       result = posts;
     } else if (words.length === 1) {
       var word = words[0];
-      result = posts.filter(function (item) {
-        return item['index'].indexOf(word) !== -1
+      result = posts.filter(function(item) {
+        return item['index'].indexOf(word) !== -1;
       });
     } else {
-      result = posts.filter(function (item) {
+      result = posts.filter(function(item) {
         for (var i = 0; i < words.length; ++i) {
           if (item['index'].indexOf(words[i]) === -1) {
             return false;
@@ -455,18 +456,20 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
       });
     }
 
-    goog.dom.getElementsByTagNameAndClass('tbody', null, postsList)[0].innerHTML =
-        dikmax.Templates.vaultPostsList({posts: result});
+    goog.dom.getElementsByTagNameAndClass('tbody', null, postsList)[0].
+        innerHTML = dikmax.Templates.vaultPostsList({posts: result});
     goog.dom.getElementByClass('vault-filtered-count').innerHTML =
         'Показано: ' + result.length;
   }, 100);
 
   goog.events.listen(listFilter,
-      [goog.events.EventType.CHANGE, goog.events.EventType.KEYPRESS, goog.events.EventType.KEYUP],
-      function () {
+      [goog.events.EventType.CHANGE,
+       goog.events.EventType.KEYPRESS,
+       goog.events.EventType.KEYUP],
+      function() {
         delay.start();
       }
-  )
+  );
 };
 
 

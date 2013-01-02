@@ -76,22 +76,22 @@
 {template .vaultPostsList}
     {foreach $post in $posts}
         <tr data-rowid='{$post.id}' data-url='{$post.url}'>
-            <td>{$post.localeDate}</td>
+            <td>{$post['localeDate']}</td>
             <td>
-                {if $post.special}
+                {if $post['special']}
                     <i class='icon-ok-circle'></i>
-                {elseif $post.published}
+                {elseif $post['published']}
                     <i class='icon-ok'></i>
                 {/if}
             </td> <!-- TODO -->
-            <td>{$post.title}
+            <td>{$post['title']}
                 <div><p>
-                    {foreach $tag in $post.tags}
+                    {foreach $tag in $post['tags']}
                         <a href='/tag/{$tag}' class='vault-tag label'>{$tag}</a>{sp}
                     {/foreach}
                 </p></div>
             </td>
-            <td class='actions'><a href="/post/{$post.url}" class='action action-view' title='Посмотреть'></a>
+            <td class='actions'><a href="/post/{$post['url']}" class='action action-view' title='Посмотреть'></a>
                 <span class='action action-delete' title='Удалить'></span></td>
         </tr>
     {/foreach}
