@@ -71,6 +71,33 @@
 {/template}
 
 /**
+ * @param posts List of posts
+ */
+{template .vaultPostsList}
+    {foreach $post in $posts}
+        <tr data-rowid='{$post.id}' data-url='{$post.url}'>
+            <td>{$post.localeDate}</td>
+            <td>
+                {if $post.special}
+                    <i class='icon-ok-circle'></i>
+                {elseif $post.published}
+                    <i class='icon-ok'></i>
+                {/if}
+            </td> <!-- TODO -->
+            <td>{$post.title}
+                <div><p>
+                    {foreach $tag in $post.tags}
+                        <a href='/tag/{$tag}' class='vault-tag label'>{$tag}</a>{sp}
+                    {/foreach}
+                </p></div>
+            </td>
+            <td class='actions'><a href="/post/{$post.url}" class='action action-view' title='Посмотреть'></a>
+                <span class='action action-delete' title='Удалить'></span></td>
+        </tr>
+    {/foreach}
+{/template}
+
+/**
  * @param containers List of containers
  */
 {template .vaultContainers}

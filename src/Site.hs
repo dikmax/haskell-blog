@@ -628,6 +628,7 @@ routes =
   , ("/vault/files", vaultAllowed vaultFiles)
   , ("/vault/renderpost", vaultAllowed vaultRenderPost)
   , ("/vault/checkurl", vaultAllowed vaultCheckUrl)
+  , ("/vault/postslist", vaultAllowed vaultPostsList)
   , ("/vault/fileshandler", vaultAllowed vaultFilesService)
   , ("/vault/fileupload", vaultAllowed vaultFileUpload)
   , ("", serveDirectoryWith staticDirectoryConfig "static")

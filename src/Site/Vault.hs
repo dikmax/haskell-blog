@@ -20,6 +20,7 @@ import           Snap.Snaplet
 import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Session
+import           Text.JSON
 import           Text.XmlHtml hiding (render)
 
 import           Application
@@ -40,34 +41,15 @@ vault = do
   maybe (render "vaultlogin") (\_ -> vaultMain) isAdminLogin
 
 vaultMain :: AppHandler ()
-vaultMain = heistLocal (I.bindSplice "posts" vaultPostsListSplice) $
-  render "vault"
+vaultMain = render "vault"
 
-vaultPostsListSplice :: I.Splice AppHandler
-vaultPostsListSplice = do
-  posts <- lift vaultGetPostsList
-  return $ map renderPost posts
-  where 
-    renderPost post = Element "tr" 
-      [ ("data-rowid", T.pack $ show $ postId post)
-      , ("data-url", postUrl post) ] 
-      [ Element "td" [] [TextNode $ T.pack $ show $ postDate post]
-      , Element "td" [] [
-        if postSpecial post
-        then H.i <. "icon-ok-circle"
-        else
-          if postPublished post
-          then H.i <. "icon-ok"
-          else TextNode ""]
-      , Element "td" [] 
-        [ TextNode $ postTitle post
-        , Element "div" [] $ renderTags $ postTags post
-        ]
-      , Element "td" [("class", "actions")] 
-        [ Element "span" [("class", "action-view")] []
-        , Element "span" [("class", "action-delete")] []
-        ]
-      ]
+vaultPostsList :: AppHandler ()
+vaultPostsList = do
+  posts <- vaultGetPostsList
+  writeBS $ T.encodeUtf8 $ T.pack $ showJSValue (JSObject $ toJSObject
+    [ ("success", JSBool True)
+    , ("result", showJSON posts)
+    ]) ""
 
 vaultEdit :: AppHandler ()
 vaultEdit = do

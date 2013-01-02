@@ -4,13 +4,16 @@
 <body>
 	<apply template="vaulttopnav" />
 	<div class="container">
-	    <a class="btn" href="/vault/edit">Новая запись</a>
-	    <a class="btn" href="/vault/files">Управление файлами</a>
-	    <div class="pull-right vault-statistics">
-		    <span class="label label-info vault-posts-count"></span><br />
-		    <span class="label label-success vault-published-count"></span>
-	    </div>
-	    <table class="table table-striped table-hover vault-posts-list">
+        <div class="pull-right vault-statistics">
+            <span class="label label-info vault-posts-count"></span><br />
+            <span class="label label-success vault-published-count"></span><br />
+            <span class="label label-warning vault-filtered-count"></span>
+        </div>
+        <a class="btn" href="/vault/edit">Новая запись</a>
+        <a class="btn" href="/vault/files">Управление файлами</a>
+            <input type="text" class="input-medium search-query vault-posts-list-filter" placeholder="Фильтр" />
+
+        <table class="table table-striped table-hover vault-posts-list">
 	    	<colgroup>
 	    		<col width="100" />
 	    		<col width="30" />
@@ -26,7 +29,6 @@
 	    		</tr>
 	    	</thead>
 	    	<tbody>
-	    	    <posts />
 	    	</tbody>
 	    </table>
 		<apply template="footer" />

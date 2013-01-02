@@ -3,6 +3,8 @@ module Types where
 
 import Data.Text
 import Data.Time
+import System.Locale
+import Text.JSON
 
 data Post = Post
   { postId :: Int
@@ -14,6 +16,26 @@ data Post = Post
   , postSpecial :: Bool
   , postTags :: [Text]
   }         
+
+instance JSON Post where
+  showJSON post =
+    JSObject $ toJSObject
+      [ ("id", showJSON $ postId post)
+      , ("title", showJSON $ postTitle post)
+      -- , ("text", showJSON $ postText post)
+      , ("url", showJSON $ postUrl post)
+      , ("date", showJSON $ postDate post)
+      , ("published", showJSON $ postPublished post)
+      , ("special", showJSON $ postSpecial post)
+      , ("tags", showJSON $ postTags post)
+      ]
+  readJSON _ = error "Not implemented"
+
+instance JSON LocalTime where
+  showJSON time = JSString $
+    toJSString $ formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%z" $
+      ZonedTime time $ hoursToTimeZone 3 -- TODO move timezone to config
+  readJSON _ = error "Not implemented"
 
 data PostComment = PostComment
   { commentId :: Text
