@@ -369,9 +369,12 @@ dikmax.App.prototype.vaultEventHandlers_ = function() {
             goog.string.padNumber(dateTime.getHours(), 2) + ':' +
             goog.string.padNumber(dateTime.getMinutes(), 2) + ':' +
             goog.string.padNumber(dateTime.getSeconds(), 2);
-        posts[i]['index'] =
-            [posts[i]['title'], posts[i]['localeDate'],
-              posts[i]['tags'].join(' ')].join(' ').toLocaleLowerCase();
+        // Generate index for filtration
+        posts[i]['index'] = [
+          posts[i]['title'],
+          posts[i]['localeDate'],
+          posts[i]['url'],
+          posts[i]['tags'].join(' ')].join(' ').toLocaleLowerCase();
         if (posts[i]['published']) {
           ++publishedCount;
         }

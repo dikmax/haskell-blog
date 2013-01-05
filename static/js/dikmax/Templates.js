@@ -78,12 +78,12 @@ dikmax.Templates.vaultPostsList = function(opt_data, opt_ignored) {
   var postListLen53 = postList53.length;
   for (var postIndex53 = 0; postIndex53 < postListLen53; postIndex53++) {
     var postData53 = postList53[postIndex53];
-    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53['localeDate']) + '</td><td>' + ((postData53['special']) ? '<i class=\'icon-ok-circle\'></i>' : (postData53['published']) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53['title']) + '<div><p>';
-    var tagList69 = postData53['tags'];
-    var tagListLen69 = tagList69.length;
-    for (var tagIndex69 = 0; tagIndex69 < tagListLen69; tagIndex69++) {
-      var tagData69 = tagList69[tagIndex69];
-      output += '<a href=\'/tag/' + soy.$$escapeHtml(tagData69) + '\' class=\'vault-tag label\'>' + soy.$$escapeHtml(tagData69) + '</a> ';
+    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53['localeDate']) + '</td><td>' + ((postData53['special']) ? '<i class=\'icon-ok-circle\'></i>' : (postData53['published']) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53['title']) + ' <small class="muted">' + soy.$$escapeHtml(postData53['url']) + '</small><div><p>';
+    var tagList71 = postData53['tags'];
+    var tagListLen71 = tagList71.length;
+    for (var tagIndex71 = 0; tagIndex71 < tagListLen71; tagIndex71++) {
+      var tagData71 = tagList71[tagIndex71];
+      output += '<a href=\'/tag/' + soy.$$escapeHtml(tagData71) + '\' class=\'vault-tag label\'>' + soy.$$escapeHtml(tagData71) + '</a> ';
     }
     output += '</p></div></td><td class=\'actions\'><a href="/post/' + soy.$$escapeHtml(postData53['url']) + '" class=\'action action-view\' title=\'Посмотреть\'></a><span class=\'action action-delete\' title=\'Удалить\'></span></td></tr>';
   }
@@ -99,11 +99,11 @@ dikmax.Templates.vaultPostsList = function(opt_data, opt_ignored) {
  */
 dikmax.Templates.vaultContainers = function(opt_data, opt_ignored) {
   var output = '';
-  var containerList81 = opt_data.containers;
-  var containerListLen81 = containerList81.length;
-  for (var containerIndex81 = 0; containerIndex81 < containerListLen81; containerIndex81++) {
-    var containerData81 = containerList81[containerIndex81];
-    output += '<tr><td><a class="container-link" href="#' + soy.$$escapeHtml(containerData81['name']) + '">' + soy.$$escapeHtml(containerData81['name']) + '</a></td></tr>';
+  var containerList83 = opt_data.containers;
+  var containerListLen83 = containerList83.length;
+  for (var containerIndex83 = 0; containerIndex83 < containerListLen83; containerIndex83++) {
+    var containerData83 = containerList83[containerIndex83];
+    output += '<tr><td><a class="container-link" href="#' + soy.$$escapeHtml(containerData83['name']) + '">' + soy.$$escapeHtml(containerData83['name']) + '</a></td></tr>';
   }
   return output;
 };
@@ -128,11 +128,11 @@ dikmax.Templates.vaultContainersLoading = function(opt_data, opt_ignored) {
  */
 dikmax.Templates.vaultFiles = function(opt_data, opt_ignored) {
   var output = '';
-  var fileList91 = opt_data.files;
-  var fileListLen91 = fileList91.length;
-  for (var fileIndex91 = 0; fileIndex91 < fileListLen91; fileIndex91++) {
-    var fileData91 = fileList91[fileIndex91];
-    output += '<tr><td><a href="' + soy.$$escapeHtml(opt_data.cdnUri) + '/' + soy.$$escapeHtml(fileData91['name']) + '" target="_blank">' + soy.$$escapeHtml(fileData91['name']) + '</a></td><td>' + soy.$$escapeHtml(fileData91['bytes']) + '</td><td>' + soy.$$escapeHtml(fileData91['content_type']) + '</td><td>' + soy.$$escapeHtml(fileData91['last_modified']) + '</td></tr>';
+  var fileList93 = opt_data.files;
+  var fileListLen93 = fileList93.length;
+  for (var fileIndex93 = 0; fileIndex93 < fileListLen93; fileIndex93++) {
+    var fileData93 = fileList93[fileIndex93];
+    output += '<tr><td><a href="' + soy.$$escapeHtml(opt_data.cdnUri) + '/' + soy.$$escapeHtml(fileData93['name']) + '" target="_blank">' + soy.$$escapeHtml(fileData93['name']) + '</a></td><td>' + soy.$$escapeHtml(fileData93['bytes']) + '</td><td>' + soy.$$escapeHtml(fileData93['content_type']) + '</td><td>' + soy.$$escapeHtml(fileData93['last_modified']) + '</td></tr>';
   }
   return output;
 };

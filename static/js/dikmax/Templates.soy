@@ -84,7 +84,7 @@
                     <i class='icon-ok'></i>
                 {/if}
             </td> <!-- TODO -->
-            <td>{$post['title']}
+            <td>{$post['title']} <small class="muted">{$post['url']}</small>
                 <div><p>
                     {foreach $tag in $post['tags']}
                         <a href='/tag/{$tag}' class='vault-tag label'>{$tag}</a>{sp}
