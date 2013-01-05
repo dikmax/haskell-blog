@@ -9,6 +9,7 @@
 <div class="container">
     <div class="component-panel">
         404. Ничего не найдено или плохо искалось. Или даже не искалось вовсе.
+        Если вы думаете, что этого не должно было произойти, напишите мне: <a href="mailto:me@dikmax.name">me@dikmax.name</a>.
     </div>
     <apply template="footer"/>
 </div>
