@@ -78,14 +78,14 @@ dikmax.Templates.vaultPostsList = function(opt_data, opt_ignored) {
   var postListLen53 = postList53.length;
   for (var postIndex53 = 0; postIndex53 < postListLen53; postIndex53++) {
     var postData53 = postList53[postIndex53];
-    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53['localeDate']) + '</td><td>' + ((postData53['special']) ? '<i class=\'icon-ok-circle\'></i>' : (postData53['published']) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53['title']) + ' <small class="muted">' + soy.$$escapeHtml(postData53['url']) + '</small><div><p>';
+    output += '<tr data-rowid=\'' + soy.$$escapeHtml(postData53.id) + '\' data-url=\'' + soy.$$escapeHtml(postData53.url) + '\'><td>' + soy.$$escapeHtml(postData53['localeDate']) + '</td><td>' + ((postData53['special']) ? '<i class=\'icon-ok-circle\'></i>' : (postData53['published']) ? '<i class=\'icon-ok\'></i>' : '') + '</td> <!-- TODO --><td>' + soy.$$escapeHtml(postData53['title']) + ' <small class="muted">' + soy.$$escapeHtml(postData53['url']) + '</small><div>';
     var tagList71 = postData53['tags'];
     var tagListLen71 = tagList71.length;
     for (var tagIndex71 = 0; tagIndex71 < tagListLen71; tagIndex71++) {
       var tagData71 = tagList71[tagIndex71];
       output += '<a href=\'/tag/' + soy.$$escapeHtml(tagData71) + '\' class=\'vault-tag label\'>' + soy.$$escapeHtml(tagData71) + '</a> ';
     }
-    output += '</p></div></td><td class=\'actions\'><a href="/post/' + soy.$$escapeHtml(postData53['url']) + '" class=\'action action-view\' title=\'Посмотреть\'></a><span class=\'action action-delete\' title=\'Удалить\'></span></td></tr>';
+    output += '</div></td><td class=\'actions\'><a href="/post/' + soy.$$escapeHtml(postData53['url']) + '" class=\'action action-view\' title=\'Посмотреть\'></a><span class=\'action action-delete\' title=\'Удалить\'></span></td></tr>';
   }
   return output;
 };

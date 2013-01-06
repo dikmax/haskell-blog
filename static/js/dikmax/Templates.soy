@@ -85,11 +85,11 @@
                 {/if}
             </td> <!-- TODO -->
             <td>{$post['title']} <small class="muted">{$post['url']}</small>
-                <div><p>
+                <div>
                     {foreach $tag in $post['tags']}
                         <a href='/tag/{$tag}' class='vault-tag label'>{$tag}</a>{sp}
                     {/foreach}
-                </p></div>
+                </div>
             </td>
             <td class='actions'><a href="/post/{$post['url']}" class='action action-view' title='Посмотреть'></a>
                 <span class='action action-delete' title='Удалить'></span></td>

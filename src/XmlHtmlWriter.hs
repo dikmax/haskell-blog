@@ -227,17 +227,36 @@ writeInline (Link inline target) = do
   --writeInline (Image _ _) = [TextNode "Image not implemented"]
 writeInline (Image inline target) = do
   inlines <- concatInlines inline
-  return 
-    [ Element "div" [("class", "figure")] 
-      ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
-      [ Element "img"  
-        [ ("src", T.pack $ fst target)
-        , ("title", T.pack $ snd target)
-        , ("alt", T.pack $ snd target)
-        , ("class", "img-polaroid")
-        ] []
-      ])
-    ]  
+  case "http://www.youtube.com/watch?v=" `T.isPrefixOf` T.pack (fst target) of
+    True ->
+      return
+        [ Element "div" [("class", "figure")]
+          ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
+          [ Element "iframe"
+            [ ("width", "560")
+            , ("height", "315")
+            , ("src", "http://www.youtube.com/embed/" `T.append`
+                (videoId $ T.pack $ fst target) `T.append` "?wmode=transparent")
+            , ("frameborder", "0")
+            , ("allowfullscreen", "allowfullscreen")
+            , ("class", "img-polaroid")
+            ] []
+          ])
+        ]
+    False ->
+      return
+        [ Element "div" [("class", "figure")]
+          ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
+          [ Element "img"
+            [ ("src", T.pack $ fst target)
+            , ("title", T.pack $ snd target)
+            , ("alt", T.pack $ snd target)
+            , ("class", "img-polaroid")
+            ] []
+          ])
+        ]
+  where
+    videoId url = T.takeWhile (/= '&') $ T.replace "http://www.youtube.com/watch?v=" "" url
 writeInline (Note block) = do
   blocks <- concatBlocks block
   writerState <- get
