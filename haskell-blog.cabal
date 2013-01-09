@@ -31,6 +31,7 @@ Executable haskell-blog
     snap-loader-static        >= 0.9     && < 0.10,
     text                      >= 0.11    && < 0.12,
     time                      >= 1.1     && < 1.5,
+    unordered-containers      >= 0.1.4.3 && < 0.3,
     xmlhtml                   >= 0.1
 
   if flag(development)

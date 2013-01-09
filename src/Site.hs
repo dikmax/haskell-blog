@@ -11,6 +11,7 @@ module Site
 ------------------------------------------------------------------------------
 import           Control.Applicative
 import           Data.ByteString (ByteString)
+import qualified Data.HashMap.Strict as Map
 import           Data.Maybe
 import qualified Data.Text as T
 import           Snap.Core
@@ -24,10 +25,13 @@ import           Heist
 import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
+import           Site.Front.Blog
+import           Site.Front.Splices
 
 
 ------------------------------------------------------------------------------
 -- | Render login form
+-- TODO remove
 handleLogin :: Maybe T.Text -> Handler App (AuthManager App) ()
 handleLogin authError = heistLocal (I.bindSplices errs) $ render "login"
   where
@@ -36,6 +40,7 @@ handleLogin authError = heistLocal (I.bindSplices errs) $ render "login"
 
 ------------------------------------------------------------------------------
 -- | Handle login submit
+-- TODO remove
 handleLoginSubmit :: Handler App (AuthManager App) ()
 handleLoginSubmit =
     loginUser "login" "password" Nothing
@@ -46,12 +51,14 @@ handleLoginSubmit =
 
 ------------------------------------------------------------------------------
 -- | Logs out and redirects the user to the site index.
+-- TODO remove
 handleLogout :: Handler App (AuthManager App) ()
 handleLogout = logout >> redirect "/"
 
 
 ------------------------------------------------------------------------------
 -- | Handle new user form submit
+-- TODO remove
 handleNewUser :: Handler App (AuthManager App) ()
 handleNewUser = method GET handleForm <|> method POST handleFormSubmit
   where
@@ -59,13 +66,38 @@ handleNewUser = method GET handleForm <|> method POST handleFormSubmit
     handleFormSubmit = registerUser "login" "password" >> redirect "/"
 
 
+
+staticMimeMap :: MimeMap
+staticMimeMap = Map.fromList
+  [ ( ".css"     , "text/css"                          )
+  , ( ".dtd"     , "text/xml"                          )
+  , ( ".eot"     , "application/vnd.ms-fontobject"     )
+  , ( ".gif"     , "image/gif"                         )
+  , ( ".jpeg"    , "image/jpeg"                        )
+  , ( ".jpg"     , "image/jpeg"                        )
+  , ( ".js"      , "text/javascript"                   )
+  , ( ".json"    , "application/json"                  )
+  , ( ".ico"     , "image/vnd.microsoft.icon"          )
+  , ( ".less"    , "text/css"                          )
+  , ( ".png"     , "image/png"                         )
+  , ( ".svg"     , "image/svg+xml"                     )
+  , ( ".ttf"     , "application/x-font-truetype"       )
+  , ( ".woff"    , "applicaton/font-woff"              )
+  , ( ".xml"     , "text/xml"                          )
+  ]
+
+staticDirectoryConfig :: DirectoryConfig (Handler App App)
+staticDirectoryConfig = simpleDirectoryConfig
+  { mimeTypes = staticMimeMap }
+
 ------------------------------------------------------------------------------
 -- | The application's routes.
-routes :: [(ByteString, Handler App App ())]
-routes = [ ("/login",    with auth handleLoginSubmit)
-         , ("/logout",   with auth handleLogout)
-         , ("/new_user", with auth handleNewUser)
-         , ("",          serveDirectory "static")
+routes :: [(ByteString, AppHandler ())]
+routes = [ ("/", blog)
+         , ("/page/:page", blog)
+         , ("/tag/:tag", blog)
+         , ("/tag/:tag/page/:page", blog)
+         , ("", serveDirectoryWith staticDirectoryConfig "static")
          ]
 
 

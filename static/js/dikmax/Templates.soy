@@ -1,0 +1,145 @@
+{namespace dikmax.Templates}
+
+/**
+ * @param lines Lines to wrap
+ */
+{template .codeWrapper}
+    {foreach $line in $lines}
+        {if not isFirst($line)}
+          {\n}
+        {/if}
+        <span class="line" data-linenum="{index($line) + 1}">
+            {if $line == ''}
+              &nbsp;
+            {else}
+              {$line|noAutoescape}
+            {/if}
+
+        </span>
+    {/foreach}
+{/template}
+
+/**
+ * Footnote popover template
+ */
+{template .footnote}
+<div>
+    <div class="arrow"></div>
+    <div class="popover-inner">
+        <h3 class="popover-title"></h3>
+        <div class="popover-content"></div>
+    </div>
+</div>
+{/template}
+
+/**
+ * Code tooltip template
+ */
+{template .codeTooltip}
+<div>
+    <div class="tooltip-arrow"></div>
+    <div class="tooltip-inner">Tooltip on left</div>
+</div>
+{/template}
+
+/**
+ * @param movies List of movies
+ */
+{template .movies}
+    <span class="wrap">
+    {foreach $movie in $movies}
+        <span class="item">
+            <span class="item-header">{$movie.date} <br>
+                <a href="{$movie.link}">{$movie.title}</a>
+                {if $movie.rating}
+                <br>
+                <span class="rating" title="({$movie.rating}/10)">
+                    <span class="rate-{$movie.rating}"></span>
+                </span>
+                {/if}
+            </span>
+            {if $movie.image}
+            <span class="item-footer">
+                <a href="{$movie.link}">
+                    <img src="{$movie.image}" title="{$movie.title}">
+                </a>
+            </span>
+            {/if}
+        </span>
+    {/foreach}
+    </span>
+{/template}
+
+/**
+ * @param posts List of posts
+ */
+{template .vaultPostsList}
+    {foreach $post in $posts}
+        <tr data-rowid='{$post.id}' data-url='{$post.url}'>
+            <td>{$post['localeDate']}</td>
+            <td>
+                {if $post['special']}
+                    <i class='icon-ok-circle'></i>
+                {elseif $post['published']}
+                    <i class='icon-ok'></i>
+                {/if}
+            </td> <!-- TODO -->
+            <td>{$post['title']} <small class="muted">{$post['url']}</small>
+                <div>
+                    {foreach $tag in $post['tags']}
+                        <a href='/tag/{$tag}' class='vault-tag label'>{$tag}</a>{sp}
+                    {/foreach}
+                </div>
+            </td>
+            <td class='actions'><a href="/post/{$post['url']}" class='action action-view' title='Посмотреть'></a>
+                <span class='action action-delete' title='Удалить'></span></td>
+        </tr>
+    {/foreach}
+{/template}
+
+/**
+ * @param containers List of containers
+ */
+{template .vaultContainers}
+    {foreach $container in $containers}
+        <tr><td>
+            <a class="container-link" href="#{$container['name']}">{$container['name']}</a>
+        </td></tr>
+    {/foreach}
+{/template}
+
+
+/**
+ * Template to show when containers list is loading
+ */
+{template .vaultContainersLoading}
+    <tr>
+        <td>Загружаем список контейнеров...</td>
+    </tr>
+{/template}
+
+/**
+ * @param files List of files
+ * @param cdnUri
+ */
+{template .vaultFiles}
+    {foreach $file in $files}
+        <tr>
+            <td>
+                <a href="{$cdnUri}/{$file['name']}" target="_blank">{$file['name']}</a>
+            </td>
+            <td>{$file['bytes']}</td>
+            <td>{$file['content_type']}</td>
+            <td>{$file['last_modified']}</td>
+        </tr>
+    {/foreach}
+{/template}
+
+/**
+ * Template to show when files list is loading
+ */
+{template .vaultFilesLoading}
+    <tr>
+        <td colspan="4">Загружаем список файлов...</td>
+    </tr>
+{/template}
