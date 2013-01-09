@@ -1,30 +1,19 @@
-<!DOCTYPE html>
-<html lang="ru" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
-<apply template="head"/>
+<apply template="base">
 
-<body itemscope="itemscope" itemtype="http://schema.org/Blog" class="${mobile}">
-<meta itemprop="name" content="[dikmax's blog]"/>
-<apply template="author"/>
-<apply template="topnav"/>
+  <ifLoggedIn>
+    <p>
+      This is a simple demo page served using
+      <a href="http://snapframework.com/docs/tutorials/heist">Heist</a>
+      and the <a href="http://snapframework.com/">Snap</a> web framework.
+    </p>
 
-<div class="container">
-    <posts/>
-    <pagination/>
-    <apply template="footer"/>
-</div>
-<!-- /container -->
+    <p>Congrats!  You're logged in as '<loggedInUser/>'</p>
 
-<apply template="foot"/>
-<disqusVars />
-<script type="text/javascript">
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function () {
-        var s = document.createElement('script');
-        s.async = true;
-        s.type = 'text/javascript';
-        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
-        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-    }());
-</script>
-</body>
-</html>
+    <p><a href="/logout">Logout</a></p>
+  </ifLoggedIn>
+
+  <ifLoggedOut>
+    <apply template="_login"/>
+  </ifLoggedOut>
+
+</apply>

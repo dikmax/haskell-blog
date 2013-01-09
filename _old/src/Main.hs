@@ -1,18 +1,6 @@
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-{-
-
-NOTE: Don't modify this file unless you know what you are doing.  If you are
-new to snap, start with Site.hs and Application.hs.  This file contains
-boilerplate needed for dynamic reloading and is not meant for general
-consumption.
-
-Occasionally if we modify the way the dynamic reloader works and you want to
-upgrade, you might have to swap out this file for a newer version.  But in
-most cases you'll never need to modify this code.
-
--}
 module Main where
 
 ------------------------------------------------------------------------------
@@ -20,7 +8,6 @@ import           Control.Exception (SomeException, try)
 import qualified Data.Text as T
 import           Snap.Http.Server
 import           Snap.Snaplet
-import           Snap.Snaplet.Config
 import           Snap.Core
 import           System.IO
 import           Site
@@ -90,8 +77,8 @@ main = do
 --
 -- This action is only run once, regardless of whether development or
 -- production mode is in use.
-getConf :: IO (Config Snap AppConfig)
-getConf = commandLineAppConfig defaultConfig
+getConf :: IO (Config Snap ())
+getConf = commandLineConfig defaultConfig
 
 
 ------------------------------------------------------------------------------
@@ -106,9 +93,8 @@ getConf = commandLineAppConfig defaultConfig
 --
 -- This sample doesn't actually use the config passed in, but more
 -- sophisticated code might.
-getActions :: Config Snap AppConfig -> IO (Snap (), IO ())
-getActions conf = do
-    (msgs, site, cleanup) <- runSnaplet
-        (appEnvironment =<< getOther conf) app
+getActions :: Config Snap () -> IO (Snap (), IO ())
+getActions _ = do
+    (msgs, site, cleanup) <- runSnaplet Nothing app -- TODO environment
     hPutStrLn stderr $ T.unpack msgs
     return (site, cleanup)
