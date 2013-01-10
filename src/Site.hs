@@ -25,8 +25,9 @@ import           Heist
 import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
+import qualified Site.Common.Splices as CommonSplices
 import           Site.Front.Blog
-import           Site.Front.Splices
+import qualified Site.Front.Splices as FrontSplices
 
 
 ------------------------------------------------------------------------------
@@ -117,8 +118,8 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     addRoutes routes
     addConfig h HeistConfig
       { hcInterpretedSplices = []
-      , hcLoadTimeSplices = []
-      , hcCompiledSplices = compiledSplices
+      , hcLoadTimeSplices = CommonSplices.loadTimeSplices
+      , hcCompiledSplices = FrontSplices.compiledSplices
       , hcAttributeSplices = []
       , hcTemplates = Map.empty
       }
