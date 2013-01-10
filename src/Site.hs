@@ -86,18 +86,18 @@ staticMimeMap = Map.fromList
   , ( ".xml"     , "text/xml"                          )
   ]
 
-staticDirectoryConfig :: DirectoryConfig (Handler App App)
+staticDirectoryConfig :: DirectoryConfig (AppHandler)
 staticDirectoryConfig = simpleDirectoryConfig
   { mimeTypes = staticMimeMap }
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("/", blog)
+routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
+         , ("/tag/:tag/page/:page", blog)
          , ("/page/:page", blog)
          , ("/tag/:tag", blog)
-         , ("/tag/:tag/page/:page", blog)
-         , ("", serveDirectoryWith staticDirectoryConfig "static")
+         , ("/", blog)
          ]
 
 
@@ -115,6 +115,6 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     a <- nestSnaplet "auth" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
     addRoutes routes
-    addAuthSplices auth
+    -- addAuthSplices auth
     return $ App h s a
 
