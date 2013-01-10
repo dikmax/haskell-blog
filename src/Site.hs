@@ -115,6 +115,13 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     a <- nestSnaplet "auth" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
     addRoutes routes
+    addConfig h HeistConfig
+      { hcInterpretedSplices = []
+      , hcLoadTimeSplices = []
+      , hcCompiledSplices = compiledSplices
+      , hcAttributeSplices = []
+      , hcTemplates = Map.empty
+      }
     -- addAuthSplices auth
     return $ App h s a
 
