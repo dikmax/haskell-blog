@@ -119,7 +119,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     addConfig h HeistConfig
       { hcInterpretedSplices = []
       , hcLoadTimeSplices = CommonSplices.loadTimeSplices
-      , hcCompiledSplices = FrontSplices.compiledSplices
+      , hcCompiledSplices = CommonSplices.compiledSplices
       , hcAttributeSplices = []
       , hcTemplates = Map.empty
       }
