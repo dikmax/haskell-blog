@@ -5,7 +5,7 @@ module Site.Common.Splices where
 import           Control.Monad.Trans
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.Time
+import           Data.Time.Clock.POSIX
 import           Heist.Compiled as C
 import qualified Heist.Interpreted as I
 import           Text.Blaze.Renderer.Utf8
@@ -22,7 +22,9 @@ import           Site.Common.Config
 ------------------------------------------------------------------------------
 
 revisionSplice :: I.Splice IO
-revisionSplice = return [TextNode resourcesRevision]
+revisionSplice = do
+  posixTime <- lift getPOSIXTime
+  return [TextNode $ T.pack $ show $ round posixTime]
 
 loadTimeSplices :: [(Text, I.Splice IO)]
 loadTimeSplices =
