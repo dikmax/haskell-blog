@@ -5,12 +5,15 @@ module Site.Front.Blog where
 import           Snap.Snaplet.Heist
 ------------------------------------------------------------------------------
 import           Application
+import           Site.Snaplet.CommonData
 
 
 ------------------------------------------------------------------------------
 
 blog :: AppHandler ()
-blog = cRender "blog"
+blog = do
+  setTitle "Title!"
+  cRender "blog"
 
 {-
 index :: Handler App App ()

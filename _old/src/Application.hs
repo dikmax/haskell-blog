@@ -31,7 +31,7 @@ instance HasHeist App where
 
 instance HasHdbc (Handler b App) Connection IO where
   getHdbcState = with dbLens get
-      
+
 ------------------------------------------------------------------------------
 type AppHandler = Handler App App
 

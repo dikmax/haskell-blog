@@ -21,6 +21,7 @@ import           Text.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
 import           Site.Common.Config
+import           Site.Snaplet.CommonData
 
 
 ------------------------------------------------------------------------------
@@ -44,6 +45,13 @@ copyrightYearSplice startYear =
         utcToLocalTime (minutesToTimeZone 180) time
     getYear_ (year, _, _) = year
 
+
+metadataSplice :: Splice AppHandler
+metadataSplice =
+  return $ yieldRuntime $ do
+    title <- lift $ getTitle
+    return $ renderMarkupBuilder $
+      H.title $ toMarkup title
 
 -- | Splice to detect is userAgent is mobile
 mobileSplice :: Splice AppHandler
@@ -79,6 +87,7 @@ compiledSplices :: [(Text, Splice AppHandler)]
 compiledSplices =
   [ ("copyrightYear", copyrightYearSplice 2012)
   , ("mobile", mobileSplice)
+  , ("metadata", metadataSplice)
   ]
 
 loadTimeSplices :: [(Text, I.Splice IO)]

@@ -14,10 +14,13 @@ import           Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as Map
 import           Data.Maybe
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.JsonFile
+import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
@@ -26,9 +29,11 @@ import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
 import qualified Site.Common.Splices as CommonSplices
+import           Site.Config
+import           Site.Database
 import           Site.Front.Blog
 import qualified Site.Front.Splices as FrontSplices
-
+import           Site.Snaplet.CommonData
 
 ------------------------------------------------------------------------------
 -- | Render login form
@@ -102,6 +107,14 @@ routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
          ]
 
 
+prepareCommonData :: HasCommonData b => Handler b b ()
+prepareCommonData = do
+--  userAgent <- withRequest (return . T.decodeUtf8 . fromMaybe "" .
+--              getHeader "User-Agent")
+  commonData <- getCommonData
+  writeBS $ T.encodeUtf8 $ T.pack $ show commonData
+  -- return
+
 ------------------------------------------------------------------------------
 -- | The application initializer.
 app :: SnapletInit App App
@@ -109,12 +122,15 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     h <- nestSnaplet "" heist $ heistInit "templates"
     s <- nestSnaplet "sess" sess $
            initCookieSessionManager "site_key.txt" "sess" (Just 3600)
+    cd <- nestSnaplet "" commonData $ commonDataInit
 
     -- NOTE: We're using initJsonFileAuthManager here because it's easy and
     -- doesn't require any kind of database server to run.  In practice,
     -- you'll probably want to change this to a more robust auth backend.
-    a <- nestSnaplet "auth" auth $
+    a <- nestSnaplet "" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
+    db <- nestSnaplet "" hdbc $ hdbcInit $ connectMySQL connectInfo
+
     addRoutes routes
     addConfig h HeistConfig
       { hcInterpretedSplices = []
@@ -123,6 +139,15 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       , hcAttributeSplices = []
       , hcTemplates = Map.empty
       }
-    -- addAuthSplices auth
-    return $ App h s a
 
+    -- wrapSite (setEncoding *>)
+    -- wrapSite (prepareCommonData *>)
+
+    -- addAuthSplices auth
+    return $ App
+      { _heist = h
+      , _sess = s
+      , _commonData = cd
+      , _hdbc = db
+      , _auth = a
+      }
