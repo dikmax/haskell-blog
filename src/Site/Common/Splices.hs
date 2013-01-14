@@ -49,7 +49,7 @@ copyrightYearSplice startYear =
 metadataSplice :: Splice AppHandler
 metadataSplice =
   return $ yieldRuntime $ do
-    title <- lift $ getTitle
+    title <- lift $ getData cdTitle
     return $ renderMarkupBuilder $
       H.title $ toMarkup title
 
