@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Site.Config where
 
 import Database.HDBC.MySQL

@@ -2,6 +2,7 @@
 module Site.Front.Blog where
 
 ------------------------------------------------------------------------------
+import           Snap.Core
 import           Snap.Snaplet.Heist
 ------------------------------------------------------------------------------
 import           Application
@@ -12,7 +13,9 @@ import           Site.Snaplet.CommonData
 
 blog :: AppHandler ()
 blog = do
-  setTitle "Title!"
+  domain <- withRequest (return . rqServerName)
+  logError domain
+  setTitle $ "Title!"
   cRender "blog"
 
 {-

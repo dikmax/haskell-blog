@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Site.Common.Splices where
 
 ------------------------------------------------------------------------------
@@ -46,12 +45,15 @@ copyrightYearSplice startYear =
     getYear_ (year, _, _) = year
 
 
+-- | Splice to show metadata in page head
+-- TODO full metadata
 metadataSplice :: Splice AppHandler
 metadataSplice =
   return $ yieldRuntime $ do
     title <- lift $ getData cdTitle
     return $ renderMarkupBuilder $
       H.title $ toMarkup title
+
 
 -- | Splice to detect is userAgent is mobile
 mobileSplice :: Splice AppHandler

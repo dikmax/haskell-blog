@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Site.Snaplet.CommonData where
 
 import           Data.Maybe

@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Site.Database where
 
 import qualified  Database.HDBC as HDBC
