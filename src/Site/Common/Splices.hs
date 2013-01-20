@@ -20,6 +20,8 @@ import           Text.Blaze.XHtml5.Attributes
 import           Text.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
+import           HtmlAttributes
+import qualified HtmlAttributes as A
 import           Site.Common.Config
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.I18N
@@ -27,24 +29,26 @@ import           Site.Snaplet.I18N
 
 ------------------------------------------------------------------------------
 
--- | Splice to show years in copyright
-copyrightYearSplice :: Integer -> Splice AppHandler
-copyrightYearSplice startYear =
+copyrightSplice :: Splice AppHandler
+copyrightSplice =
   return $ yieldRuntime $ do
     currentTime <- liftIO getCurrentTime
-    return $ renderMarkupBuilder $
-      H.span ! itemprop "copyrightYear" $
-        if (startYear == getYear currentTime)
-          then
-            toMarkup startYear
-          else do
-            toMarkup startYear
-            " — "
-            toMarkup $ getYear currentTime
+    copyrightHolder <- lift $ translate MsgCopyright
+    -- &copy; <span itemprop="copyrightHolder" itemscope="itemscope" itemtype="http://schema.org/Person"><span itemprop="name">Максим Дикун</span></span>, 2012 — <span itemprop="copyrightYear">#{show year}</span>
+    return $ renderMarkupBuilder $ do
+      preEscapedToMarkup ("&copy; " :: Text)
+      H.span ! itemprop "copyrightHolder" ! itemscope "itemscope" !
+        itemtype "http://schema.org/Person" $
+        H.span ! itemprop "name" $
+          toMarkup copyrightHolder
+      ", "
+      H.span ! itemprop "copyrightYear" $ do
+        preEscapedToMarkup ("2012 &mdash; " :: Text)
+        toMarkup $ getYear currentTime
   where
-    getYear time = getYear_ $ toGregorian $ localDay $
+    getYear time = getYear' $ toGregorian $ localDay $
         utcToLocalTime (minutesToTimeZone 180) time
-    getYear_ (year, _, _) = year
+    getYear' (year, _, _) = year
 
 
 gitHubLinkSplice :: Splice AppHandler
@@ -99,7 +103,7 @@ revisionSplice = do
 
 compiledSplices :: [(Text, Splice AppHandler)]
 compiledSplices =
-  [ ("copyrightYear", copyrightYearSplice 2012)
+  [ ("copyright", copyrightSplice)
   , ("gitHubLink", gitHubLinkSplice)
   , ("mobile", mobileSplice)
   , ("metadata", metadataSplice)
