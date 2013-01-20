@@ -8,12 +8,14 @@ module Site
 
 ------------------------------------------------------------------------------
 import           Control.Applicative
-import           Control.Monad.Trans (lift)
+import           Control.Monad.Trans (lift, liftIO)
 import           Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as Map
 import           Data.Maybe
+import           Data.Pool
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Database.HDBC as HDBC
 import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
@@ -129,7 +131,9 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     -- you'll probably want to change this to a more robust auth backend.
     a <- nestSnaplet "" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
-    db <- nestSnaplet "" hdbc $ hdbcInit $ connectMySQL connectInfo
+    pool <- liftIO $ createPool (connectMySQL connectInfo) HDBC.disconnect 10 1 2
+    db <- nestSnaplet "" hdbc $ hdbcInit pool
+
     i <- nestSnaplet "" i18n $ i18nInit
 
     addRoutes routes

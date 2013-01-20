@@ -8,6 +8,7 @@ module Application where
 ------------------------------------------------------------------------------
 import Control.Monad.State (get)
 import Control.Lens
+import Data.Pool
 import Database.HDBC.MySQL
 import Snap.Snaplet
 import Snap.Snaplet.Auth
@@ -23,7 +24,7 @@ data App = App
     { _heist :: Snaplet (Heist App)
     , _sess :: Snaplet SessionManager
     , _commonData :: Snaplet CommonData
-    , _hdbc :: Snaplet (HdbcSnaplet Connection IO)
+    , _hdbc :: Snaplet (HdbcSnaplet Connection Pool)
     , _i18n :: Snaplet I18N
     , _auth :: Snaplet (AuthManager App)
     }
@@ -39,7 +40,7 @@ instance HasCommonData App where
 instance HasI18N App where
   i18nLens = i18n
 
-instance HasHdbc (Handler b App) Connection IO where
+instance HasHdbc (Handler b App) Connection Pool where
   getHdbcState = with hdbc get
 
 ------------------------------------------------------------------------------
