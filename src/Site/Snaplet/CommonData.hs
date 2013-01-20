@@ -39,7 +39,7 @@ setCommonData = with commonDataLens . Snap.put
 modifyCommonData :: HasCommonData b => (CommonData -> CommonData) -> Handler b b ()
 modifyCommonData = with commonDataLens . Snap.modify
 
-getData :: HasCommonData b => (CommonData -> Text) -> Handler b b Text
+-- getData :: HasCommonData b => (CommonData -> a) -> Handler b b Text
 getData f = getCommonData >>= return . f
 
 setTitle :: HasCommonData b => Text -> Handler b b ()

@@ -6,7 +6,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </a>
-            <a class="brand" href="/">[dikmax's blog]</a>
+            <blogLogo />
             <cache ttl="300 seconds">
                 <navigation/>
             </cache>

@@ -24,9 +24,21 @@ import qualified HtmlAttributes as A
 import           Site.Common.Config
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.I18N
+import           Site.Types
 
 
 ------------------------------------------------------------------------------
+
+blogLogoSplice :: Splice AppHandler
+blogLogoSplice  =
+  return $ yieldRuntime $ do
+    blog <- lift $ getData cdBlog
+    return $ renderMarkupBuilder $ do
+      a ! class_ "brand" ! href "/" $
+        toMarkup $ showTitle blog
+  where
+    showTitle UnknownBlog = "[dikmax's blog]"
+    showTitle blog = blogName blog
 
 copyrightSplice :: Splice AppHandler
 copyrightSplice =
@@ -102,7 +114,8 @@ revisionSplice = do
 
 compiledSplices :: [(Text, Splice AppHandler)]
 compiledSplices =
-  [ ("copyright", copyrightSplice)
+  [ ("blogLogo", blogLogoSplice)
+  , ("copyright", copyrightSplice)
   , ("gitHubLink", gitHubLinkSplice)
   , ("mobile", mobileSplice)
   , ("metadata", metadataSplice)
