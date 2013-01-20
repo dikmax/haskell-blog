@@ -1,5 +1,6 @@
 module Site.Snaplet.CommonData where
 
+------------------------------------------------------------------------------
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -7,6 +8,7 @@ import qualified Data.Text.Encoding as T
 import           Snap.Snaplet
 import           Snap.Core
 import           Snap
+------------------------------------------------------------------------------
 
 data CommonData = CommonData
   { cdTitle :: Text

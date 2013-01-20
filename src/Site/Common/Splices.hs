@@ -11,6 +11,7 @@ import           Data.Time.Clock.POSIX
 import           Heist.Compiled
 import qualified Heist.Interpreted as I
 import           Snap.Core
+-- import           Text.Blaze
 import           Text.Blaze.Renderer.Utf8
 import qualified Text.Blaze.XHtml5 as H
 import           Text.Blaze.XHtml5
@@ -21,6 +22,7 @@ import           Text.XmlHtml
 import           Application
 import           Site.Common.Config
 import           Site.Snaplet.CommonData
+import           Site.Snaplet.I18N
 
 
 ------------------------------------------------------------------------------
@@ -43,6 +45,16 @@ copyrightYearSplice startYear =
     getYear time = getYear_ $ toGregorian $ localDay $
         utcToLocalTime (minutesToTimeZone 180) time
     getYear_ (year, _, _) = year
+
+
+gitHubLinkSplice :: Splice AppHandler
+gitHubLinkSplice  =
+  return $ yieldRuntime $ do
+    msg <- lift $ translate MsgSourceCodeOnGitHub
+    return $ renderMarkupBuilder $
+      a ! class_ "pull-right" ! href "https://github.com/dikmax/haskell-blog"
+        ! A.title (toValue msg)
+        $ H.span ! class_ "icon icon-githubnav" $ ""
 
 
 -- | Splice to show metadata in page head
@@ -88,6 +100,7 @@ revisionSplice = do
 compiledSplices :: [(Text, Splice AppHandler)]
 compiledSplices =
   [ ("copyrightYear", copyrightYearSplice 2012)
+  , ("gitHubLink", gitHubLinkSplice)
   , ("mobile", mobileSplice)
   , ("metadata", metadataSplice)
   ]

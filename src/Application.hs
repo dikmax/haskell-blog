@@ -15,6 +15,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 ------------------------------------------------------------------------------
 import Site.Snaplet.CommonData
+import Site.Snaplet.I18N
 
 ------------------------------------------------------------------------------
 data App = App
@@ -22,6 +23,7 @@ data App = App
     , _sess :: Snaplet SessionManager
     , _commonData :: Snaplet CommonData
     , _hdbc :: Snaplet (HdbcSnaplet Connection IO)
+    , _i18n :: Snaplet I18N
     , _auth :: Snaplet (AuthManager App)
     }
 
@@ -32,6 +34,9 @@ instance HasHeist App where
 
 instance HasCommonData App where
   commonDataLens = commonData
+
+instance HasI18N App where
+  i18nLens = i18n
 
 ------------------------------------------------------------------------------
 type AppHandler = Handler App App

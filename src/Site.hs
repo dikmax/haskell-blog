@@ -32,7 +32,7 @@ import           Site.Database
 import           Site.Front.Blog
 import qualified Site.Front.Splices as FrontSplices
 import           Site.Snaplet.CommonData
-
+import           Site.Snaplet.I18N
 ------------------------------------------------------------------------------
 -- | Render login form
 -- TODO remove
@@ -128,6 +128,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     a <- nestSnaplet "" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
     db <- nestSnaplet "" hdbc $ hdbcInit $ connectMySQL connectInfo
+    i <- nestSnaplet "" i18n $ i18nInit
 
     addRoutes routes
     addConfig h HeistConfig
@@ -138,6 +139,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       , hcTemplates = Map.empty
       }
 
+    wrapSite (setLanguage "en" *>)
     -- wrapSite (setEncoding *>)
     -- wrapSite (prepareCommonData *>)
 
@@ -147,5 +149,6 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       , _sess = s
       , _commonData = cd
       , _hdbc = db
+      , _i18n = i
       , _auth = a
       }

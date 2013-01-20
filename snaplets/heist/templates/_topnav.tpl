@@ -12,7 +12,7 @@
             </cache>
 
             <a class="pull-right" href="/rss" title="RSS"><span class="icon icon-feed"></span></a>
-            <a class="pull-right" href="https://github.com/dikmax/haskell-blog" title="Исходный код сайта на github"><span class="icon icon-githubnav"></span></a>
+            <gitHubLink />
         </div>
     </div>
 </div>
