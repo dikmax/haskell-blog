@@ -8,6 +8,7 @@ module Site
 
 ------------------------------------------------------------------------------
 import           Control.Applicative
+import           Control.Monad.Trans (lift)
 import           Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as Map
 import           Data.Maybe
@@ -26,13 +27,14 @@ import           Heist
 import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
+import           Site.Common.Config
 import qualified Site.Common.Splices as CommonSplices
-import           Site.Config
 import           Site.Database
 import           Site.Front.Blog
 import qualified Site.Front.Splices as FrontSplices
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.I18N
+import           Site.Types
 ------------------------------------------------------------------------------
 -- | Render login form
 -- TODO remove
@@ -105,13 +107,13 @@ routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
          ]
 
 
-prepareCommonData :: HasCommonData b => Handler b b ()
+prepareCommonData :: AppHandler ()
 prepareCommonData = do
---  userAgent <- withRequest (return . T.decodeUtf8 . fromMaybe "" .
---              getHeader "User-Agent")
-  commonData <- getCommonData
-  writeBS $ T.encodeUtf8 $ T.pack $ show commonData
-  -- return
+  serverName <- withRequest (return . rqServerName)
+  blog <- getBlog $ T.decodeUtf8 serverName
+  if blog /= UnknownBlog then setBlog blog else redirect defaultDomain
+
+
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -140,8 +142,8 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       }
 
     wrapSite (setLanguage "en" *>)
-    -- wrapSite (setEncoding *>)
-    -- wrapSite (prepareCommonData *>)
+    wrapSite (setEncoding *>)
+    wrapSite (prepareCommonData *>)
 
     -- addAuthSplices auth
     return $ App

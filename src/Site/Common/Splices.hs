@@ -11,7 +11,6 @@ import           Data.Time.Clock.POSIX
 import           Heist.Compiled
 import qualified Heist.Interpreted as I
 import           Snap.Core
--- import           Text.Blaze
 import           Text.Blaze.Renderer.Utf8
 import qualified Text.Blaze.XHtml5 as H
 import           Text.Blaze.XHtml5

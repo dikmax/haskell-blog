@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, FlexibleInstances, MultiParamTypeClasses #-}
 
 ------------------------------------------------------------------------------
 -- | This module defines our application's state type and an alias for its
@@ -6,6 +6,7 @@
 module Application where
 
 ------------------------------------------------------------------------------
+import Control.Monad.State (get)
 import Control.Lens
 import Database.HDBC.MySQL
 import Snap.Snaplet
@@ -37,6 +38,9 @@ instance HasCommonData App where
 
 instance HasI18N App where
   i18nLens = i18n
+
+instance HasHdbc (Handler b App) Connection IO where
+  getHdbcState = with hdbc get
 
 ------------------------------------------------------------------------------
 type AppHandler = Handler App App
