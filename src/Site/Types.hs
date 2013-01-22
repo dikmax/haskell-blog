@@ -1,6 +1,9 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Site.Types where
 
+import Data.Data
 import Data.Text (Text)
+import Data.Aeson.Generic
 
 data Blog
   = StandaloneBlog
@@ -30,3 +33,9 @@ isCompoundBlog _ = False
 isUnknownBlog :: Blog -> Bool
 isUnknownBlog UnknownBlog = True
 isUnknownBlog _ = False
+
+data PageOptions = PageOptions
+  { poShowComments :: Bool
+  , poKeywords :: Text
+  , poDescription :: Text
+  } deriving (Data, Typeable)

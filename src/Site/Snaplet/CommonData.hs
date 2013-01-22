@@ -1,6 +1,8 @@
 module Site.Snaplet.CommonData where
 
 ------------------------------------------------------------------------------
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -8,6 +10,7 @@ import qualified Data.Text.Encoding as T
 import           Snap.Snaplet
 import           Snap.Core
 import           Snap
+import           Data.Aeson.Generic
 ------------------------------------------------------------------------------
 import           Site.Types
 ------------------------------------------------------------------------------
@@ -28,6 +31,7 @@ emptyData = CommonData
 
 commonDataInit :: SnapletInit b CommonData
 commonDataInit = makeSnaplet "commonData" "Common data snaplet" Nothing $ do
+  printInfo $ T.decodeUtf8 $ toStrict $ encode $ PageOptions True "a" "б"
   return emptyData
 
 getCommonData :: HasCommonData b => Handler b b CommonData
@@ -47,3 +51,7 @@ setTitle title = modifyCommonData (\cd -> cd {cdTitle = title})
 
 setBlog :: HasCommonData b => Blog -> Handler b b ()
 setBlog blog = modifyCommonData (\cd -> cd {cdBlog = blog})
+
+
+toStrict :: BL.ByteString -> B.ByteString
+toStrict = B.concat . BL.toChunks
