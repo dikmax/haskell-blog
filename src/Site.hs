@@ -28,6 +28,7 @@ import           Snap.Snaplet.Hdbc
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
+import           Snap.Util.GZip
 import           Heist
 import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
@@ -136,6 +137,7 @@ initCache app
 
   | otherwise = return app -}
 
+
 ------------------------------------------------------------------------------
 -- | The application initializer.
 app :: SnapletInit App App
@@ -168,7 +170,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     wrapSite (setLanguage "en" *>)
     wrapSite (setEncoding *>)
     wrapSite (prepareCommonData *>)
-    -- wrapSite (updateDbCache *>)
+    wrapSite withCompression
 
     -- addAuthSplices auth
     return $ App

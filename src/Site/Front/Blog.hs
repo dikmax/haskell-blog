@@ -2,11 +2,13 @@
 module Site.Front.Blog where
 
 ------------------------------------------------------------------------------
+import qualified Data.Text as T
 import           Snap.Core
 import           Snap.Snaplet.Heist
 ------------------------------------------------------------------------------
 import           Application
 import           Site.Snaplet.CommonData
+import           Site.Snaplet.DbCache
 
 
 ------------------------------------------------------------------------------
@@ -14,8 +16,8 @@ import           Site.Snaplet.CommonData
 blog :: AppHandler ()
 blog = do
   domain <- withRequest (return . rqServerName)
-  logError domain
-  setTitle $ "Title!"
+  cache <- getCache
+  setTitle $ T.pack $ show cache
   cRender "blog"
 
 {-
