@@ -8,18 +8,12 @@ module Site
 
 ------------------------------------------------------------------------------
 import           Control.Applicative
-import           Control.Lens
 import           Control.Monad.State
-import           Control.Monad.Trans (lift, liftIO)
-import           Data.ByteString.Char8 (ByteString, pack)
+import           Data.ByteString.Char8 (ByteString)
 import qualified Data.HashMap.Strict as Map
-import           Data.IORef
-import           Data.Maybe
 import           Data.Pool
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Database.HDBC as HDBC
-import           Database.HDBC.MySQL
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
@@ -30,14 +24,12 @@ import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 import           Snap.Util.GZip
 import           Heist
-import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
 import           Site.Common.Config
 import qualified Site.Common.Splices as CommonSplices
 import           Site.Database
 import           Site.Front.Blog
-import qualified Site.Front.Splices as FrontSplices
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.DbCache
 import           Site.Snaplet.I18N
@@ -45,38 +37,38 @@ import           Site.Types
 ------------------------------------------------------------------------------
 -- | Render login form
 -- TODO remove
-handleLogin :: Maybe T.Text -> Handler App (AuthManager App) ()
+{-handleLogin :: Maybe T.Text -> Handler App (AuthManager App) ()
 handleLogin authError = heistLocal (I.bindSplices errs) $ render "login"
   where
-    errs = [("loginError", I.textSplice c) | c <- maybeToList authError]
+    errs = [("loginError", I.textSplice c) | c <- maybeToList authError]-}
 
 
 ------------------------------------------------------------------------------
 -- | Handle login submit
 -- TODO remove
-handleLoginSubmit :: Handler App (AuthManager App) ()
+{-handleLoginSubmit :: Handler App (AuthManager App) ()
 handleLoginSubmit =
     loginUser "login" "password" Nothing
               (\_ -> handleLogin err) (redirect "/")
   where
-    err = Just "Unknown user or password"
+    err = Just "Unknown user or password"-}
 
 
 ------------------------------------------------------------------------------
 -- | Logs out and redirects the user to the site index.
 -- TODO remove
-handleLogout :: Handler App (AuthManager App) ()
-handleLogout = logout >> redirect "/"
+{-handleLogout :: Handler App (AuthManager App) ()
+handleLogout = logout >> redirect "/"-}
 
 
 ------------------------------------------------------------------------------
 -- | Handle new user form submit
 -- TODO remove
-handleNewUser :: Handler App (AuthManager App) ()
+{-handleNewUser :: Handler App (AuthManager App) ()
 handleNewUser = method GET handleForm <|> method POST handleFormSubmit
   where
     handleForm = render "new_user"
-    handleFormSubmit = registerUser "login" "password" >> redirect "/"
+    handleFormSubmit = registerUser "login" "password" >> redirect "/"-}
 
 
 
@@ -116,8 +108,8 @@ routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
 prepareCommonData :: AppHandler ()
 prepareCommonData = do
   serverName <- withRequest (return . rqServerName)
-  blog <- getBlog $ T.decodeUtf8 serverName
-  if blog /= UnknownBlog then setBlog blog else redirect defaultDomain
+  blog' <- getBlog $ T.decodeUtf8 serverName
+  if blog' /= UnknownBlog then setBlog blog' else redirect defaultDomain
 
 {- updateDbCache :: AppHandler ()
 updateDbCache = do

@@ -5,7 +5,6 @@ module Site.Snaplet.I18N where
 ------------------------------------------------------------------------------
 import           Data.Text (Text)
 import           Snap
-import           Snap.Snaplet
 import           Text.Shakespeare.I18N
 ------------------------------------------------------------------------------
 

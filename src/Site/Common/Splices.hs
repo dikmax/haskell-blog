@@ -20,8 +20,6 @@ import           Text.XmlHtml
 ------------------------------------------------------------------------------
 import           Application
 import           HtmlAttributes
-import qualified HtmlAttributes as A
-import           Site.Common.Config
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.I18N
 import           Site.Types
@@ -58,8 +56,8 @@ copyrightSplice =
         preEscapedToMarkup ("2012 &mdash; " :: Text)
         toMarkup $ getYear currentTime
   where
-    getYear time = getYear' $ toGregorian $ localDay $
-        utcToLocalTime (minutesToTimeZone 180) time
+    getYear time' = getYear' $ toGregorian $ localDay $
+        utcToLocalTime (minutesToTimeZone 180) time'
     getYear' (year, _, _) = year
 
 
@@ -78,9 +76,9 @@ gitHubLinkSplice  =
 metadataSplice :: Splice AppHandler
 metadataSplice =
   return $ yieldRuntime $ do
-    title <- lift $ getData cdTitle
+    title' <- lift $ getData cdTitle
     return $ renderMarkupBuilder $
-      H.title $ toMarkup title
+      H.title $ toMarkup title'
 
 
 -- | Splice to detect is userAgent is mobile
@@ -109,7 +107,7 @@ mobileSplice =
 revisionSplice :: I.Splice IO
 revisionSplice = do
   posixTime <- lift getPOSIXTime
-  return [TextNode $ T.pack $ show $ round posixTime]
+  return [TextNode $ T.pack $ show $ (round posixTime :: Integer)]
 
 ------------------------------------------------------------------------------
 

@@ -2,22 +2,23 @@
 module Site.Front.Blog where
 
 ------------------------------------------------------------------------------
-import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import           Snap.Core
 import           Snap.Snaplet.Heist
 ------------------------------------------------------------------------------
 import           Application
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.DbCache
+import           Site.Types
 
 
 ------------------------------------------------------------------------------
 
 blog :: AppHandler ()
 blog = do
-  domain <- withRequest (return . rqServerName)
-  cache <- getCache
-  setTitle $ T.pack $ show cache
+  serverName <- withRequest (return . rqServerName)
+  blog' <- getBlog $ T.decodeUtf8 serverName
+  setTitle $ blogName $ extractBlogData blog'
   cRender "blog"
 
 {-

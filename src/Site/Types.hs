@@ -3,7 +3,6 @@ module Site.Types where
 
 import Data.Data
 import Data.Text (Text)
-import Data.Aeson.Generic
 
 data BlogData = BlogData
   { blogId :: Int
@@ -28,6 +27,14 @@ isCompoundBlog _ = False
 isUnknownBlog :: Blog -> Bool
 isUnknownBlog UnknownBlog = True
 isUnknownBlog _ = False
+
+emptyBlogData :: BlogData
+emptyBlogData = BlogData 0 "" "" "" 0
+
+extractBlogData :: Blog -> BlogData
+extractBlogData (StandaloneBlog a) = a
+extractBlogData (CombinedBlog a) = a
+extractBlogData UnknownBlog = emptyBlogData
 
 data NavigationPage = NavigationPage
   { navId :: Int

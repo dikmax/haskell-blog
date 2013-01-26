@@ -1,14 +1,12 @@
+{-# LANGUAGE RankNTypes #-}
 module Site.Snaplet.CommonData where
 
 ------------------------------------------------------------------------------
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import           Data.Maybe
 import           Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Snap.Snaplet
-import           Snap.Core
 import           Snap
 import           Data.Aeson.Generic
 ------------------------------------------------------------------------------
@@ -44,6 +42,7 @@ modifyCommonData :: HasCommonData b => (CommonData -> CommonData) -> Handler b b
 modifyCommonData = with commonDataLens . Snap.modify
 
 -- getData :: HasCommonData b => (CommonData -> a) -> Handler b b Text
+getData :: forall b b1. HasCommonData b1 => (CommonData -> b) -> Handler b1 b1 b
 getData f = getCommonData >>= return . f
 
 setTitle :: HasCommonData b => Text -> Handler b b ()

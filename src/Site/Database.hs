@@ -1,10 +1,11 @@
-{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE RankNTypes #-}
 module Site.Database where
 
 ------------------------------------------------------------------------------
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as H
-import           Data.Map ((!))
+import           Data.Map (Map, (!))
+import           Data.String (IsString)
 import           Data.Text (Text)
 import qualified Database.HDBC as HDBC
 import           Database.HDBC.MySQL
@@ -33,6 +34,7 @@ getCombinedBlogs = do
   return $ foldl (\h bd -> H.insert (blogDomain bd) bd h) H.empty $
     map toBlogData rows
 
+toBlogData :: forall k. (Ord k, Data.String.IsString k) => Data.Map.Map k SqlValue -> BlogData
 toBlogData row = BlogData
   { blogId = fromSql $ row ! "id"
   , blogName = fromSql $ row ! "name"
