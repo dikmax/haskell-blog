@@ -38,11 +38,21 @@ getCache = do
     EmptyDbCache -> do
       logError "Reading cache..." -- TODO remove later
       blogs <- getBlogs
+      combinedBlogs <- getCombinedBlogs
       let newCache = DbCache {
           dcBlogs = blogs
-        , dcCombinedBlogs = H.empty
+        , dcCombinedBlogs = combinedBlogs
         }
       liftIO $ writeIORef ref newCache
       return newCache
 
     _ -> return cache
+
+getBlog :: (HasDbCache b, HasHdbc (Handler b b) c s) => Text -> Handler b b Blog
+getBlog domain = do
+  cache <- getCache
+  case H.lookup domain $ dcBlogs cache of
+    Just a -> return $ StandaloneBlog a
+    Nothing -> case H.lookup domain $ dcCombinedBlogs cache of
+      Just a -> return $ CombinedBlog a
+      Nothing -> return UnknownBlog

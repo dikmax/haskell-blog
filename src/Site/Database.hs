@@ -21,22 +21,15 @@ createConnection = do
   HDBC.runRaw conn "SET NAMES utf8"
   return conn
 
--- TODO remove
-getBlog :: HasHdbc m c s => Text -> m Blog
-getBlog domain = do
-  rows <- query "SELECT * FROM blogs WHERE domain = ?" [toSql domain]
-  if length rows > 0 then
-    return $ StandaloneBlog $ toBlogData $ head rows
-  else do
-    rows <- query "SELECT * FROM combined_blogs WHERE domain = ?" [toSql domain]
-    if length rows > 0 then
-      return $ CombinedBlog $ toBlogData $ head rows
-    else
-      return UnknownBlog
-
 getBlogs :: HasHdbc m c s => m (HashMap Text BlogData)
 getBlogs = do
   rows <- query "SELECT * FROM blogs" []
+  return $ foldl (\h bd -> H.insert (blogDomain bd) bd h) H.empty $
+    map toBlogData rows
+
+getCombinedBlogs :: HasHdbc m c s => m (HashMap Text BlogData)
+getCombinedBlogs = do
+  rows <- query "SELECT * FROM combined_blogs" []
   return $ foldl (\h bd -> H.insert (blogDomain bd) bd h) H.empty $
     map toBlogData rows
 
