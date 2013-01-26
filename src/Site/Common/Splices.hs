@@ -38,7 +38,8 @@ blogLogoSplice  =
         toMarkup $ showTitle blog
   where
     showTitle UnknownBlog = "[dikmax's blog]"
-    showTitle blog = blogName blog
+    showTitle (StandaloneBlog blog) = blogName blog
+    showTitle (CombinedBlog blog) = blogName blog
 
 copyrightSplice :: Splice AppHandler
 copyrightSplice =

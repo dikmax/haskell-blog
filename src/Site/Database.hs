@@ -21,7 +21,7 @@ getBlog domain = do
   rows <- query "SELECT * FROM blogs WHERE domain = ?" [toSql domain]
   if length rows > 0 then
     let row = head rows in
-    return $ StandaloneBlog
+    return $ StandaloneBlog $ BlogData
         { blogId = fromSql $ row ! "id"
         , blogName = fromSql $ row ! "name"
         , blogDomain = fromSql $ row ! "domain"
@@ -32,7 +32,7 @@ getBlog domain = do
     rows <- query "SELECT * FROM combined_blogs WHERE domain = ?" [toSql domain]
     if length rows > 0 then
       let row = head rows in
-      return $ CombinedBlog
+      return $ CombinedBlog $ BlogData
         { blogId = fromSql $ row ! "id"
         , blogName = fromSql $ row ! "name"
         , blogDomain = fromSql $ row ! "domain"
@@ -41,5 +41,21 @@ getBlog domain = do
         }
     else
       return UnknownBlog
+{-
+getNavigation :: HasHdbc m c s => Blog -> m [NavigationPage]
+getNavigation (StandaloneBlog bId _ _ _ _) = do
+  rows <- query "SELECT * FROM navigation WHERE blogs_id = ?" [toSql bId]
+  return $ map toNavigationPage rows
+getNavigation (StandaloneBlog bId _ _ _ _) = do
+  rows <- query "SELECT * FROM navigation WHERE combined_blogs_id = ?" [toSql bId]
+  return $ map toNavigationPage rows
+getNavigation _ = return []
+
+toNavigationPage row = NavigationPage
+  { navId = fromSql $ row ! "id"
+  , navUrl = fromSql $ row ! "url"
+  , navPost = fromSql $ row ! "post"
+  }
+-}
 
 

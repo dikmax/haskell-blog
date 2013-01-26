@@ -8,9 +8,12 @@ module Site
 
 ------------------------------------------------------------------------------
 import           Control.Applicative
+import           Control.Lens
+import           Control.Monad.State
 import           Control.Monad.Trans (lift, liftIO)
-import           Data.ByteString (ByteString)
+import           Data.ByteString.Char8 (ByteString, pack)
 import qualified Data.HashMap.Strict as Map
+import           Data.IORef
 import           Data.Maybe
 import           Data.Pool
 import qualified Data.Text as T
@@ -35,6 +38,7 @@ import           Site.Database
 import           Site.Front.Blog
 import qualified Site.Front.Splices as FrontSplices
 import           Site.Snaplet.CommonData
+import           Site.Snaplet.DbCache
 import           Site.Snaplet.I18N
 import           Site.Types
 ------------------------------------------------------------------------------
@@ -108,14 +112,29 @@ routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
          , ("/", blog)
          ]
 
-
 prepareCommonData :: AppHandler ()
 prepareCommonData = do
   serverName <- withRequest (return . rqServerName)
   blog <- getBlog $ T.decodeUtf8 serverName
   if blog /= UnknownBlog then setBlog blog else redirect defaultDomain
 
+{- updateDbCache :: AppHandler ()
+updateDbCache = do
+  cref <- gets _counter
+  c <- liftIO $ readIORef cref
+  liftIO $ writeIORef cref (c + 1)
+  -- modify (\a -> a {_counter = _counter a + 1})
 
+  -- modifyDbCache (\cache -> cache {dcTest = dcTest cache + 1})
+  -- cache <- getDbCache
+  logError $ pack $ show $ c -}
+
+{- initCache :: App -> IO App
+initCache app
+  | _dbCache app == EmptyDbCache = do
+
+
+  | otherwise = return app -}
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -135,6 +154,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     db <- nestSnaplet "" hdbc $ hdbcInit pool
 
     i <- nestSnaplet "" i18n $ i18nInit
+    cache <- nestSnaplet "" dbCache $ dbCacheInit
 
     addRoutes routes
     addConfig h HeistConfig
@@ -148,6 +168,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     wrapSite (setLanguage "en" *>)
     wrapSite (setEncoding *>)
     wrapSite (prepareCommonData *>)
+    -- wrapSite (updateDbCache *>)
 
     -- addAuthSplices auth
     return $ App
@@ -157,4 +178,5 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       , _hdbc = db
       , _i18n = i
       , _auth = a
+      , _dbCache = cache
       }

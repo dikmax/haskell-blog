@@ -17,6 +17,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 ------------------------------------------------------------------------------
 import Site.Snaplet.CommonData
+import Site.Snaplet.DbCache
 import Site.Snaplet.I18N
 
 ------------------------------------------------------------------------------
@@ -27,6 +28,7 @@ data App = App
     , _hdbc :: Snaplet (HdbcSnaplet Connection Pool)
     , _i18n :: Snaplet I18N
     , _auth :: Snaplet (AuthManager App)
+    , _dbCache :: Snaplet DbCacheRef
     }
 
 makeLenses ''App
@@ -36,6 +38,9 @@ instance HasHeist App where
 
 instance HasCommonData App where
   commonDataLens = commonData
+
+instance HasDbCache App where
+  dbCacheLens = dbCache
 
 instance HasI18N App where
   i18nLens = i18n
