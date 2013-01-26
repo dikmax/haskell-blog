@@ -7,16 +7,19 @@ import qualified Data.HashMap.Strict as H
 import           Data.Map ((!))
 import           Data.Text (Text)
 import qualified Database.HDBC as HDBC
+import           Database.HDBC.MySQL
 import           Snap.Snaplet.Hdbc
 ------------------------------------------------------------------------------
 import           Site.Types
+import           Site.Common.Config
 ------------------------------------------------------------------------------
 
--- | Sets MySQL connection encoding
-setEncoding :: HasHdbc m c s => m ()
-setEncoding = do
-  query' "SET NAMES utf8" []
-  return ()
+-- | Creating connection and setting encoding
+createConnection :: IO Connection
+createConnection = do
+  conn <- connectMySQL connectInfo
+  HDBC.runRaw conn "SET NAMES utf8"
+  return conn
 
 -- TODO remove
 getBlog :: HasHdbc m c s => Text -> m Blog

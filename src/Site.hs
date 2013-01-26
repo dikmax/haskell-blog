@@ -152,7 +152,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     -- you'll probably want to change this to a more robust auth backend.
     a <- nestSnaplet "" auth $
            initJsonFileAuthManager defAuthSettings sess "users.json"
-    pool <- liftIO $ createPool (connectMySQL connectInfo) HDBC.disconnect 10 1 2
+    pool <- liftIO $ createPool createConnection HDBC.disconnect 10 1 2
     db <- nestSnaplet "" hdbc $ hdbcInit pool
 
     i <- nestSnaplet "" i18n $ i18nInit
@@ -168,7 +168,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       }
 
     wrapSite (setLanguage "en" *>)
-    wrapSite (setEncoding *>)
+    -- wrapSite (setEncoding *>)
     wrapSite (prepareCommonData *>)
     wrapSite withCompression
 
