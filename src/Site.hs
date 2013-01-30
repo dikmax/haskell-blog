@@ -29,6 +29,7 @@ import           Application
 import           Site.Common.Config
 import qualified Site.Common.Splices as CommonSplices
 import           Site.Database
+import           Site.Front.Dispatcher
 import           Site.Front.Blog
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.DbCache
@@ -98,11 +99,14 @@ staticDirectoryConfig = simpleDirectoryConfig
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
+{- routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
          , ("/tag/:tag/page/:page", blog)
          , ("/page/:page", blog)
          , ("/tag/:tag", blog)
          , ("/", blog)
+         ] -}
+routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
+         , ("/", dispatcher)
          ]
 
 prepareCommonData :: AppHandler ()
@@ -110,24 +114,6 @@ prepareCommonData = do
   serverName <- withRequest (return . rqServerName)
   blog' <- getBlog $ T.decodeUtf8 serverName
   if blog' /= UnknownBlog then setBlog blog' else redirect defaultDomain
-
-{- updateDbCache :: AppHandler ()
-updateDbCache = do
-  cref <- gets _counter
-  c <- liftIO $ readIORef cref
-  liftIO $ writeIORef cref (c + 1)
-  -- modify (\a -> a {_counter = _counter a + 1})
-
-  -- modifyDbCache (\cache -> cache {dcTest = dcTest cache + 1})
-  -- cache <- getDbCache
-  logError $ pack $ show $ c -}
-
-{- initCache :: App -> IO App
-initCache app
-  | _dbCache app == EmptyDbCache = do
-
-
-  | otherwise = return app -}
 
 
 ------------------------------------------------------------------------------
@@ -160,7 +146,6 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
       }
 
     wrapSite (setLanguage "en" *>)
-    -- wrapSite (setEncoding *>)
     wrapSite (prepareCommonData *>)
     wrapSite withCompression
 

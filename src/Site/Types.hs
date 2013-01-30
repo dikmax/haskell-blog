@@ -1,8 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Site.Types where
 
-import Data.Data
-import Data.Text (Text)
+------------------------------------------------------------------------------
+import           Data.Data
+import           Data.HashMap.Strict (HashMap)
+import           Data.Text (Text)
+------------------------------------------------------------------------------
 
 data BlogData = BlogData
   { blogId :: Int
@@ -11,10 +14,18 @@ data BlogData = BlogData
   , blogLanguage :: Text
   , blogUserId :: Int
   } deriving (Eq, Show)
+
 data Blog
   = StandaloneBlog BlogData
   | CombinedBlog BlogData
   | UnknownBlog deriving (Eq, Show)
+
+data BlogNavigation = BlogNavigation
+  { blogNavigationPostId :: Int
+  -- TODO options
+  } deriving (Eq, Show)
+
+type BlogNavigationMap = HashMap Text BlogNavigation
 
 isStandaloneBlog :: Blog -> Bool
 isStandaloneBlog (StandaloneBlog _) = True
