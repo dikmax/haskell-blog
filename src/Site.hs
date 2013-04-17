@@ -96,6 +96,11 @@ staticDirectoryConfig :: DirectoryConfig (AppHandler)
 staticDirectoryConfig = simpleDirectoryConfig
   { mimeTypes = staticMimeMap }
 
+dropCacheHandler :: AppHandler ()
+dropCacheHandler = do
+  dropCache
+  writeBS "Cache has been dropped..."
+
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
@@ -106,6 +111,7 @@ routes :: [(ByteString, AppHandler ())]
          , ("/", blog)
          ] -}
 routes = [ ("", serveDirectoryWith staticDirectoryConfig "static")
+         , ("/dropcache", dropCacheHandler)
          , ("/", dispatcher)
          ]
 

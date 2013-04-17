@@ -33,6 +33,11 @@ dbCacheInit = makeSnaplet "dbCache" "Db cache snaplet" Nothing $ do
   ref <- liftIO $ newIORef EmptyDbCache
   return ref
 
+dropCache :: (HasDbCache b, HasHdbc (Handler b b) c s) => Handler b b ()
+dropCache = do
+  ref <- with dbCacheLens Snap.get
+  liftIO $ writeIORef ref EmptyDbCache
+
 getCache :: (HasDbCache b, HasHdbc (Handler b b) c s) => Handler b b DbCache
 getCache = do
   ref <- with dbCacheLens Snap.get
