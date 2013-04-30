@@ -13,6 +13,7 @@ import           Snap.Snaplet.Heist
 ------------------------------------------------------------------------------
 import           Application
 import           Site.Common.Config
+import           Site.Front.Blog
 import           Site.Snaplet.CommonData
 import           Site.Snaplet.DbCache
 import           Site.Types
@@ -34,11 +35,8 @@ dispatcher = do
       request <- getRequest
       let path = getPath $ T.decodeUtf8 $ rqPathInfo request
 
-      maybe
-        (writeBS "Not found")
-        (\p -> writeBS $ pack $ show $ blogNavigationPostId p) $
+      maybe dispatchBlogPage dispatchFixedPage $
         H.lookup path navigation
-
 
     getPath path
       | "/" `T.isSuffixOf` path = T.init path
@@ -46,3 +44,14 @@ dispatcher = do
 
       -- TODO drop last / if present
       -- "/" `S.isSuffixOf` uri
+
+dispatchFixedPage :: BlogNavigation -> AppHandler ()
+dispatchFixedPage nav = writeBS $ pack $ show $ blogNavigationPostId nav
+
+dispatchBlogPage :: AppHandler ()
+dispatchBlogPage = route
+  [ ("/", blog)
+  , ("/page/:page", blog)
+  , ("/tag/:tag", blog)
+  , ("/page/:page/tag/:tag", blog) -- TODO redirect to "/tag/:tag/page/:page"
+  , ("/tag/:tag/page/:page", blog) ]
