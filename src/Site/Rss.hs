@@ -58,8 +58,8 @@ rssDocument posts = XmlDocument UTF8 Nothing
             formatTime defaultTimeLocale rfc822DateFormat $
             ZonedTime date $ minutesToTimeZone 180]
         , Element "description" [] [TextNode $ T.pack (
-            writeHtmlString defaultWriterOptions $ 
-            readMarkdown defaultParserState $ 
+            writeHtmlString def $
+            readMarkdown def $
             T.unpack text) `T.append` 
             "<div class=\"post-tags\"><img src=\"http://dikmax.name/img/16x16/tag_yellow.png\" /> " `T.append` 
             T.intercalate ", " tags `T.append`

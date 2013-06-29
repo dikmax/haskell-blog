@@ -39,7 +39,7 @@ writeXmlHtml :: XmlHtmlWriterOptions -> Pandoc -> [Node]
 writeXmlHtml options pandoc 
   | debugOutput options = 
     [ Element "pre" [] 
-      [ TextNode $ T.pack $ writeNative defaultWriterOptions pandoc]
+      [ TextNode $ T.pack $ writeNative def pandoc]
     ]
   | otherwise = evalState (writeXmlHtml' pandoc) emptyState { writerOptions = updateOptions }
   where
@@ -128,19 +128,19 @@ writeBlock (BulletList listItems) = do
   items <- foldM processListItems [] listItems
   return [ Element "ul" [] items ]
 writeBlock (DefinitionList _) = return [TextNode "DefinitionList not implemented"]
-writeBlock (Header 1 inline) = do
+writeBlock (Header 1 _ inline) = do  -- TODO second header parameter
   inlines <- concatInlines inline
   return [Element "h2" [] inlines]
-writeBlock (Header 2 inline) = do
+writeBlock (Header 2 _ inline) = do
   inlines <- concatInlines inline
   return [Element "h3" [] inlines]
-writeBlock (Header 3 inline) = do
+writeBlock (Header 3 _ inline) = do
   inlines <- concatInlines inline
   return [Element "h4" [] inlines]
-writeBlock (Header 4 inline) = do
+writeBlock (Header 4 _ inline) = do
   inlines <- concatInlines inline
   return [Element "h5" [] inlines]
-writeBlock (Header _ inline) = do
+writeBlock (Header _ _ inline) = do
   inlines <- concatInlines inline
   return [Element "h6" [] inlines]
 writeBlock HorizontalRule = return [Element "hr" [] []]

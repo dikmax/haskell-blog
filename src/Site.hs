@@ -17,7 +17,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
 import           Database.HDBC.MySQL
--- import           Heist
+import           Heist
 import qualified Heist.Interpreted as I
 -- import qualified Heist.Compiled as C
 import           Snap.Core
@@ -645,7 +645,13 @@ app = makeSnaplet "haskell-blog" "A blog written in Haskell." Nothing $ do
   _dblens' <- nestSnaplet "hdbc" dbLens $ hdbcInit mysqlConnection
   _sesslens' <- nestSnaplet "session" sessLens $ initCookieSessionManager
     "config/site_key.txt" "_session" Nothing -- TODO check cookie expiration
-  addSplices commonSplices
+  addConfig h HeistConfig
+    { hcInterpretedSplices = commonSplices
+    , hcLoadTimeSplices = []
+    , hcCompiledSplices = []
+    , hcAttributeSplices = []
+    , hcTemplateLocations = []
+    }
   wrapSite (setEncoding *>)
   wrapSite $ withSession sessLens
   addRoutes routes

@@ -140,13 +140,13 @@ renderPostBody post propertyName =
       { idPrefix = postUrl post
       , debugOutput = False
       }
-      (readMarkdown parserState $ T.unpack $ postText post)
+      (readMarkdown readerOptions $ T.unpack $ postText post)
   ++ renderTags (postTags post)
 
-parserState :: ParserState
-parserState = defaultParserState 
-  { stateSmart = True
-  , stateParseRaw = True
+readerOptions :: ReaderOptions
+readerOptions = def
+  { readerSmart = True
+  , readerParseRaw = True
   }
 
 --
