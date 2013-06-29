@@ -23,6 +23,7 @@ goog.require('goog.ui.editor.EquationEditorDialog');
 goog.require('goog.ui.editor.EquationEditorOkEvent');
 goog.require('goog.ui.equation.EquationEditor');
 goog.require('goog.ui.equation.ImageRenderer');
+goog.require('goog.ui.equation.PaletteManager');
 goog.require('goog.ui.equation.TexEditor');
 
 
@@ -51,7 +52,7 @@ goog.editor.plugins.EquationEditorPlugin = function(opt_helpUrl) {
 
   /**
    * The listener key for double click events.
-   * @type {number?}
+   * @type {goog.events.Key}
    * @private
    */
   this.dblClickKey_;

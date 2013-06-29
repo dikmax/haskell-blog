@@ -3,7 +3,7 @@
 // All Rights Reserved
 
 /**
- * Portions of this code are from the google-caja project, received by
+ * @license Portions of this code are from the google-caja project, received by
  * Google under the Apache license (http://code.google.com/p/google-caja/).
  * All other code is Copyright 2009 Google, Inc. All Rights Reserved.
 

@@ -71,7 +71,7 @@ goog.editor.SeamlessField.prototype.logger =
 
 /**
  * The key used for listening for the "dragover" event.
- * @type {number?}
+ * @type {goog.events.Key}
  * @private
  */
 goog.editor.SeamlessField.prototype.listenForDragOverEventKey_;
@@ -79,7 +79,7 @@ goog.editor.SeamlessField.prototype.listenForDragOverEventKey_;
 
 /**
  * The key used for listening for the iframe "load" event.
- * @type {number?}
+ * @type {goog.events.Key}
  * @private
  */
 goog.editor.SeamlessField.prototype.listenForIframeLoadEventKey_;
@@ -667,7 +667,7 @@ goog.editor.SeamlessField.prototype.attachIframe = function(iframe) {
     goog.style.setStyle(field, 'lineHeight', '0');
   }
 
-  field.innerHTML = html;
+  goog.editor.node.replaceInnerHtml(field, html);
   // Set the initial size
   goog.style.setSize(iframe, width, height);
   goog.style.setSize(field, oldWidth, oldHeight);

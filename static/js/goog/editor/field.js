@@ -1230,7 +1230,7 @@ goog.editor.Field.prototype.injectContents = function(contents, field) {
   var styles = {};
   var newHtml = this.getInjectableContents(contents, styles);
   goog.style.setStyle(field, styles);
-  field.innerHTML = newHtml;
+  goog.editor.node.replaceInnerHtml(field, newHtml);
 };
 
 
@@ -2331,6 +2331,24 @@ goog.editor.Field.prototype.placeCursorAtStartOrEnd_ = function(isStart) {
 
 
 /**
+ * Restore a saved range, and set the focus on the field.
+ * If no range is specified, we simply set the focus.
+ * @param {goog.dom.SavedRange=} opt_range A previously saved selected range.
+ */
+goog.editor.Field.prototype.restoreSavedRange = function(opt_range) {
+  if (goog.userAgent.IE) {
+    this.focus();
+  }
+  if (opt_range) {
+    opt_range.restore();
+  }
+  if (!goog.userAgent.IE) {
+    this.focus();
+  }
+};
+
+
+/**
  * Makes a field editable.
  *
  * @param {string=} opt_iframeSrc URL to set the iframe src to if necessary.
@@ -2441,7 +2459,7 @@ goog.editor.Field.prototype.makeUneditable = function(opt_skipRestore) {
   // so that the original node will have the same properties as it did before
   // it was made editable.
   if (goog.isString(html)) {
-    field.innerHTML = html;
+    goog.editor.node.replaceInnerHtml(field, html);
     this.resetOriginalElemProperties();
   }
 
