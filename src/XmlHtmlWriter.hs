@@ -109,7 +109,9 @@ writeBlock (RawBlock "html" str) = do
   modify (\s -> s { rawData = rawData s `T.append` T.pack str })
   return []
 writeBlock (RawBlock _ _) = return []
-writeBlock (BlockQuote _) = return [TextNode "BlockQuote not implemented"]
+writeBlock (BlockQuote blocks) = do
+  items <- concatBlocks blocks
+  return [ Element "blockquote" [] items ]
 writeBlock (OrderedList (startNum, numStyle, _) listItems) = do
   items <- foldM processListItems [] listItems
   return [ Element "ol" 
