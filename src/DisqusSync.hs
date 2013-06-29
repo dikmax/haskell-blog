@@ -21,8 +21,7 @@ import Config
 
 
 data DisqusComment = DisqusComment
-  { dcIsJuliaFlagged :: Bool
-  , dcIsFlagged :: Bool
+  { dcIsFlagged :: Bool
   , dcParent :: Maybe Int
   , dcAuthorName :: Text
   , dcAuthorUrl :: Maybe Text
@@ -50,7 +49,6 @@ instance JSON DisqusComment where
   showJSON _ = JSNull
 
   readJSON (JSObject a@obj)
-    | isError getIsJuliaFlagged = toError "isJuliaFlagged not found" getIsJuliaFlagged
     | isError getIsFlagged = toError "isFlagged not found" getIsFlagged
     | isError getParent = toError "parent not found" getParent
     | isError getIsDeleted = toError "isDeleted not found" getIsDeleted
@@ -69,8 +67,7 @@ instance JSON DisqusComment where
     | isError getIsHighlighted = toError "isHighlighted not found" getIsHighlighted
     | isError getAuthor = toError "author not found" getAuthor
     | otherwise = Ok DisqusComment
-      { dcIsJuliaFlagged = fromResult getIsJuliaFlagged
-      , dcIsFlagged = fromResult getIsFlagged
+      { dcIsFlagged = fromResult getIsFlagged
       , dcParent =
         case fromResult getParent of
           JSRational _ b -> Just $ round $ fromRational b
@@ -109,7 +106,6 @@ instance JSON DisqusComment where
       , dcMyThread = Nothing
       }
     where
-      getIsJuliaFlagged = valFromObj "isJuliaFlagged" obj
       getIsFlagged = valFromObj "isFlagged" obj
       getParent = valFromObj "parent" obj
       getIsDeleted = valFromObj "isDeleted" obj
