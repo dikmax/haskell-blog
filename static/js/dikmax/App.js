@@ -528,6 +528,9 @@ dikmax.App.prototype.renderVaultPreview_ = function(opt_formData) {
       goog.dom.getElementByClass('render-area').innerHTML =
           request.getResponseText();
       me.highlightBlocks_();
+      window['MathJax']['Hub']['Queue']([
+        'Typeset', window['MathJax']['Hub']
+      ]);
     }
   }, 'POST', opt_formData);
 };

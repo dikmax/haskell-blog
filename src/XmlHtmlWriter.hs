@@ -216,7 +216,14 @@ writeInline (Code attr code) = return
   ]
 writeInline Space = return [TextNode " "]
 writeInline LineBreak = return [Element "br" [] []]
-writeInline (Math _ _) = return [TextNode "Math not implemented"]
+writeInline (Math InlineMath str) = return
+  [ Element "span" [("class", "math")]
+    [ TextNode $ "\\(" `T.append` (T.pack str) `T.append` "\\)" ]
+  ]
+writeInline (Math DisplayMath str) = return
+  [ Element "span" [("class", "math")]
+    [ TextNode $ "\\[" `T.append` (T.pack str) `T.append` "\\]" ]
+  ]
 writeInline (RawInline "html" str) = do
   modify (\s -> s {rawInline = rawInline s `T.append` T.pack str})
   return []
