@@ -1,6 +1,0 @@
-User-agent: *
-Disallow: /vault
-Sitemap: http://dikmax.name/sitemap.xml
-
-User-agent: Yandex
-Host: dikmax.name
