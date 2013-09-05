@@ -1,5 +1,6 @@
 _cache
 _site
+migration/node_modules
 site
 site.hi
 site.o

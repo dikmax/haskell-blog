@@ -1,0 +1,9 @@
+{
+  "name": "blog-migration",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "mysql": "x",
+    "moment": "x"
+  }
+}
