@@ -15,6 +15,14 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
+    match "fonts/*" $ do
+        route   idRoute
+        compile compressCssCompiler
+
+    match "js/*" $ do
+        route   idRoute
+        compile compressCssCompiler
+
     match (fromList ["about.rst", "contact.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
