@@ -1,7 +1,13 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+import           Control.Monad (forM_, zipWithM_, liftM)
+import           Data.List (sortBy, intercalate)
 import           Data.Monoid (mappend)
+import           Data.Time.Format (parseTime)
 import           Hakyll
+import           System.FilePath (takeBaseName, takeFileName)
+import           System.Locale (defaultTimeLocale)
+import           Data.Time.Clock (UTCTime)
 
 
 --------------------------------------------------------------------------------
@@ -17,11 +23,11 @@ main = hakyll $ do
 
     match "fonts/*" $ do
         route   idRoute
-        compile compressCssCompiler
+        compile copyFileCompiler
 
     match "js/*" $ do
         route   idRoute
-        compile compressCssCompiler
+        compile copyFileCompiler
 
     match (fromList ["about.rst", "contact.markdown"]) $ do
         route   $ setExtension "html"
@@ -65,6 +71,31 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/default.html" indexCtx
                 >>= relativizeUrls
 
+    paginate 2 $ \index maxIndex itemsForPage -> do
+            let id = fromFilePath $ "blog/page/" ++ (show index) ++ "/index.html"
+            create [id] $ do
+                route idRoute
+                compile $ do
+                    let allCtx =
+                            defaultContext
+                        -- loadTeaser id = loadSnapshot id "teaser"
+                                            -- >>= loadAndApplyTemplate "templates/teaser.html" (teaserCtx tags)
+                                            -- >>= wordpressifyUrls
+                    item1 <- load (head itemsForPage)
+                    item2 <- load (last itemsForPage)
+                    let body1 = itemBody item1
+                        body2 = if length itemsForPage == 1 then "" else itemBody item2
+                        postsCtx =
+                            constField "posts" (body1 ++ body2) `mappend`
+                            -- field "navlinkolder" (\_ -> return $ indexNavLink index 1 maxIndex) `mappend`
+                            -- field "navlinknewer" (\_ -> return $ indexNavLink index (-1) maxIndex) `mappend`
+                            defaultContext
+
+                    makeItem ""
+                        >>= loadAndApplyTemplate "templates/post.html" postsCtx
+                        >>= loadAndApplyTemplate "templates/default.html" allCtx
+                        -- >>= wordpressifyUrls
+
     match "templates/*" $ compile templateCompiler
 
 
@@ -73,3 +104,28 @@ postCtx :: Context String
 postCtx =
     dateField "date" "%B %e, %Y" `mappend`
     defaultContext
+
+--------------------------------------------------------------------------------
+-- | Split list into equal sized sublists.
+-- https://github.com/ian-ross/blog
+chunk :: Int -> [a] -> [[a]]
+chunk n [] = []
+chunk n xs = ys : chunk n zs
+    where (ys,zs) = splitAt n xs
+
+paginate:: Int -> (Int -> Int -> [Identifier] -> Rules ()) -> Rules ()
+paginate itemsPerPage rules = do
+    identifiers <- getMatches "posts/*"
+
+    let sorted = reverse $ sortBy byDate identifiers
+        chunks = chunk itemsPerPage sorted
+        maxIndex = length chunks
+        pageNumbers = take maxIndex [1..]
+        process i is = rules i maxIndex is
+    zipWithM_ process pageNumbers chunks
+        where
+            byDate id1 id2 =
+                let fn1 = takeFileName $ toFilePath id1
+                    fn2 = takeFileName $ toFilePath id2
+                    parseTime' fn = parseTime defaultTimeLocale "%Y-%m-%d" $ intercalate "-" $ take 3 $ splitAll "-" fn
+                in compare ((parseTime' fn1) :: Maybe UTCTime) ((parseTime' fn2) :: Maybe UTCTime)
