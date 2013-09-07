@@ -95,7 +95,7 @@ main = hakyll $ do
                     makeItem ""
                         >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
-    match "about.md" $ do
+    match (fromList ["about.md", "shoutbox.md"]) $ do
         route $ removeExtension
         compile $ pandocCompiler
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
