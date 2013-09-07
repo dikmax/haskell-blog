@@ -6,8 +6,13 @@ $partial("templates/_topbar.html")$
 
 <div class="container">
     <div class="panel-group">
-        $body$
+        $partial("templates/_post-list.html")$
     </div>
+
+    <ul class="pager">
+        $navlinkolder$
+        $navlinknewer$
+    </ul>
 
     $partial("templates/_footer.html")$
 </div>

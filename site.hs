@@ -30,11 +30,11 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
-    match (fromList ["about.rst", "contact.markdown"]) $ do
+    {-match (fromList ["about.rst", "contact.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
-            >>= relativizeUrls
+            >>= relativizeUrls-}
 
     matchPosts $ \identifier ->
         create [identifier] $ do
@@ -43,7 +43,7 @@ main = hakyll $ do
                 toFilePath
             compile $ pandocCompiler
                 >>= saveSnapshot "content"
-                >>= loadAndApplyTemplate "templates/post.html"    postCtx
+                >>= loadAndApplyTemplate "templates/_post.html"    postCtx
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
                 >>= relativizeUrls
 
@@ -73,7 +73,7 @@ main = hakyll $ do
                     defaultContext
 
             pandocCompiler
-                >>= loadAndApplyTemplate "templates/post-without-footer.html" postCtx
+                >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/index.html" indexCtx
                 >>= relativizeUrls
 
@@ -85,20 +85,17 @@ main = hakyll $ do
                 route idRoute
                 compile $ do
                     let allCtx = defaultContext
-                        -- loadTeaser id = loadSnapshot id "teaser"
-                                            -- >>= loadAndApplyTemplate "templates/teaser.html" (teaserCtx tags)
-                                            -- >>= wordpressifyUrls
-                    items <- mapM (\item -> load item) itemsForPage
+                    items <- mapM (\item -> loadSnapshot item "content") itemsForPage
                     let postsCtx =
-                            constField "posts" (concatMap (itemBody) items) `mappend`
+                            listField "posts" postCtx (return items) `mappend`
+                            constField "navlinkolder" (getPrevNavLink index maxIndex) `mappend`
+                            constField "navlinknewer" (getNextNavLink index maxIndex) `mappend`
                             -- field "navlinkolder" (\_ -> return $ indexNavLink index 1 maxIndex) `mappend`
                             -- field "navlinknewer" (\_ -> return $ indexNavLink index (-1) maxIndex) `mappend`
                             defaultContext
 
                     makeItem ""
-                        >>= loadAndApplyTemplate "templates/post.html" postsCtx
-                        >>= loadAndApplyTemplate "templates/default.html" allCtx
-                        -- >>= wordpressifyUrls
+                        >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
     match "templates/*" $ compile templateCompiler
 
@@ -108,6 +105,17 @@ postCtx :: Context String
 postCtx =
     dateField "date" "%B %e, %Y" `mappend`
     defaultContext
+
+getPrevNavLink :: Int -> Int -> String
+getPrevNavLink index maxIndex
+    | index >= maxIndex = ""
+    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ index + 1) ++ "/\">&larr; Старше</a></li>"
+
+getNextNavLink :: Int -> Int -> String
+getNextNavLink index maxIndex
+    | index == 1 = ""
+    | index == 2 = "<li class=\"next\"><a href=\"/\">Моложе &rarr;</a></li>"
+    | otherwise = "<li class=\"next\"><a href=\"/page/" ++ (show $ index - 1) ++ "/\">Моложе &rarr;</a></li>"
 
 --------------------------------------------------------------------------------
 -- | Split list into equal sized sublists.
