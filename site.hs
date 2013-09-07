@@ -38,6 +38,7 @@ main = hakyll $ do
     match "posts/*" $ do
         route $ setExtension "html"
         compile $ pandocCompiler
+            >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
             >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
@@ -57,22 +58,23 @@ main = hakyll $ do
                 >>= relativizeUrls
 
 
-    match "index.html" $ do
-        route idRoute
+    match "index.md" $ do
+        route $ setExtension "html"
         compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
+            posts <- fmap (take 5) . recentFirst =<< loadAllSnapshots "posts/*" "content"
+
             let indexCtx =
                     listField "posts" postCtx (return posts) `mappend`
                     constField "title" "Home"                `mappend`
                     defaultContext
 
-            getResourceBody
-                >>= applyAsTemplate indexCtx
-                >>= loadAndApplyTemplate "templates/default.html" indexCtx
+            pandocCompiler
+                >>= loadAndApplyTemplate "templates/post.html"  postCtx
+                >>= loadAndApplyTemplate "templates/index.html" indexCtx
                 >>= relativizeUrls
 
-    paginate 2 $ \index maxIndex itemsForPage -> do
-            let id = fromFilePath $ "blog/page/" ++ (show index) ++ "/index.html"
+    paginate 5 $ \index maxIndex itemsForPage -> do
+            let id = fromFilePath $ "page/" ++ (show index) ++ "/index.html"
             create [id] $ do
                 route idRoute
                 compile $ do
@@ -81,12 +83,9 @@ main = hakyll $ do
                         -- loadTeaser id = loadSnapshot id "teaser"
                                             -- >>= loadAndApplyTemplate "templates/teaser.html" (teaserCtx tags)
                                             -- >>= wordpressifyUrls
-                    item1 <- load (head itemsForPage)
-                    item2 <- load (last itemsForPage)
-                    let body1 = itemBody item1
-                        body2 = if length itemsForPage == 1 then "" else itemBody item2
-                        postsCtx =
-                            constField "posts" (body1 ++ body2) `mappend`
+                    items <- mapM (\item -> load item) itemsForPage
+                    let postsCtx =
+                            constField "posts" (concatMap (itemBody) items) `mappend`
                             -- field "navlinkolder" (\_ -> return $ indexNavLink index 1 maxIndex) `mappend`
                             -- field "navlinknewer" (\_ -> return $ indexNavLink index (-1) maxIndex) `mappend`
                             defaultContext
