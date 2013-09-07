@@ -157,6 +157,8 @@ isPublished identifier = do
     published <- getMetadataField identifier "published"
     return (published /= Just "false")
 
+-- | Transforms 'something/something.md' into 'something/something/index.html'
+-- and 'something/YYYY-MM-DD-something.md' into 'something/something/index.html'
 removeExtension :: Routes
 removeExtension = customRoute $
     (\filepath ->
