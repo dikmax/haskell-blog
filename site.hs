@@ -38,9 +38,7 @@ main = hakyll $ do
 
     matchPosts $ \identifier ->
         create [identifier] $ do
-            route $ customRoute $
-                (\filepath -> subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html") .
-                toFilePath
+            route $ removeExtension
             compile $ pandocCompiler
                 >>= saveSnapshot "content"
                 >>= loadAndApplyTemplate "templates/_post.html"    postCtx
@@ -97,6 +95,12 @@ main = hakyll $ do
                     makeItem ""
                         >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
+    match "about.md" $ do
+        route $ removeExtension
+        compile $ pandocCompiler
+                >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
+                >>= loadAndApplyTemplate "templates/default.html" postCtx
+
     match "templates/*" $ compile templateCompiler
 
 
@@ -152,3 +156,11 @@ isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
     published <- getMetadataField identifier "published"
     return (published /= Just "false")
+
+removeExtension :: Routes
+removeExtension = customRoute $
+    (\filepath ->
+        subRegex (mkRegex "^(.*)\\.md$")
+            (subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html")
+            "\\1/index.html") .
+    toFilePath
