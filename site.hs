@@ -140,7 +140,7 @@ matchPosts process = do
     items <- filterM isPublished identifiers
     forM_ items process
 
-isPublished :: Identifier -> Rules Bool
+isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
     published <- getMetadataField identifier "published"
     return (published /= Just "false")
