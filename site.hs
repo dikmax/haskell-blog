@@ -73,7 +73,7 @@ main = hakyll $ do
                     defaultContext
 
             pandocCompiler
-                >>= loadAndApplyTemplate "templates/post.html"  postCtx
+                >>= loadAndApplyTemplate "templates/post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/index.html" indexCtx
                 >>= relativizeUrls
 
