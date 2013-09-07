@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Monad (forM_, zipWithM_, liftM)
+import           Control.Monad (forM_, zipWithM_, liftM, filterM)
 import           Data.List (sortBy, intercalate)
 import           Data.Monoid (mappend)
 import           Data.Time.Clock (UTCTime)
@@ -36,15 +36,16 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
-    match "posts/*" $ do
-        route $ customRoute $
-            (\filepath -> subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html") .
-            toFilePath
-        compile $ pandocCompiler
-            >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/post.html"    postCtx
-            >>= loadAndApplyTemplate "templates/default.html" postCtx
-            >>= relativizeUrls
+    matchPosts $ \identifier ->
+        create [identifier] $ do
+            route $ customRoute $
+                (\filepath -> subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html") .
+                toFilePath
+            compile $ pandocCompiler
+                >>= saveSnapshot "content"
+                >>= loadAndApplyTemplate "templates/post.html"    postCtx
+                >>= loadAndApplyTemplate "templates/default.html" postCtx
+                >>= relativizeUrls
 
     create ["archive.html"] $ do
         route idRoute
@@ -119,8 +120,8 @@ chunk n xs = ys : chunk n zs
 paginate:: Int -> (Int -> Int -> [Identifier] -> Rules ()) -> Rules ()
 paginate itemsPerPage rules = do
     identifiers <- getMatches "posts/*"
-
-    let sorted = reverse $ sortBy byDate identifiers
+    items <- filterM isPublished identifiers
+    let sorted = reverse $ sortBy byDate items
         chunks = chunk itemsPerPage sorted
         maxIndex = length chunks
         pageNumbers = take maxIndex [1..]
@@ -132,3 +133,14 @@ paginate itemsPerPage rules = do
                     fn2 = takeFileName $ toFilePath id2
                     parseTime' fn = parseTime defaultTimeLocale "%Y-%m-%d" $ intercalate "-" $ take 3 $ splitAll "-" fn
                 in compare ((parseTime' fn1) :: Maybe UTCTime) ((parseTime' fn2) :: Maybe UTCTime)
+
+matchPosts :: (Identifier -> Rules ()) -> Rules ()
+matchPosts process = do
+    identifiers <- getMatches "posts/*"
+    items <- filterM isPublished identifiers
+    forM_ items process
+
+isPublished :: Identifier -> Rules Bool
+isPublished identifier = do
+    published <- getMetadataField identifier "published"
+    return (published /= Just "false")
