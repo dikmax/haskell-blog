@@ -31,7 +31,12 @@ connection.connect(function(err) {
           (row.tags ? 'tags: ' + row.tags + '\n' : '') +
           '---\n\n' +
           row.text;
-      fs.writeFileSync(folder + date.format('YYYY-MM-DD') + '-' + row.url + '.md', content);
+
+      var path = folder + date.format('YYYY-MM-DD') + '-' + row.url + '.md';
+      if (row.url == 'shoutbox' || row.url == 'about' || row.url == 'latest') {
+        path = '../' + row.url + '.md';
+      }
+      fs.writeFileSync(path, content);
     });
     connection.end();
   });
