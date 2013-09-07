@@ -3,11 +3,12 @@
 import           Control.Monad (forM_, zipWithM_, liftM)
 import           Data.List (sortBy, intercalate)
 import           Data.Monoid (mappend)
+import           Data.Time.Clock (UTCTime)
 import           Data.Time.Format (parseTime)
 import           Hakyll
-import           System.FilePath (takeBaseName, takeFileName)
+import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
 import           System.Locale (defaultTimeLocale)
-import           Data.Time.Clock (UTCTime)
+import           Text.Regex (mkRegex, subRegex)
 
 
 --------------------------------------------------------------------------------
@@ -36,7 +37,9 @@ main = hakyll $ do
             >>= relativizeUrls
 
     match "posts/*" $ do
-        route $ setExtension "html"
+        route $ customRoute $
+            (\filepath -> subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html") .
+            toFilePath
         compile $ pandocCompiler
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
@@ -74,12 +77,13 @@ main = hakyll $ do
                 >>= relativizeUrls
 
     paginate 5 $ \index maxIndex itemsForPage -> do
-            let id = fromFilePath $ "page/" ++ (show index) ++ "/index.html"
+        let id = fromFilePath $ "page/" ++ (show index) ++ "/index.html"
+        if index == 1 then return ()
+        else
             create [id] $ do
                 route idRoute
                 compile $ do
-                    let allCtx =
-                            defaultContext
+                    let allCtx = defaultContext
                         -- loadTeaser id = loadSnapshot id "teaser"
                                             -- >>= loadAndApplyTemplate "templates/teaser.html" (teaserCtx tags)
                                             -- >>= wordpressifyUrls
