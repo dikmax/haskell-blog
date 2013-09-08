@@ -6,6 +6,7 @@ import           Data.Monoid (mappend)
 import           Data.Time.Clock (UTCTime)
 import           Data.Time.Format (parseTime)
 import           Hakyll
+import           Hakyll.Web.Tags
 import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
 import           System.Locale (defaultTimeLocale)
 import           Text.Regex (mkRegex, subRegex)
@@ -30,6 +31,8 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    tags <- buildTags "posts/*" (\tag -> fromFilePath $ "tag/" ++ tag ++ "/index.html")
+
     {-match (fromList ["about.rst", "contact.markdown"]) $ do
         route   $ setExtension "html"
         compile $ pandocCompiler
@@ -44,6 +47,19 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/_post.html"    postCtx
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
                 >>= relativizeUrls
+
+    create ["tags/index.html"] $ do
+        route idRoute
+        compile $ do
+            t <- renderTags
+                (\tag url count minCount maxCount ->
+                    "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++ "\">" ++ tag ++ "</a>")
+                (intercalate " ")
+            makeItem t
+                >>= loadAndApplyTemplate "templates/_post.html"    postCtx
+                >>= loadAndApplyTemplate "templates/default.html" postCtx
+
+
 
     create ["archive.html"] $ do
         route idRoute
@@ -88,8 +104,6 @@ main = hakyll $ do
                             listField "posts" postCtx (return items) `mappend`
                             constField "navlinkolder" (getPrevNavLink index maxIndex) `mappend`
                             constField "navlinknewer" (getNextNavLink index maxIndex) `mappend`
-                            -- field "navlinkolder" (\_ -> return $ indexNavLink index 1 maxIndex) `mappend`
-                            -- field "navlinknewer" (\_ -> return $ indexNavLink index (-1) maxIndex) `mappend`
                             defaultContext
 
                     makeItem ""
@@ -166,3 +180,14 @@ removeExtension = customRoute $
             (subRegex (mkRegex "/[0-9]{4}-[0-9]{2}-[0-9]{2}-(.*)\\.md$") filepath "/\\1/index.html")
             "\\1/index.html") .
     toFilePath
+
+countText :: Int -> String -> String -> String -> String
+countText count one two many
+    | count `mod` 100 `div` 10 == 1 =
+        (show count) ++ " " ++ many
+    | count `mod` 10 == 1 =
+        (show count) ++ " " ++ one
+    | count `mod` 10 == 2 || count `mod` 10 == 3 || count `mod` 10 == 4 =
+        (show count) ++ " " ++ two
+    | otherwise =
+        (show count) ++ " " ++ many
