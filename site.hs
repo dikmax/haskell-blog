@@ -53,10 +53,11 @@ main = hakyll $ do
         compile $ do
             t <- renderTags
                 (\tag url count minCount maxCount ->
-                    "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++ "\">" ++ tag ++ "</a>")
-                (intercalate " ")
+                    "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++
+                    "\" class=\"weight-" ++ (show $ getWeight minCount maxCount count) ++ "\">" ++ tag ++ "</a>")
+                (intercalate " ") tags
             makeItem t
-                >>= loadAndApplyTemplate "templates/_post.html"    postCtx
+                >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
 
 
@@ -191,3 +192,9 @@ countText count one two many
         (show count) ++ " " ++ two
     | otherwise =
         (show count) ++ " " ++ many
+
+getWeight :: Int -> Int -> Int -> Int
+getWeight minCount maxCount count =
+    round ((5 * ((fromIntegral count :: Double) - fromIntegral minCount) +
+        fromIntegral maxCount - fromIntegral minCount) /
+        (fromIntegral maxCount - fromIntegral minCount))
