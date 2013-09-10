@@ -54,17 +54,19 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
 
     tagsRules tags $ \tag identifiers -> do
-        route idRoute
-        compile $ do
-            posts <- loadAllSnapshots identifiers "content"
-            let postsCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    constField "navlinkolder" "" `mappend`
-                    constField "navlinknewer" "" `mappend`
-                    defaultContext
+        paginate <- buildPaginateWith 5 (getTagIdent tag) identifiers
+        paginateRules paginate $ \page ids -> do
+            route idRoute
+            compile $ do
+                posts <- loadAllSnapshots ids "content"
+                let postsCtx =
+                        listField "posts" postCtx (return posts) `mappend`
+                        constField "navlinkolder" "" `mappend`
+                        constField "navlinknewer" "" `mappend`
+                        defaultContext
 
-            makeItem ""
-                >>= loadAndApplyTemplate "templates/list.html" postsCtx
+                makeItem ""
+                    >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
 
     create ["archive.html"] $ do
@@ -125,6 +127,11 @@ main = hakyll $ do
 
 
 --------------------------------------------------------------------------------
+getTagIdent :: String -> PageNumber -> Identifier
+getTagIdent tag pageNum
+    | pageNum == 1 = fromFilePath $ "tag/" ++ tag ++ "/index.html"
+    | otherwise = fromFilePath $ "tag/" ++ tag ++ "/page/" ++ (show pageNum) ++ "/index.html"
+
 postCtx :: Context String
 postCtx =
     dateField "date" "%B %e, %Y" `mappend`
