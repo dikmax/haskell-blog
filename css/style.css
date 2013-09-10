@@ -1,3 +1,27 @@
 body {
     padding-top: 70px;
 }
+
+.tags-wrapper .weight-1 {
+    font-size: 85%;
+}
+
+.tags-wrapper .weight-2 {
+    font-size: 100%;
+}
+
+.tags-wrapper .weight-3 {
+    font-size: 125%;
+}
+
+.tags-wrapper .weight-4 {
+    font-size: 150%;
+}
+
+.tags-wrapper .weight-5 {
+    font-size: 175%;
+}
+
+.tags-wrapper .weight-6 {
+    font-size: 200%;
+}

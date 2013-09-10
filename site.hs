@@ -49,9 +49,22 @@ main = hakyll $ do
                     "\" class=\"weight-" ++ (show $ getWeight minCount maxCount count) ++ "\">" ++ tag ++ "</a>")
                 (intercalate " ") tags
             makeItem t
+                >>= loadAndApplyTemplate "templates/_tags-wrapper.html" postCtx
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
 
+    tagsRules tags $ \tag identifiers -> do
+        route idRoute
+        compile $ do
+            posts <- loadAllSnapshots identifiers "content"
+            let postsCtx =
+                    listField "posts" postCtx (return posts) `mappend`
+                    constField "navlinkolder" "" `mappend`
+                    constField "navlinknewer" "" `mappend`
+                    defaultContext
+
+            makeItem ""
+                >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
 
     create ["archive.html"] $ do
