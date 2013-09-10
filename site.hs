@@ -36,8 +36,8 @@ main = hakyll $ do
             route $ removeExtension
             compile $ pandocCompiler
                 >>= saveSnapshot "content"
-                >>= loadAndApplyTemplate "templates/_post.html"    postCtx
-                >>= loadAndApplyTemplate "templates/default.html" postCtx
+                >>= loadAndApplyTemplate "templates/_post.html" (postWithTagsCtx tags)
+                >>= loadAndApplyTemplate "templates/default.html" (postWithTagsCtx tags)
                 >>= relativizeUrls
 
     create ["tags/index.html"] $ do
@@ -131,6 +131,10 @@ getTagIdent :: String -> PageNumber -> Identifier
 getTagIdent tag pageNum
     | pageNum == 1 = fromFilePath $ "tag/" ++ tag ++ "/index.html"
     | otherwise = fromFilePath $ "tag/" ++ tag ++ "/page/" ++ (show pageNum) ++ "/index.html"
+
+postWithTagsCtx :: Tags -> Context String
+postWithTagsCtx tags = tagsField "tags" tags `mappend`
+    postCtx
 
 postCtx :: Context String
 postCtx =
