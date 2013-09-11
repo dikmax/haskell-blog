@@ -1,3 +1,12 @@
-$for(posts)$
-    $partial("templates/_post.html")$
-$endfor$
+<div class="panel panel-default post-container">
+    <div class="panel-body post-body">
+        <h1><a href="$url$">$title$</a></h1>
+
+        $body$
+    </div>
+    <div class="panel-footer">
+        $if(tags)$
+        $tags$
+        $endif$
+    </div>
+</div>

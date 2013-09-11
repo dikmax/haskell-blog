@@ -1,2 +1,5 @@
 Here you can find all my previous posts:
-$partial("templates/_post-list.html")$
+$for(posts)$
+    $partial("templates/_post.html")$
+$endfor$
+

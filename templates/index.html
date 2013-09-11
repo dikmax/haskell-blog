@@ -8,7 +8,10 @@ $partial("templates/_topbar.html")$
     <div class="panel-group">
         $body$
 
-        $partial("templates/_post-list.html")$
+        $for(posts)$
+            $body$
+        $endfor$
+
 
     </div>
 
