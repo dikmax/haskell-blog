@@ -52,7 +52,7 @@ main = hakyll $ do
     tagsRules tags $ \tag identifiers -> do
         paginate <- buildPaginateWith' 5 (getTagIdent tag) identifiers
         paginateRules paginate $ \page ids -> do
-            route idRoute
+            route addIndexRoute
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
@@ -86,7 +86,7 @@ main = hakyll $ do
 
     paginate <- buildPaginateWith' 5 getPageIdent ("posts/*")
     paginateRules paginate $ \page ids -> do
-        route idRoute
+        route addIndexRoute
         if page == 1
             then compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
@@ -94,8 +94,7 @@ main = hakyll $ do
                 let postsCtx =
                         constField "body" topPost `mappend`
                         listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
-                        constField "navlinkolder" "" `mappend`
-                        constField "navlinknewer" "" `mappend`
+                        paginateContext paginate `mappend`
                         defaultContext
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/index.html" postsCtx
@@ -103,8 +102,7 @@ main = hakyll $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
                         listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
-                        constField "navlinkolder" "" `mappend`
-                        constField "navlinknewer" "" `mappend`
+                        paginateContext paginate `mappend`
                         defaultContext
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
@@ -144,13 +142,18 @@ main = hakyll $ do
 
 getTagIdent :: String -> PageNumber -> Identifier
 getTagIdent tag pageNum
-    | pageNum == 1 = fromFilePath $ "tag/" ++ tag ++ "/index.html"
-    | otherwise = fromFilePath $ "tag/" ++ tag ++ "/page/" ++ (show pageNum) ++ "/index.html"
+    | pageNum == 1 = fromFilePath $ "tag/" ++ tag ++ "/"
+    | otherwise = fromFilePath $ "tag/" ++ tag ++ "/page/" ++ (show pageNum) ++ "/"
 
 getPageIdent :: PageNumber -> Identifier
 getPageIdent pageNum
-    | pageNum == 1 = fromFilePath $ "index.html"
-    | otherwise = fromFilePath $ "page/" ++ (show pageNum) ++ "/index.html"
+    | pageNum == 1 = fromFilePath $ ""
+    | otherwise = fromFilePath $ "page/" ++ (show pageNum) ++ "/"
+
+addIndexRoute = customRoute (\id ->
+    if toFilePath id == ""
+        then "index.html"
+        else (toFilePath id) ++ "/index.html")
 
 postWithTagsCtx :: Tags -> Context String
 postWithTagsCtx tags = tagsField "tags" tags `mappend`
@@ -162,16 +165,23 @@ postCtx =
     field "url" (return . identifierToUrl . toFilePath . itemIdentifier) `mappend`
     defaultContext
 
-getPrevNavLink :: Int -> Int -> String
-getPrevNavLink index maxIndex
-    | index >= maxIndex = ""
-    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ index + 1) ++ "/\">&larr; Старше</a></li>"
+previousPageLink :: Maybe String -> Int -> Int -> String
+previousPageLink (Just tag) currentPage maxPage
+    | currentPage >= maxPage = ""
+    | otherwise = "<li class=\"previous\"><a href=\"/tag/" ++ tag ++ "/page/" ++ (show $ currentPage + 1) ++ "/\">&larr; Старше</a></li>"
+previousPageLink Nothing currentPage maxPage
+    | currentPage >= maxPage = ""
+    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ currentPage + 1) ++ "/\">&larr; Старше</a></li>"
 
-getNextNavLink :: Int -> Int -> String
-getNextNavLink index maxIndex
-    | index == 1 = ""
-    | index == 2 = "<li class=\"next\"><a href=\"/\">Моложе &rarr;</a></li>"
-    | otherwise = "<li class=\"next\"><a href=\"/page/" ++ (show $ index - 1) ++ "/\">Моложе &rarr;</a></li>"
+nextPageLink :: Maybe String -> Int -> Int -> String
+nextPageLink (Just tag) currentPage maxPage
+    | currentPage == 1 = ""
+    | currentPage == 2 = "<li class=\"next\"><a href=\"/tag/" ++ tag ++ "/\">Моложе &rarr;</a></li>"
+    | otherwise = "<li class=\"previous\"><a href=\"/tag/" ++ tag ++ "/page/" ++ (show $ currentPage - 1) ++ "/\">Моложе &rarr;</a></li>"
+nextPageLink Nothing currentPage maxPage
+    | currentPage == 1 = ""
+    | currentPage == 2 = "<li class=\"next\"><a href=\"/\">Моложе &rarr;</a></li>"
+    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ currentPage - 1) ++ "/\">Моложе &rarr;</a></li>"
 
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
