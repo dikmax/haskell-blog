@@ -32,8 +32,8 @@ main = hakyll $ do
         route $ removeExtension
         compile $ pandocCompiler
             >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/_post.html" (postWithTagsCtx tags)
-            >>= loadAndApplyTemplate "templates/default.html" (postWithTagsCtx tags)
+            >>= loadAndApplyTemplate "templates/_post.html" postCtx
+            >>= loadAndApplyTemplate "templates/default.html" postCtx
 
     -- Tags pages
 
@@ -57,9 +57,7 @@ main = hakyll $ do
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
-                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
-                        constField "navlinkolder" "" `mappend`
-                        constField "navlinknewer" "" `mappend`
+                        listField "posts" (postCtx) (return posts) `mappend`
                         paginateContext' paginate `mappend`
                         defaultContext
 
@@ -95,7 +93,7 @@ main = hakyll $ do
                 topPost <- loadBody "index.md"
                 let postsCtx =
                         constField "body" topPost `mappend`
-                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
+                        listField "posts" postCtx (return posts) `mappend`
                         paginateContext' paginate `mappend`
                         defaultContext
                 makeItem ""
@@ -103,33 +101,11 @@ main = hakyll $ do
             else compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
-                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
+                        listField "posts" postCtx (return posts) `mappend`
                         paginateContext paginate `mappend`
                         defaultContext
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
-
-
-
-    {-
-    paginate 5 $ \index maxIndex itemsForPage -> do
-        let id = fromFilePath $ "page/" ++ (show index) ++ "/index.html"
-        if index == 1 then return ()
-        else
-            create [id] $ do
-                route idRoute
-                compile $ do
-                    let allCtx = defaultContext
-                    items <- mapM (\item -> loadSnapshot item "content") itemsForPage
-                    let postsCtx =
-                            listField "posts" postCtx (return items) `mappend`
-                            constField "navlinkolder" (getPrevNavLink index maxIndex) `mappend`
-                            constField "navlinknewer" (getNextNavLink index maxIndex) `mappend`
-                            defaultContext
-
-                    makeItem ""
-                        >>= loadAndApplyTemplate "templates/list.html" postsCtx
-                        -}
 
     match (fromList ["about.md", "shoutbox.md"]) $ do
         route $ removeExtension
@@ -157,14 +133,18 @@ addIndexRoute = customRoute (\id ->
         then "index.html"
         else (toFilePath id) ++ "/index.html")
 
-postWithTagsCtx :: Tags -> Context String
-postWithTagsCtx tags = tagsField "tags" tags `mappend`
-    postCtx
+tagsContext :: Context a
+tagsContext = field "tags" convertTags
+    where
+        convertTags item = do
+            tags <- getTags $ itemIdentifier item
+            return $ concat $ map (\tag -> "<a href=\"/tag/" ++ tag ++ "/\" class=\"label label-default\">" ++ tag ++ "</a> ") tags
 
 postCtx :: Context String
 postCtx =
     dateField "date" "%B %e, %Y" `mappend`
     field "url" (return . identifierToUrl . toFilePath . itemIdentifier) `mappend`
+    tagsContext `mappend`
     defaultContext
 
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
