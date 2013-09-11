@@ -1,14 +1,15 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Control.Monad (forM_, filterM)
-import           Data.List (sortBy, intercalate, unfoldr)
+import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf)
 import qualified Data.Map as M
-import           Data.Monoid (mappend)
+import           Data.Monoid (mappend, mconcat)
 -- import           Data.Time.Clock (UTCTime)
 -- import           Data.Time.Format (parseTime)
 import           Hakyll
 -- import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
 -- import           System.Locale (defaultTimeLocale)
+import           Text.Printf (printf)
 import           Text.Regex (mkRegex, subRegex)
 
 
@@ -59,6 +60,7 @@ main = hakyll $ do
                         listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
                         constField "navlinkolder" "" `mappend`
                         constField "navlinknewer" "" `mappend`
+                        paginateContext' paginate `mappend`
                         defaultContext
 
                 makeItem ""
@@ -94,7 +96,7 @@ main = hakyll $ do
                 let postsCtx =
                         constField "body" topPost `mappend`
                         listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
-                        paginateContext paginate `mappend`
+                        paginateContext' paginate `mappend`
                         defaultContext
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/index.html" postsCtx
@@ -165,24 +167,6 @@ postCtx =
     field "url" (return . identifierToUrl . toFilePath . itemIdentifier) `mappend`
     defaultContext
 
-previousPageLink :: Maybe String -> Int -> Int -> String
-previousPageLink (Just tag) currentPage maxPage
-    | currentPage >= maxPage = ""
-    | otherwise = "<li class=\"previous\"><a href=\"/tag/" ++ tag ++ "/page/" ++ (show $ currentPage + 1) ++ "/\">&larr; Старше</a></li>"
-previousPageLink Nothing currentPage maxPage
-    | currentPage >= maxPage = ""
-    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ currentPage + 1) ++ "/\">&larr; Старше</a></li>"
-
-nextPageLink :: Maybe String -> Int -> Int -> String
-nextPageLink (Just tag) currentPage maxPage
-    | currentPage == 1 = ""
-    | currentPage == 2 = "<li class=\"next\"><a href=\"/tag/" ++ tag ++ "/\">Моложе &rarr;</a></li>"
-    | otherwise = "<li class=\"previous\"><a href=\"/tag/" ++ tag ++ "/page/" ++ (show $ currentPage - 1) ++ "/\">Моложе &rarr;</a></li>"
-nextPageLink Nothing currentPage maxPage
-    | currentPage == 1 = ""
-    | currentPage == 2 = "<li class=\"next\"><a href=\"/\">Моложе &rarr;</a></li>"
-    | otherwise = "<li class=\"previous\"><a href=\"/page/" ++ (show $ currentPage - 1) ++ "/\">Моложе &rarr;</a></li>"
-
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
     published <- getMetadataField identifier "published"
@@ -221,6 +205,8 @@ getWeight minCount maxCount count =
         (fromIntegral maxCount - fromIntegral minCount))
 
 
+-- Updated versions of library functions
+
 buildPaginateWith' :: MonadMetadata m
                   => Int
                   -> (PageNumber -> Identifier)
@@ -249,3 +235,43 @@ buildPaginateWith' n makeId pattern = do
             | M.lookup "date" a == Nothing = GT
             | M.lookup "date" b == Nothing = LT
             | otherwise = compare (b M.! "date") (a M.! "date")
+
+--------------------------------------------------------------------------------
+-- | Takes first, current, last page and produces index of next page
+type RelPage = PageNumber -> PageNumber -> PageNumber -> Maybe PageNumber
+
+paginateField :: Paginate -> String -> RelPage -> Context a
+paginateField pag fieldName relPage = field fieldName $ \item ->
+    let identifier = itemIdentifier item
+    in case M.lookup identifier (paginatePlaces pag) of
+        Nothing -> fail $ printf
+            "Hakyll.Web.Paginate: there is no page %s in paginator map."
+            (show identifier)
+        Just pos -> case relPage 1 pos nPages of
+            Nothing   -> fail "Hakyll.Web.Paginate: No page here."
+            Just pos' -> do
+                let nextId = paginateMakeId pag pos'
+                mroute <- getRoute nextId
+                case mroute of
+                    Nothing -> fail $ printf
+                        "Hakyll.Web.Paginate: unable to get route for %s."
+                        (show nextId)
+                    Just rt -> return $ removeIndex $ toUrl rt
+  where
+    nPages = M.size (paginatePages pag)
+    removeIndex url
+        | "index.html" `isSuffixOf` url = take (length url - 10) url
+        | otherwise = url
+
+paginateContext' :: Paginate -> Context a
+paginateContext' pag = mconcat
+    [ paginateField pag "firstPage"
+        (\f c _ -> if c <= f then Nothing else Just f)
+    , paginateField pag "previousPage"
+        (\f c _ -> if c <= f then Nothing else Just (c - 1))
+    , paginateField pag "nextPage"
+        (\_ c l -> if c >= l then Nothing else Just (c + 1))
+    , paginateField pag "lastPage"
+        (\_ c l -> if c >= l then Nothing else Just l)
+    ]
+

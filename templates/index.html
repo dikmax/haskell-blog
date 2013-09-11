@@ -11,16 +11,9 @@ $partial("templates/_topbar.html")$
         $for(posts)$
             $partial("templates/_post-list.html")$
         $endfor$
-
-
     </div>
 
-    <ul class="pager">
-        $if(nextPage)$
-            $nextPage$
-        $endif$
-        <!--<li class="previous"><a href="/page/2">&larr; Старше</a></li>-->
-    </ul>
+    $partial("templates/_pager.html")$
 
     $partial("templates/_footer.html")$
 </div>
