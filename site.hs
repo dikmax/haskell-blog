@@ -56,7 +56,7 @@ main = hakyll $ do
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
-                        listField "posts" postCtx (return posts) `mappend`
+                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
                         constField "navlinkolder" "" `mappend`
                         constField "navlinknewer" "" `mappend`
                         defaultContext
@@ -79,35 +79,36 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/default.html" archiveCtx
 
 
-    {-
     match "index.md" $ do
-        route $ setExtension "html"
         compile $ do
-            posts <- fmap (take 5) . recentFirst =<< loadAll ("posts/*" .&&. hasVersion "list")
-
-            let indexCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Home"                `mappend`
-                    defaultContext
-
             pandocCompiler
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
-                >>= loadAndApplyTemplate "templates/index.html" indexCtx -}
 
     paginate <- buildPaginateWith' 5 getPageIdent ("posts/*")
     paginateRules paginate $ \page ids -> do
-        create [paginateMakeId paginate page] $ do
-            route idRoute
-            compile $ do
+        route idRoute
+        if page == 1
+            then compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
+                topPost <- loadBody "index.md"
                 let postsCtx =
-                        listField "posts" postCtx (return posts) `mappend`
+                        constField "body" topPost `mappend`
+                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
                         constField "navlinkolder" "" `mappend`
                         constField "navlinknewer" "" `mappend`
                         defaultContext
-
+                makeItem ""
+                    >>= loadAndApplyTemplate "templates/index.html" postsCtx
+            else compile $ do
+                posts <- recentFirst =<< loadAllSnapshots ids "content"
+                let postsCtx =
+                        listField "posts" (postWithTagsCtx tags) (return posts) `mappend`
+                        constField "navlinkolder" "" `mappend`
+                        constField "navlinknewer" "" `mappend`
+                        defaultContext
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
+
 
 
     {-
