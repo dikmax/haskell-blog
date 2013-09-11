@@ -1,0 +1,12 @@
+<div class="panel-footer">
+    $if(tags)$
+        $tags$ |
+    $endif$
+
+    <i class="glyphicon glyphicon-calendar"></i> $date$
+
+    $if(comments)$
+    | <i class="glyphicon glyphicon-comment"></i>
+    <span class='post-comments'><a itemprop='discussionUrl' href='/$url$#disqus_thread'>Считаем комментарии...</a></span>
+    $endif$
+</div>

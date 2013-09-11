@@ -8,7 +8,7 @@ import           Data.Monoid (mappend, mconcat)
 -- import           Data.Time.Format (parseTime)
 import           Hakyll
 -- import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
--- import           System.Locale (defaultTimeLocale)
+import           System.Locale
 import           Text.Printf (printf)
 import           Text.Regex (mkRegex, subRegex)
 
@@ -16,7 +16,19 @@ import           Text.Regex (mkRegex, subRegex)
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
-    match (fromList ["fonts/*", "images/*", "js/*", "favicon.ico"]) $ do
+    match "fonts/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
+    match "images/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
+    match "js/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
+    match "favicon.ico" $ do
         route   idRoute
         compile copyFileCompiler
 
@@ -140,9 +152,37 @@ tagsContext = field "tags" convertTags
             tags <- getTags $ itemIdentifier item
             return $ concat $ map (\tag -> "<a href=\"/tag/" ++ tag ++ "/\" class=\"label label-default\">" ++ tag ++ "</a> ") tags
 
+timeLocale :: TimeLocale
+timeLocale = defaultTimeLocale
+  { wDays =
+    [ ("Воскресенье", "вс")
+    , ("Понедельник", "пн")
+    , ("Вторник", "вт")
+    , ("Среда", "ср")
+    , ("Четверг", "чт")
+    , ("Пятница", "пт")
+    , ("Суббота", "сб")
+    ]
+  , months =
+    [ ("января", "янв")
+    , ("февраля", "фев")
+    , ("марта", "мар")
+    , ("апреля", "апр")
+    , ("мая", "май")
+    , ("июня", "июн")
+    , ("июля", "июл")
+    , ("августа", "авг")
+    , ("сентября", "сен")
+    , ("октября", "окт")
+    , ("ноября", "ноя")
+    , ("декабря", "дек")
+    ]
+  }
+
+
 postCtx :: Context String
 postCtx =
-    dateField "date" "%B %e, %Y" `mappend`
+    dateFieldWith timeLocale "date" "%A, %e %B %Y, %R" `mappend`
     field "url" (return . identifierToUrl . toFilePath . itemIdentifier) `mappend`
     tagsContext `mappend`
     defaultContext
