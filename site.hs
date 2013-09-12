@@ -32,6 +32,10 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    match "css/style.css" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "less/*.less" $ do
         compile getResourceBody
 
@@ -39,6 +43,13 @@ main = hakyll $ do
     rulesExtraDependencies [d] $ create ["css/bootstrap.css"] $ do
         route idRoute
         compile $ loadBody "less/bootstrap.less"
+            >>= makeItem
+            >>= withItemBody
+              (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])
+
+    rulesExtraDependencies [d] $ create ["css/bootstrap-theme.css"] $ do
+        route idRoute
+        compile $ loadBody "less/theme.less"
             >>= makeItem
             >>= withItemBody
               (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])
