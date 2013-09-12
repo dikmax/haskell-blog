@@ -32,27 +32,27 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
-    match "css/style.css" $ do
+    {-match "css/style.css" $ do
         route   idRoute
-        compile copyFileCompiler
+        compile copyFileCompiler-}
 
     match "less/*.less" $ do
         compile getResourceBody
 
-    d <- makePatternDependency "less/*.less"
-    rulesExtraDependencies [d] $ create ["css/bootstrap.css"] $ do
+    d <- makePatternDependency "less/**"
+    rulesExtraDependencies [d] $ create ["css/style.css"] $ do
         route idRoute
-        compile $ loadBody "less/bootstrap.less"
+        compile $ loadBody "less/style.less"
             >>= makeItem
             >>= withItemBody
               (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])
 
-    rulesExtraDependencies [d] $ create ["css/bootstrap-theme.css"] $ do
+    {-rulesExtraDependencies [d] $ create ["css/bootstrap-theme.css"] $ do
         route idRoute
-        compile $ loadBody "less/theme.less"
+        compile $ loadBody "less/flatty.less"
             >>= makeItem
             >>= withItemBody
-              (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])
+              (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])-}
 
     tags <- buildTags "posts/*" (\tag -> fromFilePath $ "tag/" ++ tag ++ "/index.html")
 
