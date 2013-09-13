@@ -1,0 +1,23 @@
+Name:                haskell-blog
+Version:             0.1
+Synopsis:            Project Synopsis Here
+Description:         Project Description Here
+License:             AllRightsReserved
+Author:              Author
+Maintainer:          maintainer@example.com
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Executable dikmax-name
+  hs-source-dirs: .
+  main-is: site.hs
+
+  Build-depends:
+    base >= 4 && < 5,
+    hakyll >= 4.3.3.0 && < 4.4,
+    tagsoup >= 0.12 && < 0.13,
+    regex-compat >= 0.95.1,
+    old-locale >= 1 && < 1.1,
+    containers >= 0.5 && < 0.6
