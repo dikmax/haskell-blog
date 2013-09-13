@@ -6,7 +6,7 @@ tags: отпуск, путешествие, фотки
 
 Вскоре после посещения Антверпена мы сели на скоростной [TGV](http://ru.wikipedia.org/wiki/TGV), который должен был доставить нас до Парижа. 
 
-![](http://a51056ce8d9b948fb69e-8de36eb37b2366f5a76a776c3dee0b32.r42.cf1.rackcdn.com/paris_tgv.jpg "TGV")
+![TGV](http://a51056ce8d9b948fb69e-8de36eb37b2366f5a76a776c3dee0b32.r42.cf1.rackcdn.com/paris_tgv.jpg "TGV")
 
 Хотя не совсем так. Из Брюсселя в Париж ходят скоростные и слишком дорогие [Thalys](http://ru.wikipedia.org/wiki/Thalys), а TGV довез нас с пересадкой в Лилле. 
 

@@ -11,6 +11,7 @@ import           Hakyll
 import           System.Locale
 import           Text.Printf (printf)
 import           Text.Regex (mkRegex, subRegex)
+import           Text.HTML.TagSoup (Tag(..))
 
 
 --------------------------------------------------------------------------------
@@ -32,10 +33,6 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
-    {-match "css/style.css" $ do
-        route   idRoute
-        compile copyFileCompiler-}
-
     match "less/*.less" $ do
         compile getResourceBody
 
@@ -47,13 +44,6 @@ main = hakyll $ do
             >>= withItemBody
               (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])
 
-    {-rulesExtraDependencies [d] $ create ["css/bootstrap-theme.css"] $ do
-        route idRoute
-        compile $ loadBody "less/flatty.less"
-            >>= makeItem
-            >>= withItemBody
-              (unixFilter "lessc" ["--yui-compress","-O2", "--include-path=less","-"])-}
-
     tags <- buildTags "posts/*" (\tag -> fromFilePath $ "tag/" ++ tag ++ "/index.html")
 
     -- Posts pages
@@ -61,6 +51,7 @@ main = hakyll $ do
     match "posts/*" $ do
         route $ removeExtension
         compile $ pandocCompiler
+            >>= transformPost
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/_post.html" postCtx
             >>= loadAndApplyTemplate "templates/default.html" postCtx
@@ -147,6 +138,9 @@ main = hakyll $ do
 
 
 --------------------------------------------------------------------------------
+transformPost :: Item String -> Compiler (Item String)
+transformPost item = return $ item { itemBody = demoteHeaders $ itemBody item }
+
 
 getTagIdent :: String -> PageNumber -> Identifier
 getTagIdent tag pageNum
