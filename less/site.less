@@ -30,16 +30,16 @@ body {
 
 .post-body {
   .figure {
-    .thumbnail();
     .text-center();
 
-    > img {
-      .img-rounded();
+    .figure-inner {
+      .thumbnail();
       display: inline-block;
+
+      > .figure-description {
+        margin: 6px 0;
+      }
     }
 
-    > .caption {
-      display: inline-block;
-    }
   }
 }

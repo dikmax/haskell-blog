@@ -240,29 +240,31 @@ writeInline (Image inline target) = do
     True ->
       return
         [ Element "div" [("class", "figure")]
-          ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
-          [ Element "iframe"
-            [ ("width", "560")
-            , ("height", "315")
-            , ("src", "http://www.youtube.com/embed/" `T.append`
-                (videoId $ T.pack $ fst target) `T.append` "?wmode=transparent")
-            , ("frameborder", "0")
-            , ("allowfullscreen", "allowfullscreen")
-            , ("class", "img-polaroid")
-            ] []
-          ])
+          [ Element "div" [("class", "figure-inner")]
+            ([ Element "iframe"
+              [ ("width", "560")
+              , ("height", "315")
+              , ("src", "http://www.youtube.com/embed/" `T.append`
+                  (videoId $ T.pack $ fst target) `T.append` "?wmode=transparent")
+              , ("frameborder", "0")
+              , ("allowfullscreen", "allowfullscreen")
+              , ("class", "img-polaroid")
+              ] []
+            ] ++ [ Element "p" [("class", "figure-description")] inlines | inline /= []])
+          ]
         ]
     False ->
       return
         [ Element "div" [("class", "figure")]
-          ([ Element "p" [("class", "figure-description")] inlines | inline /= []] ++
-          [ Element "img"
-            [ ("src", T.pack $ fst target)
-            , ("title", T.pack $ snd target)
-            , ("alt", T.pack $ snd target)
-            , ("class", "img-polaroid")
-            ] []
-          ])
+          [ Element "div" [("class", "figure-inner")]
+            ([ Element "img"
+              [ ("src", T.pack $ fst target)
+              , ("title", T.pack $ snd target)
+              , ("alt", T.pack $ snd target)
+              , ("class", "img-polaroid")
+              ] []
+            ] ++ [ Element "p" [("class", "figure-description")] inlines | inline /= []])
+          ]
         ]
   where
     videoId url = T.takeWhile (/= '&') $ T.replace "http://www.youtube.com/watch?v=" "" url
