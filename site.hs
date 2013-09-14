@@ -1,18 +1,23 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad (forM_, filterM)
 import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf)
 import qualified Data.Map as M
 import           Data.Monoid (mappend, mconcat)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 -- import           Data.Time.Clock (UTCTime)
 -- import           Data.Time.Format (parseTime)
 import           Hakyll
 -- import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
 import           System.Locale
+import           Text.HTML.TagSoup (Tag(..))
+import           Text.Pandoc
 import           Text.Printf (printf)
 import           Text.Regex (mkRegex, subRegex)
-import           Text.HTML.TagSoup (Tag(..))
-
+import           Text.XmlHtml
+import           XmlHtmlWriter
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -50,7 +55,7 @@ main = hakyll $ do
 
     match "posts/*" $ do
         route $ removeExtension
-        compile $ pandocCompiler
+        compile $ pandocCompiler'
             >>= transformPost
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/_post.html" postCtx
@@ -102,7 +107,7 @@ main = hakyll $ do
 
     match "index.md" $ do
         compile $ do
-            pandocCompiler
+            pandocCompiler'
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
 
     paginate <- buildPaginateWith' 5 getPageIdent ("posts/*")
@@ -130,7 +135,7 @@ main = hakyll $ do
 
     match (fromList ["about.md", "shoutbox.md"]) $ do
         route $ removeExtension
-        compile $ pandocCompiler
+        compile $ pandocCompiler'
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/default.html" postCtx
 
@@ -306,4 +311,19 @@ paginateContext' pag = mconcat
     , paginateField pag "lastPage"
         (\_ c l -> if c >= l then Nothing else Just l)
     ]
+
+pandocCompiler' :: Compiler (Item String)
+pandocCompiler' = do
+    post <- getResourceBody
+    makeItem $ T.unpack $ T.decodeUtf8 $ toByteString $ renderHtmlFragment UTF8 $ writeXmlHtml defaultXmlHtmlWriterOptions
+        { idPrefix = "" --postUrl post
+        , debugOutput = False
+        }
+        (readMarkdown readerOptions $ itemBody post)
+
+readerOptions :: ReaderOptions
+readerOptions = def
+  { readerSmart = True
+  , readerParseRaw = True
+  }
 
