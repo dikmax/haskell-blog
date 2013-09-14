@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import           Data.Monoid (mappend, mconcat)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
--- import           Data.Time.Clock (UTCTime)
+import           Data.Time.Clock (UTCTime)
 -- import           Data.Time.Format (parseTime)
 import           Hakyll
 -- import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
@@ -59,7 +59,7 @@ main = hakyll $ do
             >>= transformPost
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/_post.html" postCtx
-            >>= loadAndApplyTemplate "templates/default.html" postCtx
+            >>= loadAndApplyTemplate "templates/default.html" (pageCtx defaultMetadata)
 
     -- Tags pages
 
@@ -71,10 +71,11 @@ main = hakyll $ do
                     "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++
                     "\" class=\"weight-" ++ (show $ getWeight minCount maxCount count) ++ "\">" ++ tag ++ "</a>")
                 (intercalate " ") tags
+            let ctx = pageCtx defaultMetadata
             makeItem t
-                >>= loadAndApplyTemplate "templates/_tags-wrapper.html" postCtx
-                >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
-                >>= loadAndApplyTemplate "templates/default.html" postCtx
+                >>= loadAndApplyTemplate "templates/_tags-wrapper.html" ctx
+                >>= loadAndApplyTemplate "templates/_post-without-footer.html" ctx
+                >>= loadAndApplyTemplate "templates/default.html" ctx
 
     tagsRules tags $ \tag identifiers -> do
         paginate <- buildPaginateWith' 5 (getTagIdent tag) identifiers
@@ -83,15 +84,15 @@ main = hakyll $ do
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots ids "content"
                 let postsCtx =
-                        listField "posts" (postCtx) (return posts) `mappend`
+                        listField "posts" postCtx (return posts) `mappend`
                         paginateContext' paginate `mappend`
-                        defaultContext
+                        pageCtx defaultMetadata
 
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
 
-    create ["archive.html"] $ do
+    create ["archive.html"] $ do -- TODO
         route idRoute
         compile $ do
             posts <- recentFirst =<< loadAll "posts/*"
@@ -121,7 +122,7 @@ main = hakyll $ do
                         constField "body" topPost `mappend`
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext' paginate `mappend`
-                        defaultContext
+                        pageCtx defaultMetadata
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/index.html" postsCtx
             else compile $ do
@@ -129,7 +130,7 @@ main = hakyll $ do
                 let postsCtx =
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext paginate `mappend`
-                        defaultContext
+                        pageCtx defaultMetadata
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
@@ -137,12 +138,58 @@ main = hakyll $ do
         route $ removeExtension
         compile $ pandocCompiler'
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
-                >>= loadAndApplyTemplate "templates/default.html" postCtx
+                >>= loadAndApplyTemplate "templates/default.html" (pageCtx defaultMetadata)
+
+    -- Render RSS feed
+    create ["rss"] $ do
+        route idRoute
+        compile $ do
+            loadAllSnapshots "posts/*" "content"
+                >>= fmap (take 10) . recentFirst
+                >>= renderRss feedConfiguration feedCtx
 
     match "templates/*" $ compile templateCompiler
 
 
 --------------------------------------------------------------------------------
+
+--
+-- Metadata processing
+--
+
+data FacebookType = FacebookBlog
+    | FacebookArticle UTCTime [String] (Maybe String) -- Published, keywords, image
+    | FacebookProfile
+    | FacebookNothing
+
+data PageMetadata = PageMetadata
+    { metaTitle :: Maybe String
+    , metaUrl :: String
+    , metaDescription :: String
+    , metaKeywords :: [String]
+    , metaType :: FacebookType
+    }
+
+defaultMetadata :: PageMetadata
+defaultMetadata = PageMetadata
+    { metaTitle = Nothing
+    , metaUrl = ""
+    , metaDescription = ""
+    , metaKeywords = []
+    , metaType = FacebookNothing
+    }
+
+feedConfiguration :: FeedConfiguration
+feedConfiguration = FeedConfiguration
+    { feedTitle = "[dikmax's blog]"
+    , feedDescription = "Мой персональный блог"
+    , feedAuthorName = "Максим Дикун"
+    , feedAuthorEmail = "me@dikmax.name"
+    , feedRoot = "http://dikmax.name"
+    }
+
+feedCtx = bodyField "description" `mappend` defaultContext
+
 transformPost :: Item String -> Compiler (Item String)
 transformPost item = return $ item { itemBody = demoteHeaders $ itemBody item }
 
@@ -203,6 +250,14 @@ postCtx =
     field "url" (return . identifierToUrl . toFilePath . itemIdentifier) `mappend`
     tagsContext `mappend`
     defaultContext
+
+pageCtx :: PageMetadata -> Context String
+pageCtx (PageMetadata title url description keywords fType)=
+    constField "meta.title" (metaTitle title) `mappend`
+    defaultContext
+    where
+        metaTitle Nothing = "[dikmax's blog]"
+        metaTitle (Just title) = title ++ " :: [dikmax's blog]"
 
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
