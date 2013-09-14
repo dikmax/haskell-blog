@@ -55,11 +55,18 @@ main = hakyll $ do
 
     match "posts/*" $ do
         route $ removeExtension
-        compile $ pandocCompiler'
-            >>= transformPost
-            >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/_post.html" postCtx
-            >>= loadAndApplyTemplate "templates/default.html" (pageCtx defaultMetadata)
+
+        compile $ do
+            identifier <- getUnderlying
+            title <- getMetadataField identifier "title"
+            tags <- getTags identifier
+            pandocCompiler'
+                >>= saveSnapshot "content"
+                >>= loadAndApplyTemplate "templates/_post.html" postCtx
+                >>= loadAndApplyTemplate "templates/default.html" (pageCtx $ defaultMetadata
+                    { metaTitle = title
+                    , metaKeywords = tags
+                    })
 
     -- Tags pages
 
@@ -71,7 +78,7 @@ main = hakyll $ do
                     "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++
                     "\" class=\"weight-" ++ (show $ getWeight minCount maxCount count) ++ "\">" ++ tag ++ "</a>")
                 (intercalate " ") tags
-            let ctx = pageCtx defaultMetadata
+            let ctx = pageCtx $ defaultMetadata { metaTitle = Just "Темы" }
             makeItem t
                 >>= loadAndApplyTemplate "templates/_tags-wrapper.html" ctx
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" ctx
@@ -86,7 +93,11 @@ main = hakyll $ do
                 let postsCtx =
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext' paginate `mappend`
-                        pageCtx defaultMetadata
+                        pageCtx (defaultMetadata
+                            { metaTitle =
+                                if page == 1
+                                    then Just $ "\"" ++ tag ++ "\""
+                                    else Just $ "\"" ++ tag ++ "\", " ++ (show page) ++ "-я страница" })
 
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
@@ -98,8 +109,8 @@ main = hakyll $ do
             posts <- recentFirst =<< loadAll "posts/*"
             let archiveCtx =
                     listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Archives"            `mappend`
-                    defaultContext
+                    pageCtx (defaultMetadata
+                        { metaTitle = Just "Архив" })
 
             makeItem ""
                 >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
@@ -130,15 +141,20 @@ main = hakyll $ do
                 let postsCtx =
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext paginate `mappend`
-                        pageCtx defaultMetadata
+                        pageCtx (defaultMetadata
+                            { metaTitle = Just $ (show page) ++ "-я страница" })
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
     match (fromList ["about.md", "shoutbox.md"]) $ do
         route $ removeExtension
-        compile $ pandocCompiler'
+        compile $ do
+            identifier <- getUnderlying
+            title <- getMetadataField identifier "title"
+            pandocCompiler'
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
-                >>= loadAndApplyTemplate "templates/default.html" (pageCtx defaultMetadata)
+                >>= loadAndApplyTemplate "templates/default.html" (pageCtx (defaultMetadata
+                    { metaTitle = title }))
 
     -- Render RSS feed
     create ["rss"] $ do
@@ -175,7 +191,7 @@ defaultMetadata = PageMetadata
     { metaTitle = Nothing
     , metaUrl = ""
     , metaDescription = ""
-    , metaKeywords = []
+    , metaKeywords = ["Blog", "блог"]
     , metaType = FacebookNothing
     }
 
@@ -189,10 +205,6 @@ feedConfiguration = FeedConfiguration
     }
 
 feedCtx = bodyField "description" `mappend` defaultContext
-
-transformPost :: Item String -> Compiler (Item String)
-transformPost item = return $ item { itemBody = demoteHeaders $ itemBody item }
-
 
 getTagIdent :: String -> PageNumber -> Identifier
 getTagIdent tag pageNum
@@ -254,6 +266,9 @@ postCtx =
 pageCtx :: PageMetadata -> Context String
 pageCtx (PageMetadata title url description keywords fType)=
     constField "meta.title" (metaTitle title) `mappend`
+    constField "meta.url" url `mappend`
+    constField "meta.description" description `mappend`
+    constField "meta.keywords" (intercalate ", " keywords) `mappend`
     defaultContext
     where
         metaTitle Nothing = "[dikmax's blog]"
