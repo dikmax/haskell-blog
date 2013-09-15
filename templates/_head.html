@@ -18,6 +18,8 @@
     <meta property="og:title" content="[dikmax's blog]" />
     <meta property="og:url" content="$meta.url$" />
     <meta property="og:description" content="$meta.description$" />
+    <meta property="og:locale" content="ru_BY" />
+    <meta property="fb:profile_id" content="1201794820" />
     <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
     <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/" />
     <meta name="DC.title" content="$meta.title$" />
@@ -30,5 +32,18 @@
     <meta name="DC.format" content="text/html;charset=utf-8" />
     <meta name="DC.identifier" scheme="DCTERMS.URI" content="$meta.url$" />
     <meta name="DC.language" content="ru" />
-    <meta property="og:type" content="blog" />
+    $if(meta.facebook.nothing)$
+    <meta property="og:type" content="website" />
+    $endif$
+    $if(meta.facebook.article)$
+    <meta property="og:type" content="article" />
+    <meta property="article:published_time" content="$meta.facebook.published$" />
+    <meta property="article:author" content="1201794820" />
+    <meta property="article:publisher" content="1201794820" />
+    $for(meta.facebook.tags)$<meta property="article:tag" content="$body$" />
+    $endfor$
+    $for(meta.facebook.images)$<meta property="og:image" content="$body$" />
+    $endfor$
+    $endif$
+
 </head>

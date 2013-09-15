@@ -3,18 +3,19 @@
 import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad (forM_, filterM)
 import           Data.Char
-import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf)
+import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf, find)
 import qualified Data.Map as M
 import           Data.Maybe
 import           Data.Monoid (mappend, mconcat)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time.Clock (UTCTime)
--- import           Data.Time.Format (parseTime)
+import           Data.Time.Format (formatTime)
 import           Hakyll
 -- import           System.FilePath (takeBaseName, takeFileName, replaceFileName, replaceExtension)
 import           System.Locale
 import           Text.HTML.TagSoup (Tag(..))
+import qualified Text.HTML.TagSoup as TS
 import           Text.Pandoc
 import           Text.Printf (printf)
 import           Text.Regex (mkRegex, subRegex)
@@ -64,12 +65,15 @@ main = hakyll $ do
             tags <- getTags identifier
             description <- getMetadataField identifier "description"
             item <- pandocCompiler' >>= saveSnapshot "content"
+            let images = map (fromMaybe "") $ filter isJust $ map imagesMap $ TS.parseTags $ itemBody item
+            time <- getItemUTC defaultTimeLocale identifier
             loadAndApplyTemplate "templates/_post.html" postCtx item
                 >>= loadAndApplyTemplate "templates/default.html" (pageCtx $ defaultMetadata
                     { metaTitle = title
                     , metaUrl = '/' : (identifierToUrl $ toFilePath identifier)
                     , metaKeywords = tags
-                    , metaDescription = fromMaybe (cutDescription $ transformDescription $ escapeHtml $ stripTags $ itemBody item) description
+                    , metaDescription = fromMaybe (cutDescription $ transformDescription $ escapeHtml $ TS.innerText $ TS.parseTags $ itemBody item) description
+                    , metaType = FacebookArticle time tags images
                     })
 
     -- Tags pages
@@ -156,7 +160,8 @@ main = hakyll $ do
                         paginateContext' paginate `mappend`
                         pageCtx (defaultMetadata
                             { metaDescription = "Мой персональный блог. "
-                                ++ "Я рассказываю о программировании и иногда о своей жизни." })
+                                ++ "Я рассказываю о программировании и иногда о своей жизни."
+                            })
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/index.html" postsCtx
             else compile $ do
@@ -205,7 +210,7 @@ main = hakyll $ do
 --
 
 data FacebookType = FacebookBlog
-    | FacebookArticle UTCTime [String] (Maybe String) -- Published, keywords, image
+    | FacebookArticle UTCTime [String] [String] -- Published, keywords, images
     | FacebookProfile
     | FacebookNothing
 
@@ -311,10 +316,18 @@ pageCtx (PageMetadata title url description keywords fType)=
     constField "meta.description" (escapeHtml description) `mappend`
     constField "meta.keywords" (escapeHtml $ intercalate ", " keywords) `mappend`
     constField "meta.dc.subject" (escapeHtml $ intercalate "; " keywords) `mappend`
+    facebookFields fType `mappend`
     defaultContext
     where
         metaTitle Nothing = "[dikmax's blog]"
         metaTitle (Just title) = title ++ " :: [dikmax's blog]"
+
+        facebookFields (FacebookArticle published keywords images) =
+                constField "meta.facebook.article" "" `mappend`
+                constField "meta.facebook.published" (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" published) `mappend`
+                listField "meta.facebook.tags" defaultContext (mapM (\k -> makeItem k) keywords) `mappend`
+                listField "meta.facebook.images" defaultContext (mapM (\k -> makeItem k) images)
+        facebookFields _ = constField "meta.facebook.nothing" ""
 
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
 isPublished identifier = do
@@ -439,3 +452,6 @@ readerOptions = def
   , readerParseRaw = True
   }
 
+imagesMap :: Tag String -> Maybe String
+imagesMap (TagOpen "img" attrs) = fmap snd $ find (\attr -> fst attr == "src") attrs
+imagesMap _ = Nothing
