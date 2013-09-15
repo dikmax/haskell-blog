@@ -124,10 +124,12 @@ main = hakyll $ do
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
+    archiveRules
 
-    create ["archive.html"] $ do -- TODO
+    {-create ["archive/index.html"] $ do -- TODO
         route idRoute
         compile $ do
+
             posts <- recentFirst =<< loadAll "posts/*"
             let archiveCtx =
                     listField "posts" postCtx (return posts) `mappend`
@@ -139,7 +141,7 @@ main = hakyll $ do
 
             makeItem ""
                 >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+                >>= loadAndApplyTemplate "templates/default.html" archiveCtx-}
 
 
     match "index.md" $ do
@@ -204,6 +206,33 @@ main = hakyll $ do
 
 
 --------------------------------------------------------------------------------
+
+archiveRules :: Rules ()
+archiveRules = do
+    ids <- getMatches "posts/*"
+    years <- mapM yearsMap ids
+    forM_ (yearsMap1 years) $ \(year, list) ->
+        create [fromFilePath ("archive/" ++ year ++ "/index.html")] $ do
+            route idRoute
+            compile $ do
+                posts <- recentFirst =<< loadAllSnapshots (fromList list) "content"
+                let archiveCtx =
+                        listField "posts" postCtx (return posts) `mappend`
+                        pageCtx (defaultMetadata
+                            { metaTitle = Just "Архив"
+                            , metaDescription = "Список всех постов для \"быстрого поиска\""
+                            , metaUrl = "/archive/"
+                            })
+                makeItem ""
+                    >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+                    >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+
+    where
+        yearsMap i = do
+            utc <- getItemUTC defaultTimeLocale i
+            return (formatTime defaultTimeLocale "%Y" utc, [i])
+        yearsMap1 = M.assocs . M.fromListWith (++)
+
 
 --
 -- Metadata processing
@@ -327,6 +356,7 @@ pageCtx (PageMetadata title url description keywords fType)=
                 constField "meta.facebook.published" (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" published) `mappend`
                 listField "meta.facebook.tags" defaultContext (mapM (\k -> makeItem k) keywords) `mappend`
                 listField "meta.facebook.images" defaultContext (mapM (\k -> makeItem k) images)
+        -- TODO Facebook profile
         facebookFields _ = constField "meta.facebook.nothing" ""
 
 isPublished :: (MonadMetadata m) => Identifier -> m Bool
