@@ -62,12 +62,14 @@ main = hakyll $ do
             identifier <- getUnderlying
             title <- getMetadataField identifier "title"
             tags <- getTags identifier
+            description <- getMetadataField identifier "description"
             item <- pandocCompiler' >>= saveSnapshot "content"
             loadAndApplyTemplate "templates/_post.html" postCtx item
                 >>= loadAndApplyTemplate "templates/default.html" (pageCtx $ defaultMetadata
                     { metaTitle = title
+                    , metaUrl = '/' : (identifierToUrl $ toFilePath identifier)
                     , metaKeywords = tags
-                    , metaDescription = cutDescription $ transformDescription $ escapeHtml $ stripTags $ itemBody item
+                    , metaDescription = fromMaybe (cutDescription $ transformDescription $ escapeHtml $ stripTags $ itemBody item) description
                     })
 
     -- Tags pages
@@ -83,6 +85,7 @@ main = hakyll $ do
             let ctx = pageCtx (defaultMetadata
                     { metaTitle = Just "Темы"
                     , metaDescription = "Полный список тем (тегов) на сайте"
+                    , metaUrl = "/tags/"
                     })
             makeItem t
                 >>= loadAndApplyTemplate "templates/_tags-wrapper.html" ctx
@@ -108,6 +111,10 @@ main = hakyll $ do
                                     then "Мой персональный блог, записи с тегом \"" ++ tag ++ "\"."
                                     else "Мой персональный блог, записи с тегом \"" ++ tag ++ "\" с "
                                         ++ (show ((page - 1) * 5 + 1)) ++ " по " ++ (show (page * 5)) ++ "."
+                            , metaUrl =
+                                if page == 1
+                                    then "/tag/" ++ tag ++ "/"
+                                    else "/tag/" ++ tag ++ "/page/" ++ (show page) ++ "/"
                             })
 
                 makeItem ""
@@ -123,6 +130,7 @@ main = hakyll $ do
                     pageCtx (defaultMetadata
                         { metaTitle = Just "Архив"
                         , metaDescription = "Список всех постов для \"быстрого поиска\""
+                        , metaUrl = "/archive/"
                         })
 
             makeItem ""
@@ -159,7 +167,9 @@ main = hakyll $ do
                         pageCtx (defaultMetadata
                             { metaTitle = Just $ (show page) ++ "-я страница"
                             , metaDescription = "Мой персональный блог, записи с " ++ (show ((page - 1) * 5 + 1))
-                                ++ " по " ++ (show (page * 5)) ++ "."})
+                                ++ " по " ++ (show (page * 5)) ++ "."
+                            , metaUrl = "/page/" ++ (show page) ++ "/"
+                            })
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
@@ -174,6 +184,7 @@ main = hakyll $ do
                 >>= loadAndApplyTemplate "templates/default.html" (pageCtx (defaultMetadata
                     { metaTitle = title
                     , metaDescription = fromMaybe "" description
+                    , metaUrl = '/' : (identifierToUrl $ toFilePath identifier)
                     }))
 
     -- Render RSS feed
@@ -209,7 +220,7 @@ data PageMetadata = PageMetadata
 defaultMetadata :: PageMetadata
 defaultMetadata = PageMetadata
     { metaTitle = Nothing
-    , metaUrl = ""
+    , metaUrl = "/"
     , metaDescription = ""
     , metaKeywords = ["Blog", "блог"]
     , metaType = FacebookNothing
@@ -295,10 +306,11 @@ postCtx =
 
 pageCtx :: PageMetadata -> Context String
 pageCtx (PageMetadata title url description keywords fType)=
-    constField "meta.title" (metaTitle title) `mappend`
-    constField "meta.url" url `mappend`
-    constField "meta.description" description `mappend`
-    constField "meta.keywords" (intercalate ", " keywords) `mappend`
+    constField "meta.title" (escapeHtml $ metaTitle title) `mappend`
+    constField "meta.url" (escapeHtml $ "http://dikmax.name" ++ url) `mappend`
+    constField "meta.description" (escapeHtml description) `mappend`
+    constField "meta.keywords" (escapeHtml $ intercalate ", " keywords) `mappend`
+    constField "meta.dc.subject" (escapeHtml $ intercalate "; " keywords) `mappend`
     defaultContext
     where
         metaTitle Nothing = "[dikmax's blog]"
