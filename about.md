@@ -1,7 +1,7 @@
 ---
 title: Обо мне
 date: 2012-05-30T20:00:00+03:00
-published: false
+description: Здравствуйте, очень приятно, царь
 special: true
 ---
 

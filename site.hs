@@ -2,8 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad (forM_, filterM)
+import           Data.Char
 import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf)
 import qualified Data.Map as M
+import           Data.Maybe
 import           Data.Monoid (mappend, mconcat)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -60,12 +62,12 @@ main = hakyll $ do
             identifier <- getUnderlying
             title <- getMetadataField identifier "title"
             tags <- getTags identifier
-            pandocCompiler'
-                >>= saveSnapshot "content"
-                >>= loadAndApplyTemplate "templates/_post.html" postCtx
+            item <- pandocCompiler' >>= saveSnapshot "content"
+            loadAndApplyTemplate "templates/_post.html" postCtx item
                 >>= loadAndApplyTemplate "templates/default.html" (pageCtx $ defaultMetadata
                     { metaTitle = title
                     , metaKeywords = tags
+                    , metaDescription = cutDescription $ transformDescription $ escapeHtml $ stripTags $ itemBody item
                     })
 
     -- Tags pages
@@ -78,7 +80,10 @@ main = hakyll $ do
                     "<a href=\"/tag/" ++ tag ++ "/\" title=\"" ++ (countText count "пост" "поста" "постов") ++
                     "\" class=\"weight-" ++ (show $ getWeight minCount maxCount count) ++ "\">" ++ tag ++ "</a>")
                 (intercalate " ") tags
-            let ctx = pageCtx $ defaultMetadata { metaTitle = Just "Темы" }
+            let ctx = pageCtx (defaultMetadata
+                    { metaTitle = Just "Темы"
+                    , metaDescription = "Полный список тем (тегов) на сайте"
+                    })
             makeItem t
                 >>= loadAndApplyTemplate "templates/_tags-wrapper.html" ctx
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" ctx
@@ -97,7 +102,13 @@ main = hakyll $ do
                             { metaTitle =
                                 if page == 1
                                     then Just $ "\"" ++ tag ++ "\""
-                                    else Just $ "\"" ++ tag ++ "\", " ++ (show page) ++ "-я страница" })
+                                    else Just $ "\"" ++ tag ++ "\", " ++ (show page) ++ "-я страница"
+                            , metaDescription =
+                                if page == 1
+                                    then "Мой персональный блог, записи с тегом \"" ++ tag ++ "\"."
+                                    else "Мой персональный блог, записи с тегом \"" ++ tag ++ "\" с "
+                                        ++ (show ((page - 1) * 5 + 1)) ++ " по " ++ (show (page * 5)) ++ "."
+                            })
 
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
@@ -110,7 +121,9 @@ main = hakyll $ do
             let archiveCtx =
                     listField "posts" postCtx (return posts) `mappend`
                     pageCtx (defaultMetadata
-                        { metaTitle = Just "Архив" })
+                        { metaTitle = Just "Архив"
+                        , metaDescription = "Список всех постов для \"быстрого поиска\""
+                        })
 
             makeItem ""
                 >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
@@ -133,7 +146,9 @@ main = hakyll $ do
                         constField "body" topPost `mappend`
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext' paginate `mappend`
-                        pageCtx defaultMetadata
+                        pageCtx (defaultMetadata
+                            { metaDescription = "Мой персональный блог. "
+                                ++ "Я рассказываю о программировании и иногда о своей жизни." })
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/index.html" postsCtx
             else compile $ do
@@ -142,7 +157,9 @@ main = hakyll $ do
                         listField "posts" postCtx (return posts) `mappend`
                         paginateContext paginate `mappend`
                         pageCtx (defaultMetadata
-                            { metaTitle = Just $ (show page) ++ "-я страница" })
+                            { metaTitle = Just $ (show page) ++ "-я страница"
+                            , metaDescription = "Мой персональный блог, записи с " ++ (show ((page - 1) * 5 + 1))
+                                ++ " по " ++ (show (page * 5)) ++ "."})
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/list.html" postsCtx
 
@@ -151,10 +168,13 @@ main = hakyll $ do
         compile $ do
             identifier <- getUnderlying
             title <- getMetadataField identifier "title"
+            description <- getMetadataField identifier "description"
             pandocCompiler'
                 >>= loadAndApplyTemplate "templates/_post-without-footer.html" postCtx
                 >>= loadAndApplyTemplate "templates/default.html" (pageCtx (defaultMetadata
-                    { metaTitle = title }))
+                    { metaTitle = title
+                    , metaDescription = fromMaybe "" description
+                    }))
 
     -- Render RSS feed
     create ["rss"] $ do
@@ -205,6 +225,16 @@ feedConfiguration = FeedConfiguration
     }
 
 feedCtx = bodyField "description" `mappend` defaultContext
+
+-- Replate newlines with spaces
+transformDescription :: String -> String
+transformDescription = map (\ch -> if ch == '\n' then ' ' else ch)
+
+-- Cut long descriptions
+cutDescription :: String -> String
+cutDescription d
+    | length d > 512 = reverse (dropWhile isSpace $ dropWhile (not . isSpace) $ reverse $ take 512 d) ++ "..."
+    | otherwise = d
 
 getTagIdent :: String -> PageNumber -> Identifier
 getTagIdent tag pageNum
