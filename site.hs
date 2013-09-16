@@ -3,7 +3,7 @@
 import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad (forM_, filterM)
 import           Data.Char
-import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf, find)
+import           Data.List (sortBy, intercalate, unfoldr, isSuffixOf, find, groupBy)
 import qualified Data.Map as M
 import           Data.Maybe
 import           Data.Monoid (mappend, mconcat)
@@ -206,14 +206,32 @@ archiveRules = do
             route idRoute
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots (fromList list) "content"
+                months <- mapM (monthsMap) posts
                 let yearCtx =
                         field "active" (\i -> if itemBody i == year then return "active" else fail "") `mappend`
                         field "href" (\i -> return $ fp' $ itemBody i) `mappend`
                         bodyField "year"
 
+                    mm = groupBy (\a b -> fst a == fst b) months
+
+                    postsList i = do
+                        tpl <- loadBody "templates/_post-archive.html"
+                        str <- applyTemplateList tpl ctx items
+                        item <- makeItem str
+                            >>= loadAndApplyTemplate "templates/_post-list-archive.html" postCtx
+                        return $ itemBody item
+                        where
+                            items = map snd $ filter (\m -> fst m == itemBody i) months
+                            ctx = field "day" daysField `mappend` postCtx
+
+                    monthsCtx =
+                        field "posts" postsList `mappend`
+                        {- listField "posts" postCtx postsList `mappend` -}
+                        bodyField "month"
+
                     archiveCtx =
                         listField "years" yearCtx (mapM (\k -> makeItem $ fst k) ym) `mappend`
-                        listField "posts" postCtx (return posts) `mappend`
+                        listField "months" monthsCtx (mapM (makeItem . fst . head) mm) `mappend`
                         pageCtx (defaultMetadata
                             { metaTitle = Just "Архив"
                             , metaDescription = "Список всех постов для \"быстрого поиска\""
@@ -221,13 +239,20 @@ archiveRules = do
                             })
                 makeItem ""
                     >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                    >>= loadAndApplyTemplate "templates/default.html" archiveCtx
 
     where
         yearsMap i = do
             utc <- getItemUTC defaultTimeLocale i
             return (formatTime defaultTimeLocale "%Y" utc, [i])
         yearsMap1 = M.assocs . M.fromListWith (++)
+        monthsMap i = do
+            utc <- getItemUTC defaultTimeLocale $ itemIdentifier i
+            return (formatTime timeLocale' "%B" utc, i)
+        makeItem' x = return $ Item (fromFilePath x) ""
+        daysField i = do
+            utc <- getItemUTC defaultTimeLocale $ itemIdentifier i
+            return $ formatTime timeLocale' "%e" utc
+
 
 
 --
@@ -323,6 +348,24 @@ timeLocale = defaultTimeLocale
     , ("октября", "окт")
     , ("ноября", "ноя")
     , ("декабря", "дек")
+    ]
+  }
+
+timeLocale' :: TimeLocale
+timeLocale' = timeLocale
+  { months =
+    [ ("Январь", "янв")
+    , ("Февраль", "фев")
+    , ("Март", "мар")
+    , ("Апрель", "апр")
+    , ("Май", "май")
+    , ("Июнь", "июн")
+    , ("Июль", "июл")
+    , ("Август", "авг")
+    , ("Сентябрь", "сен")
+    , ("Октябрь", "окт")
+    , ("Ноябрь", "ноя")
+    , ("Декабрь", "дек")
     ]
   }
 

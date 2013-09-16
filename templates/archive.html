@@ -1,15 +1,35 @@
-<div class="text-center">
-    <ul class="pagination pagination-lg">
-        $for(years)$
-        $if(active)$
-        <li class="active"><a href="$href$">$year$</a></li>
-        $else$
-        <li><a href="$href$">$year$</a></li>
-        $endif$
-        $endfor$
-    </ul>
-</div>
-$for(posts)$
-<h1>$title$</h1>
-$endfor$
+<!DOCTYPE html>
+<html>
+$partial("templates/_head.html")$
+<body>
+$partial("templates/_topbar.html")$
 
+<div class="container">
+    <div class="text-center">
+        <ul class="pagination pagination-lg">
+            $for(years)$
+            $if(active)$
+            <li class="active"><a href="$href$">$year$</a></li>
+            $else$
+            <li><a href="$href$">$year$</a></li>
+            $endif$
+            $endfor$
+        </ul>
+    </div>
+
+    <div class="panel-group">
+
+        <div class="panel panel-default post-container">
+            <div class="panel-body post-body">
+                $for(months)$
+                <h1>$month$</h1>
+
+                $posts$
+                $endfor$
+            </div>
+        </div>
+        $partial("templates/_footer.html")$
+    </div>
+</div>
+</body>
+</html>
