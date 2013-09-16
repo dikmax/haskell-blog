@@ -1,4 +1,14 @@
-Here you can find all my previous posts:
+<div class="text-center">
+    <ul class="pagination pagination-lg">
+        $for(years)$
+        $if(active)$
+        <li class="active"><a href="$href$">$year$</a></li>
+        $else$
+        <li><a href="$href$">$year$</a></li>
+        $endif$
+        $endfor$
+    </ul>
+</div>
 $for(posts)$
 <h1>$title$</h1>
 $endfor$

@@ -126,24 +126,6 @@ main = hakyll $ do
 
     archiveRules
 
-    {-create ["archive/index.html"] $ do -- TODO
-        route idRoute
-        compile $ do
-
-            posts <- recentFirst =<< loadAll "posts/*"
-            let archiveCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    pageCtx (defaultMetadata
-                        { metaTitle = Just "Архив"
-                        , metaDescription = "Список всех постов для \"быстрого поиска\""
-                        , metaUrl = "/archive/"
-                        })
-
-            makeItem ""
-                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" archiveCtx-}
-
-
     match "index.md" $ do
         compile $ do
             pandocCompiler'
@@ -211,12 +193,26 @@ archiveRules :: Rules ()
 archiveRules = do
     ids <- getMatches "posts/*"
     years <- mapM yearsMap ids
-    forM_ (yearsMap1 years) $ \(year, list) ->
-        create [fromFilePath ("archive/" ++ year ++ "/index.html")] $ do
+    let ym = sortBy (\a b -> compare (fst b) (fst a)) $ yearsMap1 years
+        firstYear = fst $ head ym
+        fp year
+            | year == firstYear = "archive/index.html"
+            | otherwise = "archive/" ++ year ++ "/index.html"
+        fp' year
+            | year == firstYear = "/archive/"
+            | otherwise = "/archive/" ++ year ++ "/"
+    forM_ ym $ \(year, list) ->
+        create [fromFilePath $ fp year] $ do
             route idRoute
             compile $ do
                 posts <- recentFirst =<< loadAllSnapshots (fromList list) "content"
-                let archiveCtx =
+                let yearCtx =
+                        field "active" (\i -> if itemBody i == year then return "active" else fail "") `mappend`
+                        field "href" (\i -> return $ fp' $ itemBody i) `mappend`
+                        bodyField "year"
+
+                    archiveCtx =
+                        listField "years" yearCtx (mapM (\k -> makeItem $ fst k) ym) `mappend`
                         listField "posts" postCtx (return posts) `mappend`
                         pageCtx (defaultMetadata
                             { metaTitle = Just "Архив"
